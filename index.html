@@ -35,8 +35,10 @@ th{color:var(--mu);font-weight:600}
 .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700}
 .stat{font-size:12px;color:var(--mu)}
 #det{display:none;border:2px solid var(--ac)}
-dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0}
-dt{color:var(--mu);font-size:13px}dd{margin:0;font-weight:500}
+dl{display:grid;grid-template-columns:minmax(120px,max-content) minmax(0,1fr);gap:4px 14px;margin:0;min-width:0}
+dt{color:var(--mu);font-size:13px;overflow-wrap:anywhere}dd{margin:0;font-weight:500;min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.g>*{min-width:0}section{min-width:0;overflow-wrap:anywhere}
+@media (max-width:600px){dl{grid-template-columns:minmax(0,1fr);gap:0}dt{margin-top:10px}dd{font-size:15px}}
 .badge{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--bd);color:var(--mu)}
 #labels{display:none}
 .lb{border:1px solid #000;padding:6px;width:64mm;text-align:center;color:#000;background:#fff;break-inside:avoid;font:11px Arial,sans-serif}
