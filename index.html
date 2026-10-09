@@ -19,6 +19,7 @@ main{max-width:1100px;margin:0 auto;padding:14px}
 section{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:14px}
 h2{font-size:16px;margin:0 0 10px}
 .g{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.tki{display:inline-flex!important;gap:6px;align-items:center;margin:0 16px 8px 0!important;color:var(--tx)!important;font-size:14px!important;cursor:pointer}.tki input{width:auto}
 label{display:block;font-size:12px;color:var(--mu);margin-bottom:3px}
 input,select{width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--tx);font:inherit}
 button{padding:8px 12px;border:1px solid var(--bd);border-radius:6px;background:var(--card);color:var(--tx);cursor:pointer;font:inherit}
@@ -73,6 +74,8 @@ dt{color:var(--mu);font-size:13px}dd{margin:0;font-weight:500}
 </div>
 <div class="g" id="base" style="margin-top:10px"></div>
 <div class="g" id="specs" style="margin-top:10px"></div>
+<div style="margin-top:12px"><label>Accessories issued</label><div id="accs"></div></div>
+<div style="margin-top:6px"><label>Condition at handover</label><div id="conds"></div></div>
 <div class="codes"><div class="qr" id="pqr"></div><svg id="pbc"></svg><span class="stat">QR (scan with phone) + Barcode (scan with scanner)</span></div>
 <div class="bar"><button class="p" id="save">Save</button><button id="clear">New / Clear</button><label style="display:flex;gap:6px;align-items:center;margin:0;color:var(--tx)"><input type="checkbox" id="hf" style="width:auto"> Print handover form after saving</label></div>
 </section>
@@ -89,7 +92,7 @@ dt{color:var(--mu);font-size:13px}dd{margin:0;font-weight:500}
 <div class="tw" style="margin-top:10px"><table><thead><tr><th>Asset Code</th><th>Company</th><th>Type / Model</th><th>Configuration</th><th>Branch / Asset Location / User</th><th>Status</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>
 </section>
 </main>
-<main id="lg" style="display:none"><section style="max-width:380px;margin:30px auto"><h2>Admin Login</h2><label>Email</label><input id="le" type="email" autocomplete="username"><label style="margin-top:8px">Password</label><input id="lp" type="password" autocomplete="current-password"><div class="bar"><button class="p" id="lb">Login</button></div><div class="stat" id="lerr" style="margin-top:8px"></div></section></main>
+<main id="lg" style="display:none"><section style="max-width:380px;margin:30px auto"><h2>Login</h2><label>Email</label><input id="le" type="email" autocomplete="username"><label style="margin-top:8px">Password</label><input id="lp" type="password" autocomplete="current-password"><div class="bar"><button class="p" id="lb">Login</button></div><div class="stat" id="lerr" style="margin-top:8px"></div></section></main>
 <main id="pub" style="display:none"><section id="pc"></section></main>
 <div id="labels"></div><div id="hform"></div>
 <script type="module">
@@ -101,7 +104,8 @@ var BK=["model","sn","loc","aloc","dept","usr","pd","wt","st","rm"];
 var SK=["cpu","ram","hdd","os","size","res","ports","ip","mac","ntype","sip","smask","sgw","dns1","dns2"];
 var L={company:"Company",type:"Product Type",code:"Asset Code",model:"Brand / Model",sn:"Serial No.",cpu:"Processor",ram:"RAM",hdd:"Storage",os:"Operating System",size:"Screen Size",res:"Resolution",ports:"Ports",ip:"IP Address",sip:"Static IP Address",smask:"Subnet Mask",sgw:"Default Gateway",dns1:"Preferred DNS Server",dns2:"Alternate DNS Server",mac:"MAC Address",ntype:"Device (Switch/Router/AP/Firewall)",loc:"Branch Location",aloc:"Asset Location (Floor / Room / Desk)",dept:"Department",usr:"Assigned User",pd:"Purchase Date",wt:"Warranty Till",st:"Status",rm:"Remarks"};
 var ST=["In Use","In Stock","Under Repair","Scrapped"];
-var A=[],editId=null;
+var A=[],editId=null,ADM=false,ADMIN="it@assets.local";
+var ACC=["Charger / Adapter","Power cable","Mouse","Keyboard","Bag / Cover"],CD=["New","Good","Fair"];
 var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function opt(el,arr,first){if(first)el.add(new Option(first,""));arr.forEach(function(v){el.add(new Option(v,v))})}
@@ -109,6 +113,13 @@ function pre(n){for(var i=0;i<CO.length;i++)if(CO[i][0]===n)return CO[i][1];retu
 function keysOf(t){return BK.slice(0,2).concat(T[t][1],BK.slice(2))}
 function mk(k){var d=document.createElement("div");d.id="w_"+k;var inp=k==="st"?"<select id='f_st'></select>":"<input id='f_"+k+"'"+((k==="pd"||k==="wt")?" type='date'":"")+">";d.innerHTML="<label>"+L[k]+"</label>"+inp;return d}
 BK.forEach(function(k){$("base").appendChild(mk(k))});SK.forEach(function(k){$("specs").appendChild(mk(k))});
+$("accs").innerHTML=ACC.map(function(x){return"<label class='tki'><input type='checkbox' class='acc' value='"+esc(x)+"'> "+esc(x)+"</label>"}).join("")+"<label class='tki'><input type='checkbox' id='acc_o'> Other:</label><input id='acc_ot' placeholder='specify other accessory' style='width:220px;display:inline-block;vertical-align:middle'>";
+$("conds").innerHTML=CD.map(function(x){return"<label class='tki'><input type='checkbox' class='cnd' value='"+x+"'> "+x+"</label>"}).join("");
+$("conds").addEventListener("change",function(e){if(e.target.checked)document.querySelectorAll(".cnd").forEach(function(c){if(c!==e.target)c.checked=false})});
+$("acc_ot").addEventListener("input",function(){if($("acc_ot").value.trim())$("acc_o").checked=true});
+function getAcc(){var r=[];document.querySelectorAll(".acc").forEach(function(c){if(c.checked)r.push(c.value)});if($("acc_o").checked)r.push("Other");return r}
+function getCond(){var r="";document.querySelectorAll(".cnd").forEach(function(c){if(c.checked)r=c.value});return r}
+function setTicks(a){var s=(a&&a.acc)||[];document.querySelectorAll(".acc").forEach(function(c){c.checked=s.indexOf(c.value)>-1});$("acc_o").checked=s.indexOf("Other")>-1;$("acc_ot").value=(a&&a.accOther)||"";document.querySelectorAll(".cnd").forEach(function(c){c.checked=!!a&&a.cond===c.value})}
 opt($("f_st"),ST);opt($("f_company"),CO.map(function(c){return c[0]}));opt($("f_type"),Object.keys(T));
 opt($("fco"),CO.map(function(c){return c[0]}),"All companies");opt($("fty"),Object.keys(T),"All types");opt($("fst"),ST,"All statuses");
 function showSpecs(){var t=$("f_type").value;SK.forEach(function(k){$("w_"+k).style.display=T[t][1].indexOf(k)>-1?"":"none"})}
@@ -117,13 +128,14 @@ function urlFor(c){return location.origin+"/a/"+encodeURIComponent(c)}
 function qrSvg(c,cell){try{var q=qrcode(0,"M");q.addData(urlFor(c));q.make();return q.createSvgTag(cell||3,0)}catch(e){return""}}
 function bar(el,code){try{JsBarcode(el,code,{format:"CODE128",height:45,width:2,fontSize:13,margin:4})}catch(e){}}
 function refresh(){showSpecs();if(!editId)$("f_code").value=nextCode($("f_company").value,$("f_type").value);$("pqr").innerHTML=qrSvg($("f_code").value,3);bar("#pbc",$("f_code").value)}
-function clearForm(){editId=null;BK.concat(SK).forEach(function(k){$("f_"+k).value=k==="st"?"In Use":""});$("ft").textContent="Add New Asset";refresh()}
+function clearForm(){editId=null;BK.concat(SK).forEach(function(k){$("f_"+k).value=k==="st"?"In Use":""});$("ft").textContent="Add New Asset";setTicks(null);refresh()}
 /* storage: Firebase */
 function put(o,isNew){return fb.save(o,isNew).catch(function(e){alert("Could not save: "+e.message)})}
 function del(c){return fb.remove(c).catch(function(e){alert("Could not delete: "+e.message)})}
-function save(){
+function save(){if(editId&&!ADM){alert("Only admin can edit assets.");return}
  var t=$("f_type").value,o={company:$("f_company").value,type:t,code:$("f_code").value};
  BK.concat(SK).forEach(function(k){if(k==="st"||keysOf(t).indexOf(k)>-1)o[k]=$("f_"+k).value.trim()});
+ o.acc=getAcc();o.accOther=$("acc_o").checked?$("acc_ot").value.trim():"";o.cond=getCond();
  if(!o.loc){alert("Branch Location is required.");return}
  if(!o.aloc){alert("Asset Location is required.");return}
  if(!editId)o.code=nextCode(o.company,t);
@@ -135,11 +147,12 @@ function filtered(){
 function conf(a){return T[a.type]?T[a.type][1].map(function(k){return a[k]}).filter(Boolean).join(" | "):""}
 function render(){
  var R=filtered();$("cnt").textContent=R.length+" / "+A.length+" assets";
- $("tb").innerHTML=R.map(function(a){var i=esc(a.code);return"<tr><td class='code'>"+i+"</td><td>"+esc(a.company)+"</td><td>"+esc(a.type)+"<br><span class='stat'>"+esc(a.model)+(a.sn?" · SN "+esc(a.sn):"")+"</span></td><td>"+esc(conf(a))+"</td><td>"+esc(a.loc)+(a.aloc?" – "+esc(a.aloc):"")+"<br><span class='stat'>"+esc([a.dept,a.usr].filter(Boolean).join(" · "))+"</span></td><td>"+esc(a.st)+"</td><td style='white-space:nowrap'><button data-a='v' data-c='"+i+"'>Detail</button> <button data-a='l' data-c='"+i+"'>Label</button> <button data-a='h' data-c='"+i+"'>Handover</button> <button data-a='e' data-c='"+i+"'>Edit</button> <button class='d' data-a='x' data-c='"+i+"'>Del</button></td></tr>"}).join("")||"<tr><td colspan=7 class='stat'>No assets found.</td></tr>"}
+ $("tb").innerHTML=R.map(function(a){var i=esc(a.code);return"<tr><td class='code'>"+i+"</td><td>"+esc(a.company)+"</td><td>"+esc(a.type)+"<br><span class='stat'>"+esc(a.model)+(a.sn?" · SN "+esc(a.sn):"")+"</span></td><td>"+esc(conf(a))+"</td><td>"+esc(a.loc)+(a.aloc?" – "+esc(a.aloc):"")+"<br><span class='stat'>"+esc([a.dept,a.usr].filter(Boolean).join(" · "))+"</span></td><td>"+esc(a.st)+"</td><td style='white-space:nowrap'><button data-a='v' data-c='"+i+"'>Detail</button> <button data-a='l' data-c='"+i+"'>Label</button> <button data-a='h' data-c='"+i+"'>Handover</button> "+(ADM?"<button data-a='e' data-c='"+i+"'>Edit</button> <button class='d' data-a='x' data-c='"+i+"'>Del</button>":"")+"</td></tr>"}).join("")||"<tr><td colspan=7 class='stat'>No assets found.</td></tr>"}
 function detail(a){
  var ks=["company","type","code"].concat(keysOf(a.type)),h="<h2>Asset Detail – "+esc(a.code)+"</h2><div class='g'><dl>";
  ks.forEach(function(k){if(a[k])h+="<dt>"+esc(L[k])+"</dt><dd>"+esc(a[k])+"</dd>"});
- h+="</dl><div class='codes' style='margin:0'><div class='qr'>"+qrSvg(a.code,4)+"</div><svg id='dbc'></svg></div></div><div class='bar'><button class='p' data-a='l' data-c='"+esc(a.code)+"'>Label Print</button><button data-a='h' data-c='"+esc(a.code)+"'>Handover Form</button><button data-a='e' data-c='"+esc(a.code)+"'>Edit</button><button id='dx'>Close</button></div>";
+ if(a.acc&&a.acc.length)h+="<dt>Accessories Issued</dt><dd>"+esc(a.acc.map(function(x){return x==="Other"&&a.accOther?"Other: "+a.accOther:x}).join(", "))+"</dd>";if(a.cond)h+="<dt>Condition at Handover</dt><dd>"+esc(a.cond)+"</dd>";
+ h+="</dl><div class='codes' style='margin:0'><div class='qr'>"+qrSvg(a.code,4)+"</div><svg id='dbc'></svg></div></div><div class='bar'><button class='p' data-a='l' data-c='"+esc(a.code)+"'>Label Print</button><button data-a='h' data-c='"+esc(a.code)+"'>Handover Form</button>"+(ADM?"<button data-a='e' data-c='"+esc(a.code)+"'>Edit</button>":"")+"<button id='dx'>Close</button></div>";
  var d=$("det");d.innerHTML=h;d.style.display="block";bar("#dbc",a.code);$("dx").onclick=function(){d.style.display="none"};window.scrollTo(0,0)}
 function printLabels(R){
  if(!R.length){alert("No assets to print.");return}
@@ -148,12 +161,12 @@ function printLabels(R){
 function handover(a){
  if(!a)return;
  var rows=["company","type","code"].concat(keysOf(a.type).filter(function(k){return["rm","usr","dept","st"].indexOf(k)<0})).filter(function(k){return a[k]}).map(function(k){return"<tr><th>"+esc(L[k])+"</th><td>"+esc(a[k])+"</td></tr>"}).join("");
- var d=new Date().toLocaleDateString("en-GB"),U="__________________",ck=["Charger / Adapter","Power cable","Mouse","Keyboard","Bag / Cover","Other: ____________"].map(function(x){return"<span>&#9744; "+x+"</span>"}).join("");
+ var d=new Date().toLocaleDateString("en-GB"),U="__________________",sel=a.acc||[],bx=function(on){return on?"&#9745;":"&#9744;"},ck=ACC.map(function(x){return"<span>"+bx(sel.indexOf(x)>-1)+" "+esc(x)+"</span>"}).join("")+"<span>"+bx(sel.indexOf("Other")>-1)+" Other: "+(a.accOther?esc(a.accOther):"____________")+"</span>",cd=CD.map(function(x){return"<span>"+bx(a.cond===x)+" "+x+"</span>"}).join("");
  var sg=function(t,n){return"<div class='sg'><div class='ln'></div><b>"+t+"</b><br>Name: "+esc(n||U)+"<br>Date: ________________</div>"};
  $("hform").innerHTML="<div class='top'><div><b style='font-size:15px'>"+esc(a.company)+"</b></div><svg id='hbc'></svg></div><h1>ASSET HANDOVER FORM</h1><div class='sub'>Date: "+d+"</div>"+
  "<h3>1. Asset Details</h3><table>"+rows+"</table>"+
  "<h3>2. Handed Over To</h3><table><tr><th>Employee Name</th><td>"+esc(a.usr)+"&nbsp;</td></tr><tr><th>Employee ID</th><td>&nbsp;</td></tr><tr><th>Department</th><td>"+esc(a.dept)+"&nbsp;</td></tr><tr><th>Designation</th><td>&nbsp;</td></tr><tr><th>Branch Location</th><td>"+esc(a.loc)+"&nbsp;</td></tr><tr><th>Asset Location</th><td>"+esc(a.aloc)+"&nbsp;</td></tr><tr><th>Date of Handover</th><td>"+d+"</td></tr></table>"+
- "<h3>3. Accessories &amp; Condition</h3><div class='ck'><b>Accessories issued:</b> "+ck+"</div><div class='ck' style='margin-top:4px'><b>Condition at handover:</b> <span>&#9744; New</span><span>&#9744; Good</span><span>&#9744; Fair</span></div><div style='margin-top:6px'>Remarks: ______________________________________________________________</div>"+
+ "<h3>3. Accessories &amp; Condition</h3><div class='ck'><b>Accessories issued:</b> "+ck+"</div><div class='ck' style='margin-top:4px'><b>Condition at handover:</b> "+cd+"</div><div style='margin-top:6px'>Remarks: ______________________________________________________________</div>"+
  "<h3>4. Terms &amp; Declaration</h3><ol><li>The asset is the property of "+esc(a.company)+" and is issued for official use only.</li><li>The employee is responsible for its safe custody and must report any loss, theft or damage to the IT department immediately.</li><li>Installing unauthorised software, changing hardware or passing the asset to another person is not permitted.</li><li>The asset must be returned in good condition on request, transfer or resignation.</li><li>Loss or damage caused by negligence may be recovered as per company policy.</li></ol>"+
  "<p>I acknowledge that I have received the above asset in the stated condition and agree to the terms above.</p>"+
  "<div class='sgs'>"+sg("Issued by (IT Department)")+sg("Received by (Employee)",a.usr)+sg("Approved by (Manager / HOD)")+"</div>";
@@ -161,11 +174,12 @@ function handover(a){
 window.onafterprint=function(){document.body.className=""};
 function onClick(e){
  var b=e.target.closest("button");if(!b||!b.dataset.c)return;var a=find(b.dataset.c);if(!a)return;
+ if(!ADM&&(b.dataset.a==="e"||b.dataset.a==="x"))return;
  if(b.dataset.a==="v")detail(a);
  if(b.dataset.a==="l")printLabels([a]);
  if(b.dataset.a==="h")handover(a);
  if(b.dataset.a==="x"&&confirm("Delete "+a.code+"?"))del(a.code);
- if(b.dataset.a==="e"){editId=a.code;$("f_company").value=a.company;$("f_type").value=a.type;showSpecs();BK.concat(SK).forEach(function(k){$("f_"+k).value=a[k]||""});$("f_code").value=a.code;$("pqr").innerHTML=qrSvg(a.code,3);bar("#pbc",a.code);$("ft").textContent="Edit: "+a.code;window.scrollTo(0,0)}}
+ if(b.dataset.a==="e"){editId=a.code;$("f_company").value=a.company;$("f_type").value=a.type;showSpecs();BK.concat(SK).forEach(function(k){$("f_"+k).value=a[k]||""});setTicks(a);$("f_code").value=a.code;$("pqr").innerHTML=qrSvg(a.code,3);bar("#pbc",a.code);$("ft").textContent="Edit: "+a.code;window.scrollTo(0,0)}}
 $("tb").addEventListener("click",onClick);$("det").addEventListener("click",onClick);
 $("save").onclick=save;$("clear").onclick=clearForm;$("f_company").onchange=refresh;$("f_type").onchange=refresh;
 ["q","fco","fty","fst"].forEach(function(i){$(i).oninput=render});
@@ -173,10 +187,10 @@ $("q").addEventListener("keydown",function(e){if(e.key!=="Enter")return;var m=$(
 $("plAll").onclick=function(){printLabels(filtered())};
 function dl(n,t,m){var u=URL.createObjectURL(new Blob([t],{type:m})),a=document.createElement("a");a.href=u;a.download=n;a.click();setTimeout(function(){URL.revokeObjectURL(u)},500)}
 $("csv").onclick=function(){
- var H=["code","company","type"].concat(BK,SK),rows=[H.join(",")].concat(A.map(function(a){return H.map(function(k){return'"'+String(a[k]||"").replace(/"/g,'""')+'"'}).join(",")}));
+ var H=["code","company","type"].concat(BK,SK,["acc","accOther","cond"]),rows=[H.join(",")].concat(A.map(function(a){return H.map(function(k){return'"'+String(a[k]||"").replace(/"/g,'""')+'"'}).join(",")}));
  dl("sandeep-assets.csv","\ufeff"+rows.join("\n"),"text/csv")};
 $("bk").onclick=function(){dl("sandeep-assets-backup-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify(A),"application/json")};
-$("rs").onclick=function(){$("rsf").click()};
+$("rs").onclick=function(){if(ADM)$("rsf").click()};
 $("rsf").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var d=JSON.parse(r.result);if(!Array.isArray(d))throw 1;if(confirm("Restore "+d.length+" assets from this backup? Assets with the same code will be overwritten."))fb.restore(d).then(function(){alert("Restore complete")}).catch(function(x){alert("Restore failed: "+x.message)})}catch(x){alert("Invalid backup file.")}};r.readAsText(f);e.target.value=""};
 clearForm();render();
 $("lb").onclick=function(){$("lerr").textContent="";fb.login($("le").value.trim(),$("lp").value).catch(function(e){$("lerr").textContent="Login failed: "+e.message})};
@@ -192,7 +206,7 @@ function publicView(c){
 var pm=location.pathname.match(/\/a\/([^\/]+)/),pq=new URLSearchParams(location.search).get("a"),pcode=pm?decodeURIComponent(pm[1]):pq;
 if(pcode){publicView(pcode)}else{
  fb.onAuth(function(u){
-  if(u){$("lg").style.display="none";$("app").style.display="";$("lo").style.display="";$("mode").textContent=u.email;
+  if(u){ADM=(u.email||"").toLowerCase()===ADMIN;$("rs").style.display=ADM?"":"none";$("lg").style.display="none";$("app").style.display="";$("lo").style.display="";$("mode").textContent=u.email+(ADM?" (Admin)":" (Add only)");
    fb.watch(function(l){A=l;if(!editId)refresh();render()},function(e){alert("Could not load assets: "+e.message)})}
   else{$("app").style.display="none";$("lo").style.display="none";$("lg").style.display=""}})}
 </script>

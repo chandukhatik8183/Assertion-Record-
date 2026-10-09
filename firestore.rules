@@ -1,10 +1,19 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == "it@assets.local";
+    }
+    function isAddOnly() {
+      return request.auth != null && request.auth.token.email == "user@assets.local";
+    }
     match /assets/{code} {
+      // Anyone can read ONE asset (QR scan), nobody else can list them all
       allow get: if true;
-      allow list, create, update, delete: if request.auth != null
-        && request.auth.token.email == "it@assets.local";
+      // admin and the add-only user can see the list and add new assets
+      allow list, create: if isAdmin() || isAddOnly();
+      // ONLY admin can edit or delete
+      allow update, delete: if isAdmin();
     }
   }
 }
