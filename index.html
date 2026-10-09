@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sandeep Group – Asset Tracker</title>
+<script src="/vendor/JsBarcode.all.min.js"></script>
+<script src="/vendor/qrcode.js"></script>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1b1f24;--mu:#667085;--bd:#d9dde3;--ac:#1d4ed8;--ac2:#fff;--dg:#c62828;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171c;--card:#1e232b;--tx:#e8eaee;--mu:#9aa3b2;--bd:#323a46;--ac:#6d9bff;--ac2:#0b1220;--dg:#ff7b72}}
+:root[data-theme="dark"]{--bg:#14171c;--card:#1e232b;--tx:#e8eaee;--mu:#9aa3b2;--bd:#323a46;--ac:#6d9bff;--ac2:#0b1220;--dg:#ff7b72}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:14px 16px;background:var(--card);border-bottom:1px solid var(--bd)}
+h1{font-size:18px;margin:0}header p{margin:2px 0 0;color:var(--mu);font-size:13px}
+main{max-width:1100px;margin:0 auto;padding:14px}
+section{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:14px}
+h2{font-size:16px;margin:0 0 10px}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+label{display:block;font-size:12px;color:var(--mu);margin-bottom:3px}
+input,select{width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--tx);font:inherit}
+button{padding:8px 12px;border:1px solid var(--bd);border-radius:6px;background:var(--card);color:var(--tx);cursor:pointer;font:inherit}
+button.p{background:var(--ac);color:var(--ac2);border-color:var(--ac)}
+button.d{color:var(--dg)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.codes{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:12px;padding:10px;border:1px dashed var(--bd);border-radius:8px}
+.codes svg,.codes .qr{background:#fff;border-radius:4px;padding:4px;max-width:100%}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:780px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font-size:13px;vertical-align:top}
+th{color:var(--mu);font-weight:600}
+.code{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700}
+.stat{font-size:12px;color:var(--mu)}
+#det{display:none;border:2px solid var(--ac)}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0}
+dt{color:var(--mu);font-size:13px}dd{margin:0;font-weight:500}
+.badge{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--bd);color:var(--mu)}
+#labels{display:none}
+.lb{border:1px solid #000;padding:6px;width:64mm;text-align:center;color:#000;background:#fff;break-inside:avoid;font:11px Arial,sans-serif}
+.lb b{display:block;font-size:12px}
+.lb svg{max-width:100%;height:auto}
+#hform{display:none;color:#000;background:#fff;font:12px/1.5 Arial,sans-serif;padding:10mm}
+#hform h1{text-align:center;font-size:18px;margin:0 0 2px}#hform .sub{text-align:center;margin-bottom:8px}
+#hform h3{font-size:13px;margin:12px 0 4px;border-bottom:1px solid #000;padding-bottom:2px}
+#hform table{width:100%;min-width:0;border-collapse:collapse}
+#hform th,#hform td{border:1px solid #000;padding:4px 6px;font-size:12px;text-align:left;color:#000}
+#hform th{width:32%;background:#eee}
+#hform .ck span{display:inline-block;margin-right:14px}
+#hform ol{margin:4px 0;padding-left:18px}
+#hform .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#hform .sgs{display:flex;gap:16px;margin-top:38px}#hform .sg{flex:1}#hform .ln{border-top:1px solid #000;margin-bottom:4px}
+@media print{
+ body>*{display:none!important}
+ body.pl #labels{display:flex!important;flex-wrap:wrap;gap:4mm;padding:4mm}
+ body.ph #hform{display:block!important}
+ body{background:#fff}
+}
+</style>
+</head>
+<body>
+<header><h1>Sandeep Group – IT Asset Tracker</h1><p>Computer, Laptop, Monitor, Networking, Server – asset code, configuration, location, QR + barcode <span class="badge" id="mode">…</span> <button id="lo" style="display:none;padding:2px 8px;margin-left:6px">Logout</button></p></header>
+<main id="app" style="display:none">
+<section id="det"></section>
+
+<section>
+<h2 id="ft">Add New Asset</h2>
+<div class="g">
+<div><label>Company</label><select id="f_company"></select></div>
+<div><label>Product Type</label><select id="f_type"></select></div>
+<div><label>Asset Code (auto)</label><input id="f_code" class="code" readonly></div>
+</div>
+<div class="g" id="base" style="margin-top:10px"></div>
+<div class="g" id="specs" style="margin-top:10px"></div>
+<div class="codes"><div class="qr" id="pqr"></div><svg id="pbc"></svg><span class="stat">QR (scan with phone) + Barcode (scan with scanner)</span></div>
+<div class="bar"><button class="p" id="save">Save</button><button id="clear">New / Clear</button><label style="display:flex;gap:6px;align-items:center;margin:0;color:var(--tx)"><input type="checkbox" id="hf" style="width:auto"> Print handover form after saving</label></div>
+</section>
+
+<section>
+<h2>Asset List</h2>
+<div class="g">
+<div><label>Search / Scan (press Enter)</label><input id="q" placeholder="code, user, location, serial..."></div>
+<div><label>Company</label><select id="fco"></select></div>
+<div><label>Type</label><select id="fty"></select></div>
+<div><label>Status</label><select id="fst"></select></div>
+</div>
+<div class="bar"><button class="p" id="plAll">Print Labels (all listed)</button><button id="csv">Excel/CSV Export</button><button id="bk">Backup (JSON)</button><button id="rs">Restore</button><input type="file" id="rsf" accept=".json" style="display:none"><span class="stat" id="cnt"></span></div>
+<div class="tw" style="margin-top:10px"><table><thead><tr><th>Asset Code</th><th>Company</th><th>Type / Model</th><th>Configuration</th><th>Location / User</th><th>Status</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>
+</section>
+</main>
+<main id="lg" style="display:none"><section style="max-width:380px;margin:30px auto"><h2>Admin Login</h2><label>Email</label><input id="le" type="email" autocomplete="username"><label style="margin-top:8px">Password</label><input id="lp" type="password" autocomplete="current-password"><div class="bar"><button class="p" id="lb">Login</button></div><div class="stat" id="lerr" style="margin-top:8px"></div></section></main>
+<main id="pub" style="display:none"><section id="pc"></section></main>
+<div id="labels"></div><div id="hform"></div>
+<script type="module">
+import * as fb from "/fb.js";
+var CO=[["Sandeep Hyundai","SH"],["Sandeep Kia","SK"],["Sandeep Bajaj","SB"],["Sandeep Chetak","SC"],["Sandeep Motors","SM"],["SMPL Finance","SF"]];
+var PC=["cpu","ram","hdd","os"];
+var T={"Desktop":["DT",PC],"Laptop":["LT",PC],"All-in-One":["AO",PC],"Monitor":["MN",["size","res","ports"]],"Networking":["NW",["ntype","ports","ip","mac"]],"Server":["SV",PC.concat("ip")]};
+var BK=["model","sn","loc","dept","usr","pd","wt","st","rm"];
+var SK=["cpu","ram","hdd","os","size","res","ports","ip","mac","ntype"];
+var L={company:"Company",type:"Product Type",code:"Asset Code",model:"Brand / Model",sn:"Serial No.",cpu:"Processor",ram:"RAM",hdd:"Storage",os:"Operating System",size:"Screen Size",res:"Resolution",ports:"Ports",ip:"IP Address",mac:"MAC Address",ntype:"Device (Switch/Router/AP/Firewall)",loc:"Location (Branch / Floor)",dept:"Department",usr:"Assigned User",pd:"Purchase Date",wt:"Warranty Till",st:"Status",rm:"Remarks"};
+var ST=["In Use","In Stock","Under Repair","Scrapped"];
+var A=[],editId=null;
+var $=function(i){return document.getElementById(i)};
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function opt(el,arr,first){if(first)el.add(new Option(first,""));arr.forEach(function(v){el.add(new Option(v,v))})}
+function pre(n){for(var i=0;i<CO.length;i++)if(CO[i][0]===n)return CO[i][1];return"XX"}
+function keysOf(t){return BK.slice(0,2).concat(T[t][1],BK.slice(2))}
+function mk(k){var d=document.createElement("div");d.id="w_"+k;var inp=k==="st"?"<select id='f_st'></select>":"<input id='f_"+k+"'"+((k==="pd"||k==="wt")?" type='date'":"")+">";d.innerHTML="<label>"+L[k]+"</label>"+inp;return d}
+BK.forEach(function(k){$("base").appendChild(mk(k))});SK.forEach(function(k){$("specs").appendChild(mk(k))});
+opt($("f_st"),ST);opt($("f_company"),CO.map(function(c){return c[0]}));opt($("f_type"),Object.keys(T));
+opt($("fco"),CO.map(function(c){return c[0]}),"All companies");opt($("fty"),Object.keys(T),"All types");opt($("fst"),ST,"All statuses");
+function showSpecs(){var t=$("f_type").value;SK.forEach(function(k){$("w_"+k).style.display=T[t][1].indexOf(k)>-1?"":"none"})}
+function nextCode(co,t){var p=pre(co)+"-"+T[t][0]+"-",m=0;A.forEach(function(a){if(a.code.indexOf(p)===0){var k=parseInt(a.code.slice(p.length),10);if(k>m)m=k}});return p+("0000"+(m+1)).slice(-4)}
+function urlFor(c){return location.origin+"/a/"+encodeURIComponent(c)}
+function qrSvg(c,cell){try{var q=qrcode(0,"M");q.addData(urlFor(c));q.make();return q.createSvgTag(cell||3,0)}catch(e){return""}}
+function bar(el,code){try{JsBarcode(el,code,{format:"CODE128",height:45,width:2,fontSize:13,margin:4})}catch(e){}}
+function refresh(){showSpecs();if(!editId)$("f_code").value=nextCode($("f_company").value,$("f_type").value);$("pqr").innerHTML=qrSvg($("f_code").value,3);bar("#pbc",$("f_code").value)}
+function clearForm(){editId=null;BK.concat(SK).forEach(function(k){$("f_"+k).value=k==="st"?"In Use":""});$("ft").textContent="Add New Asset";refresh()}
+/* storage: Firebase */
+function put(o,isNew){return fb.save(o,isNew).catch(function(e){alert("Could not save: "+e.message)})}
+function del(c){return fb.remove(c).catch(function(e){alert("Could not delete: "+e.message)})}
+function save(){
+ var t=$("f_type").value,o={company:$("f_company").value,type:t,code:$("f_code").value};
+ BK.concat(SK).forEach(function(k){if(k==="st"||keysOf(t).indexOf(k)>-1)o[k]=$("f_"+k).value.trim()});
+ if(!o.loc){alert("Location is required.");return}
+ if(!editId)o.code=nextCode(o.company,t);
+ put(o,!editId).then(function(r){clearForm();if(r&&r.code&&$("hf").checked)handover(find(r.code)||r)})}
+function find(c){c=String(c).trim().toLowerCase();return A.filter(function(a){return a.code.toLowerCase()===c})[0]}
+function filtered(){
+ var q=$("q").value.toLowerCase(),c=$("fco").value,t=$("fty").value,s=$("fst").value;
+ return A.filter(function(a){if(c&&a.company!==c)return false;if(t&&a.type!==t)return false;if(s&&a.st!==s)return false;return !q||JSON.stringify(a).toLowerCase().indexOf(q)>-1}).sort(function(a,b){return a.code<b.code?-1:1})}
+function conf(a){return T[a.type]?T[a.type][1].map(function(k){return a[k]}).filter(Boolean).join(" | "):""}
+function render(){
+ var R=filtered();$("cnt").textContent=R.length+" / "+A.length+" assets";
+ $("tb").innerHTML=R.map(function(a){var i=esc(a.code);return"<tr><td class='code'>"+i+"</td><td>"+esc(a.company)+"</td><td>"+esc(a.type)+"<br><span class='stat'>"+esc(a.model)+(a.sn?" · SN "+esc(a.sn):"")+"</span></td><td>"+esc(conf(a))+"</td><td>"+esc(a.loc)+"<br><span class='stat'>"+esc([a.dept,a.usr].filter(Boolean).join(" · "))+"</span></td><td>"+esc(a.st)+"</td><td style='white-space:nowrap'><button data-a='v' data-c='"+i+"'>Detail</button> <button data-a='l' data-c='"+i+"'>Label</button> <button data-a='h' data-c='"+i+"'>Handover</button> <button data-a='e' data-c='"+i+"'>Edit</button> <button class='d' data-a='x' data-c='"+i+"'>Del</button></td></tr>"}).join("")||"<tr><td colspan=7 class='stat'>No assets found.</td></tr>"}
+function detail(a){
+ var ks=["company","type","code"].concat(keysOf(a.type)),h="<h2>Asset Detail – "+esc(a.code)+"</h2><div class='g'><dl>";
+ ks.forEach(function(k){if(a[k])h+="<dt>"+esc(L[k])+"</dt><dd>"+esc(a[k])+"</dd>"});
+ h+="</dl><div class='codes' style='margin:0'><div class='qr'>"+qrSvg(a.code,4)+"</div><svg id='dbc'></svg></div></div><div class='bar'><button class='p' data-a='l' data-c='"+esc(a.code)+"'>Label Print</button><button data-a='h' data-c='"+esc(a.code)+"'>Handover Form</button><button data-a='e' data-c='"+esc(a.code)+"'>Edit</button><button id='dx'>Close</button></div>";
+ var d=$("det");d.innerHTML=h;d.style.display="block";bar("#dbc",a.code);$("dx").onclick=function(){d.style.display="none"};window.scrollTo(0,0)}
+function printLabels(R){
+ if(!R.length){alert("No assets to print.");return}
+ $("labels").innerHTML=R.map(function(a,i){return"<div class='lb'><b>"+esc(a.company)+"</b>"+qrSvg(a.code,3)+"<svg id='l"+i+"'></svg><div>"+esc(a.type+" – "+a.loc)+"</div></div>"}).join("");
+ R.forEach(function(a,i){bar("#l"+i,a.code)});document.body.className="pl";setTimeout(function(){window.print()},200)}
+function handover(a){
+ if(!a)return;
+ var rows=["company","type","code"].concat(keysOf(a.type).filter(function(k){return["rm","usr","dept","st"].indexOf(k)<0})).filter(function(k){return a[k]}).map(function(k){return"<tr><th>"+esc(L[k])+"</th><td>"+esc(a[k])+"</td></tr>"}).join("");
+ var d=new Date().toLocaleDateString("en-GB"),U="__________________",ck=["Charger / Adapter","Power cable","Mouse","Keyboard","Bag / Cover","Other: ____________"].map(function(x){return"<span>&#9744; "+x+"</span>"}).join("");
+ var sg=function(t,n){return"<div class='sg'><div class='ln'></div><b>"+t+"</b><br>Name: "+esc(n||U)+"<br>Date: ________________</div>"};
+ $("hform").innerHTML="<div class='top'><div><b style='font-size:15px'>"+esc(a.company)+"</b></div><svg id='hbc'></svg></div><h1>ASSET HANDOVER FORM</h1><div class='sub'>Date: "+d+"</div>"+
+ "<h3>1. Asset Details</h3><table>"+rows+"</table>"+
+ "<h3>2. Handed Over To</h3><table><tr><th>Employee Name</th><td>"+esc(a.usr)+"&nbsp;</td></tr><tr><th>Employee ID</th><td>&nbsp;</td></tr><tr><th>Department</th><td>"+esc(a.dept)+"&nbsp;</td></tr><tr><th>Designation</th><td>&nbsp;</td></tr><tr><th>Location</th><td>"+esc(a.loc)+"&nbsp;</td></tr><tr><th>Date of Handover</th><td>"+d+"</td></tr></table>"+
+ "<h3>3. Accessories &amp; Condition</h3><div class='ck'><b>Accessories issued:</b> "+ck+"</div><div class='ck' style='margin-top:4px'><b>Condition at handover:</b> <span>&#9744; New</span><span>&#9744; Good</span><span>&#9744; Fair</span></div><div style='margin-top:6px'>Remarks: ______________________________________________________________</div>"+
+ "<h3>4. Terms &amp; Declaration</h3><ol><li>The asset is the property of "+esc(a.company)+" and is issued for official use only.</li><li>The employee is responsible for its safe custody and must report any loss, theft or damage to the IT department immediately.</li><li>Installing unauthorised software, changing hardware or passing the asset to another person is not permitted.</li><li>The asset must be returned in good condition on request, transfer or resignation.</li><li>Loss or damage caused by negligence may be recovered as per company policy.</li></ol>"+
+ "<p>I acknowledge that I have received the above asset in the stated condition and agree to the terms above.</p>"+
+ "<div class='sgs'>"+sg("Issued by (IT Department)")+sg("Received by (Employee)",a.usr)+sg("Approved by (Manager / HOD)")+"</div>";
+ bar("#hbc",a.code);document.body.className="ph";setTimeout(function(){window.print()},300)}
+window.onafterprint=function(){document.body.className=""};
+function onClick(e){
+ var b=e.target.closest("button");if(!b||!b.dataset.c)return;var a=find(b.dataset.c);if(!a)return;
+ if(b.dataset.a==="v")detail(a);
+ if(b.dataset.a==="l")printLabels([a]);
+ if(b.dataset.a==="h")handover(a);
+ if(b.dataset.a==="x"&&confirm("Delete "+a.code+"?"))del(a.code);
+ if(b.dataset.a==="e"){editId=a.code;$("f_company").value=a.company;$("f_type").value=a.type;showSpecs();BK.concat(SK).forEach(function(k){$("f_"+k).value=a[k]||""});$("f_code").value=a.code;$("pqr").innerHTML=qrSvg(a.code,3);bar("#pbc",a.code);$("ft").textContent="Edit: "+a.code;window.scrollTo(0,0)}}
+$("tb").addEventListener("click",onClick);$("det").addEventListener("click",onClick);
+$("save").onclick=save;$("clear").onclick=clearForm;$("f_company").onchange=refresh;$("f_type").onchange=refresh;
+["q","fco","fty","fst"].forEach(function(i){$(i).oninput=render});
+$("q").addEventListener("keydown",function(e){if(e.key!=="Enter")return;var m=$("q").value.match(/[A-Za-z]{2}-[A-Za-z]{2}-\d{4}/),a=m&&find(m[0]);if(a){detail(a);$("q").value=""; render()}});
+$("plAll").onclick=function(){printLabels(filtered())};
+function dl(n,t,m){var u=URL.createObjectURL(new Blob([t],{type:m})),a=document.createElement("a");a.href=u;a.download=n;a.click();setTimeout(function(){URL.revokeObjectURL(u)},500)}
+$("csv").onclick=function(){
+ var H=["code","company","type"].concat(BK,SK),rows=[H.join(",")].concat(A.map(function(a){return H.map(function(k){return'"'+String(a[k]||"").replace(/"/g,'""')+'"'}).join(",")}));
+ dl("sandeep-assets.csv","\ufeff"+rows.join("\n"),"text/csv")};
+$("bk").onclick=function(){dl("sandeep-assets-backup-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify(A),"application/json")};
+$("rs").onclick=function(){$("rsf").click()};
+$("rsf").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var d=JSON.parse(r.result);if(!Array.isArray(d))throw 1;if(confirm("Restore "+d.length+" assets from this backup? Assets with the same code will be overwritten."))fb.restore(d).then(function(){alert("Restore complete")}).catch(function(x){alert("Restore failed: "+x.message)})}catch(x){alert("Invalid backup file.")}};r.readAsText(f);e.target.value=""};
+clearForm();render();
+$("lb").onclick=function(){$("lerr").textContent="";fb.login($("le").value.trim(),$("lp").value).catch(function(e){$("lerr").textContent="Login failed: "+e.message})};
+$("lp").addEventListener("keydown",function(e){if(e.key==="Enter")$("lb").click()});
+$("lo").onclick=function(){fb.logout()};
+function publicView(c){
+ $("pub").style.display="";$("pc").innerHTML="<p class='stat'>Loading...</p>";
+ fb.getOne(c.toUpperCase()).then(function(a){
+  if(!a){$("pc").innerHTML="<h2>Asset not found</h2><p>"+esc(c)+"</p>";return}
+  var ks=["company","type","code"].concat(keysOf(a.type)).filter(function(k){return a[k]&&k!=="rm"}),h="<h2>"+esc(a.company)+" – Asset Detail</h2><dl>";
+  ks.forEach(function(k){h+="<dt>"+esc(L[k])+"</dt><dd>"+esc(a[k])+"</dd>"});$("pc").innerHTML=h+"</dl>"
+ }).catch(function(e){$("pc").innerHTML="<h2>Could not load</h2><p>"+esc(e.message)+"</p>"})}
+var pm=location.pathname.match(/\/a\/([^\/]+)/),pq=new URLSearchParams(location.search).get("a"),pcode=pm?decodeURIComponent(pm[1]):pq;
+if(pcode){publicView(pcode)}else{
+ fb.onAuth(function(u){
+  if(u){$("lg").style.display="none";$("app").style.display="";$("lo").style.display="";$("mode").textContent=u.email;
+   fb.watch(function(l){A=l;if(!editId)refresh();render()},function(e){alert("Could not load assets: "+e.message)})}
+  else{$("app").style.display="none";$("lo").style.display="none";$("lg").style.display=""}})}
+</script>
+</body>
+</html>
