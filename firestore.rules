@@ -2,11 +2,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /assets/{code} {
-      // Anyone can read ONE asset (QR scan), nobody can list them all
       allow get: if true;
-      // Only your admin email(s) can list / add / edit / delete
       allow list, create, update, delete: if request.auth != null
-        && request.auth.token.email in ["PASTE_ADMIN_EMAIL@example.com"];
+        && request.auth.token.email == "it@assets.local";
     }
   }
 }
