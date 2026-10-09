@@ -60,7 +60,7 @@ dt{color:var(--mu);font-size:13px}dd{margin:0;font-weight:500}
 </style>
 </head>
 <body>
-<header><h1>Sandeep Group – IT Asset Tracker</h1><p>Computer, Laptop, Monitor, Networking, Server – asset code, configuration, location, QR + barcode <span class="badge" id="mode">…</span> <button id="lo" style="display:none;padding:2px 8px;margin-left:6px">Logout</button></p></header>
+<header><h1>Sandeep Group – IT Asset Tracker</h1><p>Computer, Laptop, Monitor, Networking, Server, Printer, Biometric – asset code, configuration, location, QR + barcode <span class="badge" id="mode">…</span> <button id="lo" style="display:none;padding:2px 8px;margin-left:6px">Logout</button></p></header>
 <main id="app" style="display:none">
 <section id="det"></section>
 
@@ -96,7 +96,7 @@ dt{color:var(--mu);font-size:13px}dd{margin:0;font-weight:500}
 import * as fb from "/fb.js";
 var CO=[["Sandeep Hyundai","SH"],["Sandeep Kia","SK"],["Sandeep Bajaj","SB"],["Sandeep Chetak","SC"],["Sandeep Motors","SM"],["SMPL Finance","SF"]];
 var PC=["cpu","ram","hdd","os"];
-var T={"Desktop":["DT",PC],"Laptop":["LT",PC],"All-in-One":["AO",PC],"Monitor":["MN",["size","res","ports"]],"Networking":["NW",["ntype","ports","ip","mac"]],"Server":["SV",PC.concat("ip")]};
+var T={"Desktop":["DT",PC],"Laptop":["LT",PC],"All-in-One":["AO",PC],"Monitor":["MN",["size","res","ports"]],"Networking":["NW",["ntype","ports","ip","mac"]],"Server":["SV",PC.concat("ip")],"Printer":["PR",["ports","ip","mac"]],"Biometric":["BM",["ip","mac"]]};
 var BK=["model","sn","loc","dept","usr","pd","wt","st","rm"];
 var SK=["cpu","ram","hdd","os","size","res","ports","ip","mac","ntype"];
 var L={company:"Company",type:"Product Type",code:"Asset Code",model:"Brand / Model",sn:"Serial No.",cpu:"Processor",ram:"RAM",hdd:"Storage",os:"Operating System",size:"Screen Size",res:"Resolution",ports:"Ports",ip:"IP Address",mac:"MAC Address",ntype:"Device (Switch/Router/AP/Firewall)",loc:"Location (Branch / Floor)",dept:"Department",usr:"Assigned User",pd:"Purchase Date",wt:"Warranty Till",st:"Status",rm:"Remarks"};
