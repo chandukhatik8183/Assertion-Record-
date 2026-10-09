@@ -4,10 +4,12 @@ import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from "htt
 import {getFirestore,collection,doc,getDoc,setDoc,deleteDoc,onSnapshot,writeBatch} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "PASTE_API_KEY",
-  authDomain: "PASTE_PROJECT_ID.firebaseapp.com",
-  projectId: "PASTE_PROJECT_ID",
-  appId: "PASTE_APP_ID"
+  apiKey: "AIzaSyCn8SG8bRCUekJ7KOOQKYyBnIbhGim7wk0",
+  authDomain: "assertion-record.firebaseapp.com",
+  projectId: "assertion-record",
+  storageBucket: "assertion-record.firebasestorage.app",
+  messagingSenderId: "454128517792",
+  appId: "1:454128517792:web:a0b3b8dba55e29a829bfc5"
 };
 
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),col=collection(db,"assets");
