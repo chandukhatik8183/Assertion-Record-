@@ -121,6 +121,7 @@ textarea{width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;bac
 </div>
 <div id="tab_tickets" style="display:none"><section><h2>Support Tickets</h2>
 <div class="g"><div><label>Status</label><select id="tfs"></select></div><div><label>Search</label><input id="tq" placeholder="ticket no, asset code, name, issue..."></div></div>
+<div class="bar"><button id="tcsv">Excel/CSV Export</button><button id="tbk">Backup (JSON)</button><button id="trs">Restore</button><input type="file" id="trf" accept=".json" style="display:none"></div>
 <div class="stat" id="tcnt" style="margin:8px 0"></div>
 <div class="tw"><table><thead><tr><th>Ticket</th><th>Asset</th><th>Reported by</th><th>Issue</th><th>Status / IT note</th></tr></thead><tbody id="ttb"></tbody></table></div></section></div>
 </main>
@@ -248,7 +249,7 @@ $("csv").onclick=function(){
  dl("sandeep-assets.csv","\ufeff"+rows.join("\n"),"text/csv")};
 $("bk").onclick=function(){dl("sandeep-assets-backup-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify(A),"application/json")};
 $("rs").onclick=function(){if(ADM)$("rsf").click()};
-$("rsf").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var d=JSON.parse(r.result);if(!Array.isArray(d))throw 1;if(confirm("Restore "+d.length+" assets from this backup? Assets with the same code will be overwritten."))fb.restore(d).then(function(){alert("Restore complete")}).catch(function(x){alert("Restore failed: "+x.message)})}catch(x){alert("Invalid backup file.")}};r.readAsText(f);e.target.value=""};
+$("rsf").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var d=JSON.parse(r.result);if(!Array.isArray(d)||!d.every(function(x){return x&&x.code}))throw 1;if(confirm("Restore "+d.length+" assets from this backup? Assets with the same code will be overwritten."))fb.restore(d).then(function(){alert("Restore complete")}).catch(function(x){alert("Restore failed: "+x.message)})}catch(x){alert("Invalid backup file.")}};r.readAsText(f);e.target.value=""};
 clearForm();render();
 $("lb").onclick=function(){$("lerr").textContent="";fb.login($("le").value.trim(),$("lp").value).catch(function(e){$("lerr").textContent="Login failed: "+e.message})};
 $("lp").addEventListener("keydown",function(e){if(e.key==="Enter")$("lb").click()});
@@ -337,6 +338,24 @@ $("ttb").addEventListener("click",function(e){var b=e.target.closest("button");i
   fb.actTicket(id,{status:ns,notes:nn,eng:en?en.n:"",engMob:en?en.m:""},en2).then(function(){b.textContent="Saved";setTimeout(function(){b.textContent="Save"},1200)}).catch(function(x){alert("Could not update: "+x.message)})}
  if(b.dataset.ta==="x"&&ADM&&confirm("Delete this ticket?"))fb.removeTicket(id).catch(function(x){alert("Could not delete: "+x.message)})});
 ["tfs","tq"].forEach(function(i){$(i).oninput=rtk});
+/* ---------- Tickets: export / backup / restore (all statuses, not only the filtered list) ---------- */
+function cq(v){v=v==null?"":String(v);if(/^[=+\-@\t\r]/.test(v))v="'"+v;return'"'+v.replace(/"/g,'""')+'"'}
+$("tcsv").onclick=function(){
+ if(!TK.length){alert("No tickets to export.");return}
+ var H=["Ticket No","Created","Last Updated","Status","Priority","Category","Asset Code","Asset Type","Company","Asset Location","Reported By","Department","Mobile","Issue","IT Engineer","Engineer Mobile","IT Note","Feedback Rating","Feedback Comment","Action History","Ticket ID"],
+ L=TK.slice().sort(function(a,b){return(a.created||0)-(b.created||0)}),
+ rows=[H.map(cq).join(",")].concat(L.map(function(t){var f=t.feedback||{};return[ftk(t.id),fdt(t.created),t.updated?fdt(t.updated):"",t.status,t.priority,t.category,t.assetCode,t.assetType,t.company,t.assetLoc,t.name,t.dept,t.mobile,t.issue,t.eng,t.engMob,t.notes,f.rating,f.comment,
+  (t.history||[]).map(function(h){return fdt(h.at)+" "+h.status+(h.eng?" ["+h.eng+"]":"")+(h.note?" - "+h.note:"")}).join(" | "),t.id].map(cq).join(",")}));
+ dl("sandeep-tickets-"+new Date().toISOString().slice(0,10)+".csv","\ufeff"+rows.join("\n"),"text/csv")};
+$("tbk").onclick=function(){if(!TK.length){alert("No tickets to back up.");return}dl("sandeep-tickets-backup-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify(TK),"application/json")};
+$("trs").onclick=function(){if(ADM)$("trf").click()};
+$("trf").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){
+ try{var d=JSON.parse(r.result);if(!Array.isArray(d)||!d.length)throw 1;
+  d.forEach(function(x){if(!x||typeof x.id!=="string"||x.id.length<10||typeof x.assetCode!=="string"||typeof x.issue!=="string"||TS.indexOf(x.status)<0)throw 1});
+  var c={};d.forEach(function(x){c[x.status]=(c[x.status]||0)+1});
+  if(confirm("Restore "+d.length+" tickets ("+TS.map(function(k){return k+": "+(c[k]||0)}).join(", ")+")?\nEach ticket goes back with the same status, notes, engineer and history. Tickets with the same number will be overwritten."))
+   fb.restoreTickets(d,TK).then(function(){alert("Tickets restored")}).catch(function(x){alert("Restore failed: "+x.message)})
+ }catch(x){alert("Invalid tickets backup file.")}};r.readAsText(f);e.target.value=""};
 function tab(t){$("tab_assets").style.display=t==="a"?"":"none";$("tab_tickets").style.display=t==="t"?"":"none";$("nv_a").className=t==="a"?"p":"";$("nv_t").className=t==="t"?"p":""}
 $("nv_a").onclick=function(){tab("a")};$("nv_t").onclick=function(){tab("t")};
 function watchT(){fb.watchTickets(function(l){TK=l;var o=l.filter(isOpen).length;$("tbadge").textContent=o;document.title=(o?"("+o+") ":"")+"Sandeep Group – Asset Tracker";

@@ -18,8 +18,8 @@ service cloud.firestore {
     }
 
     match /tickets/{id} {
-      // Anyone who scans the QR can create a ticket (with strict checks)
-      allow create: if request.resource.data.keys().hasOnly(['id','assetCode','assetType','assetLoc','company','name','dept','mobile','category','priority','issue','status','notes','created'])
+      // Anyone who scans the QR can create a ticket (with strict checks). Admin can also create any ticket (needed for Restore).
+      allow create: if isAdmin() || (request.resource.data.keys().hasOnly(['id','assetCode','assetType','assetLoc','company','name','dept','mobile','category','priority','issue','status','notes','created'])
         && request.resource.data.id == id
         && id.size() >= 10
         && request.resource.data.assetCode is string
@@ -29,7 +29,7 @@ service cloud.firestore {
         && request.resource.data.mobile.size() <= 15
         && request.resource.data.issue is string
         && request.resource.data.issue.size() >= 5 && request.resource.data.issue.size() <= 1000
-        && request.resource.data.status == 'Open';
+        && request.resource.data.status == 'Open');
 
       // Only someone who knows the long random ticket id can read that one ticket
       allow get: if true;

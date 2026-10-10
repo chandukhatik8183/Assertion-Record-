@@ -41,3 +41,9 @@ export const removeTicket=id=>deleteDoc(doc(db,"tickets",id));
 export const watchTicket=(id,ok,err)=>onSnapshot(doc(db,"tickets",id),s=>ok(s.exists()?{...s.data(),id:s.id}:null),err);
 export const actTicket=(id,patch,entry)=>updateDoc(doc(db,"tickets",id),{...patch,updated:Date.now(),history:arrayUnion(entry)});
 export const sendFeedback=(id,fbk)=>updateDoc(doc(db,"tickets",id),{feedback:fbk});
+// Restore tickets exactly as backed up (status, notes, engineer, history, feedback), then repoint each asset to its newest ticket
+export async function restoreTickets(list,current){
+  for(let i=0;i<list.length;i+=400){const b=writeBatch(db);
+    list.slice(i,i+400).forEach(x=>b.set(doc(db,"tickets",x.id),{...x,id:x.id}));await b.commit()}
+  const m={};(current||[]).forEach(t=>{m[t.id]=t});list.forEach(t=>{m[t.id]=t});
+  await syncLatest(Object.values(m))}
