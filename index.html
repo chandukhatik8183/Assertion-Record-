@@ -60,10 +60,12 @@ dt{color:var(--mu);font-size:13px;overflow-wrap:anywhere}dd{margin:0;font-weight
  body.ph #hform{display:block!important}
  body{background:#fff}
 }
+.ai{margin-bottom:2px}.ax{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin:2px 0 10px 24px;max-width:760px}.ax label{margin:0}
+#hform{font-size:11px;padding:8mm}#hform th,#hform td{padding:3px 6px;font-size:11px}#hform .at th{width:auto}#hform h3{margin:8px 0 3px}#hform .sgs{margin-top:26px}
 </style>
 </head>
 <body>
-<header><h1>Sandeep Group – IT Asset Tracker</h1><p>Computer, Laptop, Monitor, Networking, Server, Printer, Biometric, Mobile, Tablet, ISP – asset code, configuration, location, QR + barcode <span class="badge" id="mode">…</span> <button id="lo" style="display:none;padding:2px 8px;margin-left:6px">Logout</button></p></header>
+<header><h1>Sandeep Group – IT Asset Tracker</h1><p>Desktop, Laptop, Networking, Server, Printer, Biometric, Mobile, Tablet, ISP, UPS – asset code, configuration, location, QR + barcode <span class="badge" id="mode">…</span> <button id="lo" style="display:none;padding:2px 8px;margin-left:6px">Logout</button></p></header>
 <main id="app" style="display:none">
 <section id="det"></section>
 
@@ -76,6 +78,7 @@ dt{color:var(--mu);font-size:13px;overflow-wrap:anywhere}dd{margin:0;font-weight
 </div>
 <div class="g" id="base" style="margin-top:10px"></div>
 <div class="g" id="specs" style="margin-top:10px"></div>
+<div id="monbox" style="display:none;margin-top:12px"><label style="font-size:13px;font-weight:600;color:var(--tx)">Monitor (with this desktop)</label><div class="g" id="monspecs" style="margin-top:6px"></div></div>
 <div style="margin-top:12px"><label>Accessories issued</label><div id="accs"></div></div>
 <div style="margin-top:6px"><label>Condition at handover</label><div id="conds"></div></div>
 <div class="codes"><div class="qr" id="pqr"></div><svg id="pbc"></svg><span class="stat">QR (scan with phone) + Barcode (scan with scanner)</span></div>
@@ -101,30 +104,43 @@ dt{color:var(--mu);font-size:13px;overflow-wrap:anywhere}dd{margin:0;font-weight
 import * as fb from "/fb.js";
 var CO=[["Sandeep Hyundai","SH"],["Sandeep Kia","SK"],["Sandeep Bajaj","SB"],["Sandeep Chetak","SC"],["Sandeep Motors","SM"],["SMPL Finance","SF"]];
 var PC=["cpu","ram","hdd","os"];
-var T={"Desktop":["DT",PC],"Laptop":["LT",PC],"All-in-One":["AO",PC],"Monitor":["MN",["size","res","ports"]],"Networking":["NW",["ntype","ports","ip","mac"]],"Server":["SV",PC.concat("ip")],"Printer":["PR",["ports","ip","mac"]],"Biometric":["BM",["ip","mac"]],"Mobile":["MB",["ram","hdd","os"]],"Tablet":["TB",["ram","hdd","os","size"]],"ISP":["IS",["sip","smask","sgw","dns1","dns2"]]};
+var MK=["mon_model","mon_sn","mon_pd","mon_wt"];
+var T={"Desktop":["DT",PC.concat(MK)],"Laptop":["LT",PC],"All-in-One":["AO",PC],"Monitor":["MN",["size","res","ports"]],"Networking":["NW",["ntype","ports","ip","mac"]],"Server":["SV",PC.concat("ip")],"Printer":["PR",["ports","ip","mac"]],"Biometric":["BM",["ip","mac"]],"Mobile":["MB",["ram","hdd","os"]],"Tablet":["TB",["ram","hdd","os","size"]],"ISP":["IS",["sip","smask","sgw","dns1","dns2"]],"UPS":["UP",["cap","batt"]]};
+var HT=["Monitor"],TL=Object.keys(T).filter(function(k){return HT.indexOf(k)<0});
 var BK=["model","sn","loc","aloc","dept","usr","pd","wt","st","rm"];
-var SK=["cpu","ram","hdd","os","size","res","ports","ip","mac","ntype","sip","smask","sgw","dns1","dns2"];
-var L={company:"Company",type:"Product Type",code:"Asset Code",model:"Brand / Model",sn:"Serial No.",cpu:"Processor",ram:"RAM",hdd:"Storage",os:"Operating System",size:"Screen Size",res:"Resolution",ports:"Ports",ip:"IP Address",sip:"Static IP Address",smask:"Subnet Mask",sgw:"Default Gateway",dns1:"Preferred DNS Server",dns2:"Alternate DNS Server",mac:"MAC Address",ntype:"Device (Switch/Router/AP/Firewall)",loc:"Branch Location",aloc:"Asset Location (Floor / Room / Desk)",dept:"Department",usr:"Assigned User",pd:"Purchase Date",wt:"Warranty Till",st:"Status",rm:"Remarks"};
+var SK=["cpu","ram","hdd","os","size","res","ports","ip","mac","ntype","sip","smask","sgw","dns1","dns2","cap","batt"].concat(MK);
+var L={company:"Company",type:"Product Type",code:"Asset Code",model:"Brand / Model",sn:"Serial No.",cpu:"Processor",ram:"RAM",hdd:"Storage",os:"Operating System",size:"Screen Size",res:"Resolution",ports:"Ports",ip:"IP Address",sip:"Static IP Address",smask:"Subnet Mask",sgw:"Default Gateway",dns1:"Preferred DNS Server",dns2:"Alternate DNS Server",mac:"MAC Address",ntype:"Device (Switch/Router/AP/Firewall)",cap:"Capacity (VA / kVA)",batt:"Battery Details (Qty / Ah)",mon_model:"Monitor Brand / Model",mon_sn:"Monitor Serial No.",mon_pd:"Monitor Purchase Date",mon_wt:"Monitor Warranty Till",loc:"Branch Location",aloc:"Asset Location (Floor / Room / Desk)",dept:"Department",usr:"Assigned User",pd:"Purchase Date",wt:"Warranty Till",st:"Status",rm:"Remarks"};
 var ST=["In Use","In Stock","Under Repair","Scrapped"];
 var A=[],editId=null,ADM=false,ADMIN="it@assets.local";
 var ACC=["Charger / Adapter","Power cable","Mouse","Keyboard","Bag / Cover"],CD=["New","Good","Fair"];
+var DL={model:"Desktop Brand / Model",sn:"Desktop Serial No.",pd:"Desktop Purchase Date",wt:"Desktop Warranty Till"};
+function lab(k,t){return t==="Desktop"&&DL[k]?DL[k]:L[k]}
+function ak(x){return String(x).replace(/[^A-Za-z0-9]+/g,"_")}
+function accLines(a){var s=a.acc||[],D=a.accd||{};return s.map(function(x){var v=D[ak(x)]||{},n=x==="Other"&&a.accOther?"Other: "+a.accOther:x,p=[];if(v.sn)p.push("SN: "+v.sn);if(v.pd)p.push("Purchased: "+v.pd);if(v.wt)p.push("Warranty till: "+v.wt);return[n,p.join("  ·  ")]})}
+function cv(a,k){if(k==="accd")return accLines(a).map(function(r){return r.join(" ")}).join("; ");var v=a[k];return Array.isArray(v)?v.join("; "):(v==null?"":v)}
 var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function opt(el,arr,first){if(first)el.add(new Option(first,""));arr.forEach(function(v){el.add(new Option(v,v))})}
 function pre(n){for(var i=0;i<CO.length;i++)if(CO[i][0]===n)return CO[i][1];return"XX"}
-function keysOf(t){return BK.slice(0,2).concat(T[t][1],BK.slice(2))}
-function mk(k){var d=document.createElement("div");d.id="w_"+k;var inp=k==="st"?"<select id='f_st'></select>":"<input id='f_"+k+"'"+((k==="pd"||k==="wt")?" type='date'":"")+">";d.innerHTML="<label>"+L[k]+"</label>"+inp;return d}
-BK.forEach(function(k){$("base").appendChild(mk(k))});SK.forEach(function(k){$("specs").appendChild(mk(k))});
-$("accs").innerHTML=ACC.map(function(x){return"<label class='tki'><input type='checkbox' class='acc' value='"+esc(x)+"'> "+esc(x)+"</label>"}).join("")+"<label class='tki'><input type='checkbox' id='acc_o'> Other:</label><input id='acc_ot' placeholder='specify other accessory' style='width:220px;display:inline-block;vertical-align:middle'>";
+function keysOf(t){var sp=T[t][1].filter(function(k){return MK.indexOf(k)<0}),mo=T[t][1].filter(function(k){return MK.indexOf(k)>-1});return BK.slice(0,2).concat(sp,BK.slice(2,8),mo,BK.slice(8))}
+function mk(k){var d=document.createElement("div");d.id="w_"+k;var inp=k==="st"?"<select id='f_st'></select>":"<input id='f_"+k+"'"+(/(^|_)(pd|wt)$/.test(k)?" type='date'":"")+">";d.innerHTML="<label>"+L[k]+"</label>"+inp;return d}
+BK.forEach(function(k){$("base").appendChild(mk(k))});SK.forEach(function(k){$(MK.indexOf(k)>-1?"monspecs":"specs").appendChild(mk(k))});
+var AXH="<span class='ax' style='display:none'><input data-f='sn' placeholder='Serial No.'><label>Purchase Date<input type='date' data-f='pd'></label><label>Warranty Till<input type='date' data-f='wt'></label></span>";
+$("accs").innerHTML=ACC.map(function(x){return"<div class='ai'><label class='tki'><input type='checkbox' class='acc' value='"+esc(x)+"'> "+esc(x)+"</label>"+AXH+"</div>"}).join("")+"<div class='ai'><label class='tki'><input type='checkbox' id='acc_o'> Other:</label><input id='acc_ot' placeholder='specify other accessory' style='width:220px;display:inline-block;vertical-align:middle'>"+AXH+"</div>";
 $("conds").innerHTML=CD.map(function(x){return"<label class='tki'><input type='checkbox' class='cnd' value='"+x+"'> "+x+"</label>"}).join("");
 $("conds").addEventListener("change",function(e){if(e.target.checked)document.querySelectorAll(".cnd").forEach(function(c){if(c!==e.target)c.checked=false})});
-$("acc_ot").addEventListener("input",function(){if($("acc_ot").value.trim())$("acc_o").checked=true});
+function axShow(c){var b=c.closest(".ai").querySelector(".ax");b.style.display=c.checked?"":"none"}
+$("accs").addEventListener("change",function(e){if(e.target.type==="checkbox")axShow(e.target)});
+$("acc_ot").addEventListener("input",function(){if($("acc_ot").value.trim()){$("acc_o").checked=true;axShow($("acc_o"))}});
+function getAccD(){var r={};document.querySelectorAll("#accs .ai").forEach(function(d){var c=d.querySelector("input[type=checkbox]");if(!c.checked)return;var o={};d.querySelectorAll("[data-f]").forEach(function(i){var v=i.value.trim();if(v)o[i.dataset.f]=v});r[ak(c.id==="acc_o"?"Other":c.value)]=o});return r}
+function setAccD(a){var D=(a&&a.accd)||{};document.querySelectorAll("#accs .ai").forEach(function(d){var c=d.querySelector("input[type=checkbox]"),v=D[ak(c.id==="acc_o"?"Other":c.value)]||{};d.querySelectorAll("[data-f]").forEach(function(i){i.value=v[i.dataset.f]||""});axShow(c)})}
 function getAcc(){var r=[];document.querySelectorAll(".acc").forEach(function(c){if(c.checked)r.push(c.value)});if($("acc_o").checked)r.push("Other");return r}
 function getCond(){var r="";document.querySelectorAll(".cnd").forEach(function(c){if(c.checked)r=c.value});return r}
-function setTicks(a){var s=(a&&a.acc)||[];document.querySelectorAll(".acc").forEach(function(c){c.checked=s.indexOf(c.value)>-1});$("acc_o").checked=s.indexOf("Other")>-1;$("acc_ot").value=(a&&a.accOther)||"";document.querySelectorAll(".cnd").forEach(function(c){c.checked=!!a&&a.cond===c.value})}
-opt($("f_st"),ST);opt($("f_company"),CO.map(function(c){return c[0]}));opt($("f_type"),Object.keys(T));
-opt($("fco"),CO.map(function(c){return c[0]}),"All companies");opt($("fty"),Object.keys(T),"All types");opt($("fst"),ST,"All statuses");
-function showSpecs(){var t=$("f_type").value;SK.forEach(function(k){$("w_"+k).style.display=T[t][1].indexOf(k)>-1?"":"none"})}
+function setTicks(a){setTicks0(a);setAccD(a)}
+function setTicks0(a){var s=(a&&a.acc)||[];document.querySelectorAll(".acc").forEach(function(c){c.checked=s.indexOf(c.value)>-1});$("acc_o").checked=s.indexOf("Other")>-1;$("acc_ot").value=(a&&a.accOther)||"";document.querySelectorAll(".cnd").forEach(function(c){c.checked=!!a&&a.cond===c.value})}
+opt($("f_st"),ST);opt($("f_company"),CO.map(function(c){return c[0]}));opt($("f_type"),TL);
+opt($("fco"),CO.map(function(c){return c[0]}),"All companies");opt($("fty"),TL,"All types");opt($("fst"),ST,"All statuses");
+function showSpecs(){var t=$("f_type").value;if(!T[t])return;SK.forEach(function(k){$("w_"+k).style.display=T[t][1].indexOf(k)>-1?"":"none"});$("monbox").style.display=T[t][1].indexOf("mon_sn")>-1?"":"none";Object.keys(DL).forEach(function(k){$("w_"+k).querySelector("label").textContent=lab(k,t)})}
 function nextCode(co,t){var p=pre(co)+"-"+T[t][0]+"-",m=0;A.forEach(function(a){if(a.code.indexOf(p)===0){var k=parseInt(a.code.slice(p.length),10);if(k>m)m=k}});return p+("0000"+(m+1)).slice(-4)}
 function urlFor(c){return location.origin+"/a/"+encodeURIComponent(c)}
 function qrSvg(c,cell){try{var q=qrcode(0,"M");q.addData(urlFor(c));q.make();return q.createSvgTag(cell||3,0)}catch(e){return""}}
@@ -137,7 +153,7 @@ function del(c){return fb.remove(c).catch(function(e){alert("Could not delete: "
 function save(){if(editId&&!ADM){alert("Only admin can edit assets.");return}
  var t=$("f_type").value,o={company:$("f_company").value,type:t,code:$("f_code").value};
  BK.concat(SK).forEach(function(k){if(k==="st"||keysOf(t).indexOf(k)>-1)o[k]=$("f_"+k).value.trim()});
- o.acc=getAcc();o.accOther=$("acc_o").checked?$("acc_ot").value.trim():"";o.cond=getCond();
+ o.acc=getAcc();o.accd=getAccD();o.accOther=$("acc_o").checked?$("acc_ot").value.trim():"";o.cond=getCond();
  if(!o.loc){alert("Branch Location is required.");return}
  if(!o.aloc){alert("Asset Location is required.");return}
  if(!editId)o.code=nextCode(o.company,t);
@@ -146,14 +162,14 @@ function find(c){c=String(c).trim().toLowerCase();return A.filter(function(a){re
 function filtered(){
  var q=$("q").value.toLowerCase(),c=$("fco").value,t=$("fty").value,s=$("fst").value;
  return A.filter(function(a){if(c&&a.company!==c)return false;if(t&&a.type!==t)return false;if(s&&a.st!==s)return false;return !q||JSON.stringify(a).toLowerCase().indexOf(q)>-1}).sort(function(a,b){return a.code<b.code?-1:1})}
-function conf(a){return T[a.type]?T[a.type][1].map(function(k){return a[k]}).filter(Boolean).join(" | "):""}
+function conf(a){if(!T[a.type])return"";var p=T[a.type][1].filter(function(k){return MK.indexOf(k)<0}).map(function(k){return a[k]}).filter(Boolean);if(a.mon_model||a.mon_sn)p.push("Monitor: "+[a.mon_model,a.mon_sn?"SN "+a.mon_sn:""].filter(Boolean).join(" "));return p.join(" | ")}
 function render(){
  var R=filtered();$("cnt").textContent=R.length+" / "+A.length+" assets";
  $("tb").innerHTML=R.map(function(a){var i=esc(a.code);return"<tr><td class='code'>"+i+"</td><td>"+esc(a.company)+"</td><td>"+esc(a.type)+"<br><span class='stat'>"+esc(a.model)+(a.sn?" · SN "+esc(a.sn):"")+"</span></td><td>"+esc(conf(a))+"</td><td>"+esc(a.loc)+(a.aloc?" – "+esc(a.aloc):"")+"<br><span class='stat'>"+esc([a.dept,a.usr].filter(Boolean).join(" · "))+"</span></td><td>"+esc(a.st)+"</td><td style='white-space:nowrap'><button data-a='v' data-c='"+i+"'>Detail</button> <button data-a='l' data-c='"+i+"'>Label</button> <button data-a='h' data-c='"+i+"'>Handover</button> "+(ADM?"<button data-a='e' data-c='"+i+"'>Edit</button> <button class='d' data-a='x' data-c='"+i+"'>Del</button>":"")+"</td></tr>"}).join("")||"<tr><td colspan=7 class='stat'>No assets found.</td></tr>"}
 function detail(a){
  var ks=["company","type","code"].concat(keysOf(a.type)),h="<h2>Asset Detail – "+esc(a.code)+"</h2><div class='g'><dl>";
- ks.forEach(function(k){if(a[k])h+="<dt>"+esc(L[k])+"</dt><dd>"+esc(a[k])+"</dd>"});
- if(a.acc&&a.acc.length)h+="<dt>Accessories Issued</dt><dd>"+esc(a.acc.map(function(x){return x==="Other"&&a.accOther?"Other: "+a.accOther:x}).join(", "))+"</dd>";if(a.cond)h+="<dt>Condition at Handover</dt><dd>"+esc(a.cond)+"</dd>";
+ ks.forEach(function(k){if(a[k])h+="<dt>"+esc(lab(k,a.type))+"</dt><dd>"+esc(a[k])+"</dd>"});
+ accLines(a).forEach(function(r){h+="<dt>Accessory – "+esc(r[0])+"</dt><dd>"+esc(r[1]||"Issued")+"</dd>"});if(a.cond)h+="<dt>Condition at Handover</dt><dd>"+esc(a.cond)+"</dd>";
  h+="</dl><div class='codes' style='margin:0'><div class='qr'>"+qrSvg(a.code,4)+"</div><svg id='dbc'></svg></div></div><div class='bar'><button class='p' data-a='l' data-c='"+esc(a.code)+"'>Label Print</button><button data-a='h' data-c='"+esc(a.code)+"'>Handover Form</button>"+(ADM?"<button data-a='e' data-c='"+esc(a.code)+"'>Edit</button>":"")+"<button id='dx'>Close</button></div>";
  var d=$("det");d.innerHTML=h;d.style.display="block";bar("#dbc",a.code);$("dx").onclick=function(){d.style.display="none"};window.scrollTo(0,0)}
 function printLabels(R){
@@ -162,13 +178,14 @@ function printLabels(R){
  R.forEach(function(a,i){bar("#l"+i,a.code)});document.body.className="pl";setTimeout(function(){window.print()},200)}
 function handover(a){
  if(!a)return;
- var rows=["company","type","code"].concat(keysOf(a.type).filter(function(k){return["rm","usr","dept","st"].indexOf(k)<0})).filter(function(k){return a[k]}).map(function(k){return"<tr><th>"+esc(L[k])+"</th><td>"+esc(a[k])+"</td></tr>"}).join("");
+ var rows=["company","type","code"].concat(keysOf(a.type).filter(function(k){return["rm","usr","dept","st"].indexOf(k)<0})).filter(function(k){return a[k]}).map(function(k){return"<tr><th>"+esc(lab(k,a.type))+"</th><td>"+esc(a[k])+"</td></tr>"}).join("");
  var d=new Date().toLocaleDateString("en-GB"),U="__________________",sel=a.acc||[],bx=function(on){return on?"&#9745;":"&#9744;"},ck=ACC.map(function(x){return"<span>"+bx(sel.indexOf(x)>-1)+" "+esc(x)+"</span>"}).join("")+"<span>"+bx(sel.indexOf("Other")>-1)+" Other: "+(a.accOther?esc(a.accOther):"____________")+"</span>",cd=CD.map(function(x){return"<span>"+bx(a.cond===x)+" "+x+"</span>"}).join("");
+ var AD=a.accd||{},ar=ACC.concat("Other").map(function(x){var on=sel.indexOf(x)>-1,v=AD[ak(x)]||{},nm=x==="Other"?"Other: "+(a.accOther?esc(a.accOther):"__________"):esc(x);return"<tr><td>"+bx(on)+" "+nm+"</td><td>"+esc(v.sn)+"&nbsp;</td><td>"+esc(v.pd)+"</td><td>"+esc(v.wt)+"</td></tr>"}).join(""),at="<table class='at' style='margin-top:4px'><tr><th>Accessory</th><th>Serial No.</th><th>Purchase Date</th><th>Warranty Till</th></tr>"+ar+"</table>";
  var sg=function(t,n){return"<div class='sg'><div class='ln'></div><b>"+t+"</b><br>Name: "+esc(n||U)+"<br>Date: ________________</div>"};
  $("hform").innerHTML="<div class='top'><div><b style='font-size:15px'>"+esc(a.company)+"</b></div><svg id='hbc'></svg></div><h1>ASSET HANDOVER FORM</h1><div class='sub'>Date: "+d+"</div>"+
  "<h3>1. Asset Details</h3><table>"+rows+"</table>"+
  "<h3>2. Handed Over To</h3><table><tr><th>Employee Name</th><td>"+esc(a.usr)+"&nbsp;</td></tr><tr><th>Employee ID</th><td>&nbsp;</td></tr><tr><th>Department</th><td>"+esc(a.dept)+"&nbsp;</td></tr><tr><th>Designation</th><td>&nbsp;</td></tr><tr><th>Branch Location</th><td>"+esc(a.loc)+"&nbsp;</td></tr><tr><th>Asset Location</th><td>"+esc(a.aloc)+"&nbsp;</td></tr><tr><th>Date of Handover</th><td>"+d+"</td></tr></table>"+
- "<h3>3. Accessories &amp; Condition</h3><div class='ck'><b>Accessories issued:</b> "+ck+"</div><div class='ck' style='margin-top:4px'><b>Condition at handover:</b> "+cd+"</div><div style='margin-top:6px'>Remarks: ______________________________________________________________</div>"+
+ "<h3>3. Accessories &amp; Condition</h3><b>Accessories issued:</b>"+at+"<div class='ck' style='margin-top:4px'><b>Condition at handover:</b> "+cd+"</div><div style='margin-top:6px'>Remarks: ______________________________________________________________</div>"+
  "<h3>4. Terms &amp; Declaration</h3><ol><li>The asset is the property of "+esc(a.company)+" and is issued for official use only.</li><li>The employee is responsible for its safe custody and must report any loss, theft or damage to the IT department immediately.</li><li>Installing unauthorised software, changing hardware or passing the asset to another person is not permitted.</li><li>The asset must be returned in good condition on request, transfer or resignation.</li><li>Loss or damage caused by negligence may be recovered as per company policy.</li></ol>"+
  "<p>I acknowledge that I have received the above asset in the stated condition and agree to the terms above.</p>"+
  "<div class='sgs'>"+sg("Issued by (IT Department)")+sg("Received by (Employee)",a.usr)+sg("Approved by (Manager / HOD)")+"</div>";
@@ -181,7 +198,7 @@ function onClick(e){
  if(b.dataset.a==="l")printLabels([a]);
  if(b.dataset.a==="h")handover(a);
  if(b.dataset.a==="x"&&confirm("Delete "+a.code+"?"))del(a.code);
- if(b.dataset.a==="e"){editId=a.code;$("f_company").value=a.company;$("f_type").value=a.type;showSpecs();BK.concat(SK).forEach(function(k){$("f_"+k).value=a[k]||""});setTicks(a);$("f_code").value=a.code;$("pqr").innerHTML=qrSvg(a.code,3);bar("#pbc",a.code);$("ft").textContent="Edit: "+a.code;window.scrollTo(0,0)}}
+ if(b.dataset.a==="e"){editId=a.code;$("f_company").value=a.company;if(TL.indexOf(a.type)<0&&![].some.call($("f_type").options,function(o){return o.value===a.type}))$("f_type").add(new Option(a.type,a.type));$("f_type").value=a.type;showSpecs();BK.concat(SK).forEach(function(k){$("f_"+k).value=a[k]||""});setTicks(a);$("f_code").value=a.code;$("pqr").innerHTML=qrSvg(a.code,3);bar("#pbc",a.code);$("ft").textContent="Edit: "+a.code;window.scrollTo(0,0)}}
 $("tb").addEventListener("click",onClick);$("det").addEventListener("click",onClick);
 $("save").onclick=save;$("clear").onclick=clearForm;$("f_company").onchange=refresh;$("f_type").onchange=refresh;
 ["q","fco","fty","fst"].forEach(function(i){$(i).oninput=render});
@@ -189,7 +206,7 @@ $("q").addEventListener("keydown",function(e){if(e.key!=="Enter")return;var m=$(
 $("plAll").onclick=function(){printLabels(filtered())};
 function dl(n,t,m){var u=URL.createObjectURL(new Blob([t],{type:m})),a=document.createElement("a");a.href=u;a.download=n;a.click();setTimeout(function(){URL.revokeObjectURL(u)},500)}
 $("csv").onclick=function(){
- var H=["code","company","type"].concat(BK,SK,["acc","accOther","cond"]),rows=[H.join(",")].concat(A.map(function(a){return H.map(function(k){return'"'+String(a[k]||"").replace(/"/g,'""')+'"'}).join(",")}));
+ var H=["code","company","type"].concat(BK,SK,["acc","accd","accOther","cond"]),rows=[H.join(",")].concat(A.map(function(a){return H.map(function(k){return'"'+String(cv(a,k)).replace(/"/g,'""')+'"'}).join(",")}));
  dl("sandeep-assets.csv","\ufeff"+rows.join("\n"),"text/csv")};
 $("bk").onclick=function(){dl("sandeep-assets-backup-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify(A),"application/json")};
 $("rs").onclick=function(){if(ADM)$("rsf").click()};
@@ -203,7 +220,7 @@ function publicView(c){
  fb.getOne(c.toUpperCase()).then(function(a){
   if(!a){$("pc").innerHTML="<h2>Asset not found</h2><p>"+esc(c)+"</p>";return}
   var ks=["company","type","code"].concat(keysOf(a.type)).filter(function(k){return a[k]&&k!=="rm"}),h="<h2>"+esc(a.company)+" – Asset Detail</h2><dl>";
-  ks.forEach(function(k){h+="<dt>"+esc(L[k])+"</dt><dd>"+esc(a[k])+"</dd>"});$("pc").innerHTML=h+"</dl>"
+  ks.forEach(function(k){h+="<dt>"+esc(lab(k,a.type))+"</dt><dd>"+esc(a[k])+"</dd>"});accLines(a).forEach(function(r){h+="<dt>Accessory – "+esc(r[0])+"</dt><dd>"+esc(r[1]||"Issued")+"</dd>"});$("pc").innerHTML=h+"</dl>"
  }).catch(function(e){$("pc").innerHTML="<h2>Could not load</h2><p>"+esc(e.message)+"</p>"})}
 var pm=location.pathname.match(/\/a\/([^\/]+)/),pq=new URLSearchParams(location.search).get("a"),pcode=pm?decodeURIComponent(pm[1]):pq;
 if(pcode){publicView(pcode)}else{
