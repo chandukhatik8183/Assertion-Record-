@@ -1,7 +1,7 @@
 // Firebase adapter: paste your own Firebase web config below.
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,collection,doc,getDoc,setDoc,deleteDoc,onSnapshot,writeBatch} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,collection,doc,getDoc,setDoc,deleteDoc,onSnapshot,writeBatch,updateDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCn8SG8bRCUekJ7KOOQKYyBnIbhGim7wk0",
@@ -26,3 +26,10 @@ export const remove=c=>deleteDoc(doc(db,"assets",c));
 export async function restore(list){
   for(let i=0;i<list.length;i+=400){const b=writeBatch(db);
     list.slice(i,i+400).forEach(x=>{const c=String(x.code).toUpperCase();b.set(doc(db,"assets",c),{...x,code:c})});await b.commit()}}
+
+// ---- Support tickets ----
+export const createTicket=async t=>{await setDoc(doc(db,"tickets",t.id),t);return t.id};
+export const getTicket=async id=>{const s=await getDoc(doc(db,"tickets",id));return s.exists()?{...s.data(),id:s.id}:null};
+export const watchTickets=(ok,err)=>onSnapshot(collection(db,"tickets"),s=>ok(s.docs.map(d=>({...d.data(),id:d.id}))),err);
+export const updateTicket=(id,patch)=>updateDoc(doc(db,"tickets",id),patch);
+export const removeTicket=id=>deleteDoc(doc(db,"tickets",id));

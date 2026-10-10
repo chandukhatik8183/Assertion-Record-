@@ -7,6 +7,7 @@ service cloud.firestore {
     function isAddOnly() {
       return request.auth != null && request.auth.token.email == "user@assets.local";
     }
+
     match /assets/{code} {
       // Anyone can read ONE asset (QR scan), nobody else can list them all
       allow get: if true;
@@ -14,6 +15,27 @@ service cloud.firestore {
       allow list, create: if isAdmin() || isAddOnly();
       // ONLY admin can edit or delete
       allow update, delete: if isAdmin();
+    }
+
+    match /tickets/{id} {
+      // Anyone who scans the QR can create a ticket (with strict checks)
+      allow create: if request.resource.data.keys().hasOnly(['id','assetCode','assetType','assetLoc','company','name','dept','mobile','category','priority','issue','status','notes','created'])
+        && request.resource.data.id == id
+        && id.size() >= 10
+        && request.resource.data.assetCode is string
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 80
+        && request.resource.data.dept.size() <= 60
+        && request.resource.data.mobile.size() <= 15
+        && request.resource.data.issue is string
+        && request.resource.data.issue.size() >= 5 && request.resource.data.issue.size() <= 1000
+        && request.resource.data.status == 'Open';
+
+      // Only someone who knows the long random ticket id can read that one ticket
+      allow get: if true;
+
+      // ONLY admin can see the ticket list, update status / notes, or delete
+      allow list, update, delete: if isAdmin();
     }
   }
 }
