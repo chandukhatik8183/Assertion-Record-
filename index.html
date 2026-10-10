@@ -40,6 +40,22 @@ dt{color:var(--mu);font-size:13px;overflow-wrap:anywhere}dd{margin:0;font-weight
 .g>*{min-width:0}section{min-width:0;overflow-wrap:anywhere}
 @media (max-width:600px){dl{grid-template-columns:minmax(0,1fr);gap:0}dt{margin-top:10px}dd{font-size:15px}}
 .badge{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--bd);color:var(--mu)}
+.stp{display:flex;margin:14px 0 6px}
+.sp{flex:1;text-align:center;position:relative;font-size:12px;color:var(--mu)}
+.sp:before{content:"";position:absolute;top:13px;left:-50%;width:100%;height:3px;background:var(--bd)}
+.sp:first-child:before{display:none}
+.sp .dot{position:relative;z-index:1;display:inline-flex;width:28px;height:28px;border-radius:50%;align-items:center;justify-content:center;background:var(--card);border:2px solid var(--bd);font-weight:700;font-size:13px}
+.sp.done .dot{background:var(--ac);border-color:var(--ac);color:var(--ac2)}
+.sp.done:before,.sp.cur:before{background:var(--ac)}
+.sp.cur .dot{border-color:var(--ac);color:var(--ac);box-shadow:0 0 0 4px rgba(29,78,216,.18)}
+.sp.cur.done .dot{color:var(--ac2)}
+.sp .sl{display:block;margin-top:4px}.sp.cur .sl{color:var(--tx);font-weight:700}
+.tl{list-style:none;margin:10px 0 0;padding:0 0 0 18px;border-left:2px solid var(--bd)}
+.tl li{position:relative;padding:0 0 14px 12px}
+.tl li:before{content:"";position:absolute;left:-25px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--bd)}
+.tl li:first-child:before{background:var(--ac)}
+.tkc{display:inline-block;margin:0 6px 6px 0;padding:4px 10px;font-size:12px}
+.sbig{display:inline-block;padding:3px 12px;border-radius:99px;background:var(--ac);color:var(--ac2);font-weight:700;font-size:13px}
 #labels{display:none}
 .lb{border:1px solid #000;padding:6px;width:64mm;text-align:center;color:#000;background:#fff;break-inside:avoid;font:11px Arial,sans-serif}
 .lb b{display:block;font-size:12px}
@@ -108,6 +124,7 @@ textarea{width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;bac
 </main>
 <main id="lg" style="display:none"><section style="max-width:380px;margin:30px auto"><h2>Login</h2><label>Email</label><input id="le" type="email" autocomplete="username"><label style="margin-top:8px">Password</label><input id="lp" type="password" autocomplete="current-password"><div class="bar"><button class="p" id="lb">Login</button></div><div class="stat" id="lerr" style="margin-top:8px"></div></section></main>
 <main id="pub" style="display:none"><section id="pc"></section>
+<section id="tkst" style="display:none"><h2>Track your ticket</h2><div id="tkmine"></div><div class="bar" style="margin-top:4px"><input id="tl_no" placeholder="Ticket number (e.g. AB12-CD34-EF56)" style="max-width:300px" autocomplete="off"><button class="p" id="tl_go">Check status</button></div><div class="stat" id="tl_msg" style="margin-top:6px"></div><div id="tkview"></div></section>
 <section id="tk" style="display:none"><h2>Report an issue with this asset</h2><div id="tkf"><div class="g">
 <div><label>Your name *</label><input id="t_name" maxlength="80"></div>
 <div><label>Department</label><input id="t_dept" maxlength="60"></div>
@@ -239,7 +256,7 @@ function publicView(c){
  fb.getOne(c.toUpperCase()).then(function(a){
   if(!a){$("pc").innerHTML="<h2>Asset not found</h2><p>"+esc(c)+"</p>";return}
   var ks=["company","type","code"].concat(keysOf(a.type)).filter(function(k){return a[k]&&k!=="rm"}),h="<h2>"+esc(a.company)+" – Asset Detail</h2><dl>";
-  ks.forEach(function(k){h+="<dt>"+esc(lab(k,a.type))+"</dt><dd>"+esc(a[k])+"</dd>"});accLines(a).forEach(function(r){h+="<dt>Accessory – "+esc(r[0])+"</dt><dd>"+esc(r[1]||"Issued")+"</dd>"});$("pc").innerHTML=h+"</dl>";PA=a;$("tk").style.display="";var tq=new URLSearchParams(location.search).get("t");if(tq)showTk(tq,a)
+  ks.forEach(function(k){h+="<dt>"+esc(lab(k,a.type))+"</dt><dd>"+esc(a[k])+"</dd>"});accLines(a).forEach(function(r){h+="<dt>Accessory – "+esc(r[0])+"</dt><dd>"+esc(r[1]||"Issued")+"</dd>"});$("pc").innerHTML=h+"</dl>";PA=a;$("tk").style.display="";$("tkst").style.display="";var tq=new URLSearchParams(location.search).get("t");mineChips();if(!tq){var mm=myT().filter(function(x){return x.code===a.code})[0];if(mm)tq=mm.id}if(tq)showTk(tq,a)
  }).catch(function(e){$("pc").innerHTML="<h2>Could not load</h2><p>"+esc(e.message)+"</p>"})}
 var pm=location.pathname.match(/\/a\/([^\/]+)/),pq=new URLSearchParams(location.search).get("a"),pcode=pm?decodeURIComponent(pm[1]):pq;
 if(pcode){publicView(pcode)}else{
@@ -266,9 +283,36 @@ $("t_go").onclick=function(){
  $("t_go").disabled=true;
  fb.createTicket(t).then(function(){try{localStorage.setItem("tk_last",String(Date.now()))}catch(e){}
   $("tkf").style.display="none";$("tkdone").style.display="";
-  $("tkdone").innerHTML="<h2>Ticket submitted</h2><p>Your ticket number is <b class='code'>"+esc(ftk(t.id))+"</b>. The IT team will look into it.</p><p class='stat'>To check the status later, scan this asset's QR again and use this link: "+esc(location.origin+"/a/"+PA.code+"?t="+t.id)+"</p>"
+  $("tkdone").innerHTML="<h2>Ticket submitted</h2><p>Your ticket number is <b class='code'>"+esc(ftk(t.id))+"</b>. The IT team will look into it.</p><p class='stat'>Note this number. Scan this asset's QR again anytime (or use this link) to see the status and what action IT has taken: "+esc(location.origin+"/a/"+PA.code+"?t="+t.id)+"</p>";addMine(t.id,PA.code);showTk(t.id,PA)
  }).catch(function(e){$("t_go").disabled=false;m.textContent="Could not submit: "+e.message})};
-function showTk(id,a){fb.getTicket(id).then(function(t){if(!t||t.assetCode!==a.code)return;$("tkdone").style.display="";$("tkdone").innerHTML="<h2>Ticket "+esc(ftk(t.id))+"</h2><p><b>Status: "+esc(t.status)+"</b></p><p class='stat'>"+esc(t.issue)+"</p>"+(t.notes?"<p><b>IT note:</b> "+esc(t.notes)+"</p>":"")}).catch(function(){})}
+var TXT={"Open":"Your ticket has been received. IT team will pick it up soon.","In Progress":"IT team is working on your issue.","Resolved":"IT team has fixed the issue. Please confirm everything works.","Closed":"This ticket is closed."};
+var unsubT=null;
+function myT(){try{return JSON.parse(localStorage.getItem("tk_mine")||"[]")}catch(e){return[]}}
+function addMine(id,code){try{var l=myT().filter(function(x){return x.id!==id});l.unshift({id:id,code:code,at:Date.now()});localStorage.setItem("tk_mine",JSON.stringify(l.slice(0,30)))}catch(e){}}
+function mineChips(){var l=myT().filter(function(x){return PA&&x.code===PA.code});$("tkmine").innerHTML=l.length?"<p class='stat'>Your tickets on this device:</p>"+l.map(function(x){return"<button class='tkc' data-mt='"+esc(x.id)+"'>"+esc(ftk(x.id))+"</button>"}).join(""):""}
+function tlEvents(t){var e=[{status:"Open",note:"",at:t.created,first:1}],h=Array.isArray(t.history)?t.history.slice().sort(function(a,b){return(a.at||0)-(b.at||0)}):[];
+ if(!h.length&&(t.status!=="Open"||t.notes))h=[{status:t.status,note:t.notes||"",at:t.updated||t.created}];
+ return e.concat(h).reverse()}
+function tlHtml(t){
+ var si=Math.max(0,TS.indexOf(t.status)),fin=t.status==="Closed",ev=tlEvents(t),last=ev[0];
+ var h="<hr style='border:0;border-top:1px solid var(--bd);margin:14px 0'><h3 style='margin:0 0 6px;font-size:15px'>Ticket <span class='code'>"+esc(ftk(t.id))+"</span></h3>"
+ +"<p style='margin:4px 0'><span class='sbig'>"+esc(t.status)+"</span> <span class='stat'>Last updated: "+esc(fdt(last.at))+"</span></p>"
+ +"<p style='margin:6px 0'>"+esc(TXT[t.status]||"")+"</p>"
+ +"<div class='stp'>"+TS.map(function(x,i){var c=i<si||(fin&&i===si)?" done":"";if(i===si)c+=" cur";return"<div class='sp"+c+"'><span class='dot'>"+(c.indexOf("done")>-1?"&#10003;":i+1)+"</span><span class='sl'>"+esc(x)+"</span></div>"}).join("")+"</div>"
+ +(t.notes?"<p style='margin:12px 0 4px'><b>Latest note from IT:</b> "+esc(t.notes)+"</p>":"")
+ +"<p style='margin:14px 0 0'><b>Action history</b></p><ul class='tl'>"
+ +ev.map(function(x){return"<li><b>"+(x.first?"Ticket raised":"Status: "+esc(x.status))+"</b> <span class='stat'>"+esc(fdt(x.at))+"</span>"+(x.first?"<div class='stat'>"+esc(t.issue)+"</div>":(x.note?"<div>"+esc(x.note)+"</div>":""))+"</li>"}).join("")+"</ul>";
+ return h}
+function showTk(id,a){
+ if(unsubT){unsubT();unsubT=null}
+ $("tl_msg").textContent="";
+ unsubT=fb.watchTicket(id,function(t){
+  if(!t||t.assetCode!==a.code){$("tkview").innerHTML="";$("tl_msg").textContent="No ticket found with this number for this asset.";return}
+  addMine(t.id,a.code);mineChips();$("tkview").innerHTML=tlHtml(t)},
+  function(){$("tl_msg").textContent="Could not load ticket status. Please try again."})}
+$("tl_go").onclick=function(){var v=$("tl_no").value.replace(/[^a-z0-9]/gi,"").toLowerCase();if(!PA)return;
+ if(v.length<10){$("tl_msg").textContent="Please enter the full ticket number.";return}showTk(v,PA)};
+$("tkmine").addEventListener("click",function(e){var b=e.target.closest("button");if(b&&b.dataset.mt&&PA)showTk(b.dataset.mt,PA)});
 function beep(){try{var c=new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator();o.connect(c.destination);o.frequency.value=880;o.start();setTimeout(function(){o.stop();c.close()},350)}catch(e){}}
 function rtk(){
  var f=$("tfs").value,q=$("tq").value.toLowerCase(),R=TK.filter(function(t){
@@ -277,7 +321,7 @@ function rtk(){
  $("tcnt").textContent=R.length+" shown / "+TK.length+" total tickets";
  $("ttb").innerHTML=R.map(function(t){return"<tr><td class='code'>"+esc(ftk(t.id))+"<br><span class='stat'>"+esc(fdt(t.created))+"</span></td><td><b>"+esc(t.assetCode)+"</b><br><span class='stat'>"+esc((t.assetType||"")+" · "+(t.assetLoc||""))+"</span></td><td>"+esc(t.name)+"<br><span class='stat'>"+esc(t.dept)+"</span>"+(t.mobile?"<br><a href='tel:"+esc(t.mobile)+"'>"+esc(t.mobile)+"</a>":"")+"</td><td><b>"+esc(t.category)+" · "+esc(t.priority)+"</b><br>"+esc(t.issue)+"</td><td><select data-k='status'>"+TS.map(function(x){return"<option"+(x===t.status?" selected":"")+">"+x+"</option>"}).join("")+"</select><input data-k='notes' value=\""+esc(t.notes)+"\" placeholder='IT note (visible to user)' style='margin-top:6px'><div class='bar' style='margin-top:6px'><button class='p' data-tid='"+esc(t.id)+"' data-ta='s'>Save</button>"+(ADM?"<button class='d' data-tid='"+esc(t.id)+"' data-ta='x'>Delete</button>":"")+"</div></td></tr>"}).join("")||"<tr><td colspan=5 class='stat'>No tickets.</td></tr>"}
 $("ttb").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||!b.dataset.tid)return;var id=b.dataset.tid;
- if(b.dataset.ta==="s"){var tr=b.closest("tr");fb.updateTicket(id,{status:tr.querySelector("[data-k=status]").value,notes:tr.querySelector("[data-k=notes]").value.trim(),updated:Date.now()}).then(function(){b.textContent="Saved";setTimeout(function(){b.textContent="Save"},1200)}).catch(function(x){alert("Could not update: "+x.message)})}
+ if(b.dataset.ta==="s"){var tr=b.closest("tr");var ns=tr.querySelector("[data-k=status]").value,nn=tr.querySelector("[data-k=notes]").value.trim(),old=TK.filter(function(x){return x.id===id})[0]||{};if(ns===old.status&&nn===(old.notes||"")){b.textContent="No change";setTimeout(function(){b.textContent="Save"},1200);return}fb.actTicket(id,ns,nn,{status:ns,note:nn!==(old.notes||"")?nn:"",at:Date.now()}).then(function(){b.textContent="Saved";setTimeout(function(){b.textContent="Save"},1200)}).catch(function(x){alert("Could not update: "+x.message)})}
  if(b.dataset.ta==="x"&&ADM&&confirm("Delete this ticket?"))fb.removeTicket(id).catch(function(x){alert("Could not delete: "+x.message)})});
 ["tfs","tq"].forEach(function(i){$(i).oninput=rtk});
 function tab(t){$("tab_assets").style.display=t==="a"?"":"none";$("tab_tickets").style.display=t==="t"?"":"none";$("nv_a").className=t==="a"?"p":"";$("nv_t").className=t==="t"?"p":""}

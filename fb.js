@@ -1,7 +1,7 @@
 // Firebase adapter: paste your own Firebase web config below.
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,collection,doc,getDoc,setDoc,deleteDoc,onSnapshot,writeBatch,updateDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,collection,doc,getDoc,setDoc,deleteDoc,onSnapshot,writeBatch,updateDoc,arrayUnion} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCn8SG8bRCUekJ7KOOQKYyBnIbhGim7wk0",
@@ -33,3 +33,5 @@ export const getTicket=async id=>{const s=await getDoc(doc(db,"tickets",id));ret
 export const watchTickets=(ok,err)=>onSnapshot(collection(db,"tickets"),s=>ok(s.docs.map(d=>({...d.data(),id:d.id}))),err);
 export const updateTicket=(id,patch)=>updateDoc(doc(db,"tickets",id),patch);
 export const removeTicket=id=>deleteDoc(doc(db,"tickets",id));
+export const watchTicket=(id,ok,err)=>onSnapshot(doc(db,"tickets",id),s=>ok(s.exists()?{...s.data(),id:s.id}:null),err);
+export const actTicket=(id,status,notes,entry)=>updateDoc(doc(db,"tickets",id),{status,notes,updated:Date.now(),history:arrayUnion(entry)});
