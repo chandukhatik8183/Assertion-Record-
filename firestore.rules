@@ -34,8 +34,29 @@ service cloud.firestore {
       // Only someone who knows the long random ticket id can read that one ticket
       allow get: if true;
 
-      // ONLY admin can see the ticket list, update status / notes, or delete
-      allow list, update, delete: if isAdmin();
+      // ONLY admin can see the ticket list or delete
+      allow list, delete: if isAdmin();
+
+      // Admin can update anything. The ticket owner (anyone with the ticket) may ONLY add one feedback, and only after it is Resolved.
+      allow update: if isAdmin() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['feedback'])
+        && resource.data.status == 'Resolved'
+        && !('feedback' in resource.data)
+        && request.resource.data.feedback.keys().hasOnly(['rating','comment','at'])
+        && request.resource.data.feedback.rating is int
+        && request.resource.data.feedback.rating >= 1 && request.resource.data.feedback.rating <= 5
+        && request.resource.data.feedback.comment is string && request.resource.data.feedback.comment.size() <= 500
+        && request.resource.data.feedback.at is number);
+    }
+
+    // Pointer: asset code -> its newest ticket id (so a QR scan can show the latest ticket without a ticket number)
+    match /assetLatest/{code} {
+      allow get: if true;
+      allow create, update: if request.resource.data.keys().hasOnly(['ticketId','at'])
+        && request.resource.data.ticketId is string
+        && getAfter(/databases/$(database)/documents/tickets/$(request.resource.data.ticketId)).data.assetCode == code
+        && getAfter(/databases/$(database)/documents/tickets/$(request.resource.data.ticketId)).data.created == request.resource.data.at;
+      allow delete: if isAdmin();
     }
   }
 }

@@ -28,10 +28,16 @@ export async function restore(list){
     list.slice(i,i+400).forEach(x=>{const c=String(x.code).toUpperCase();b.set(doc(db,"assets",c),{...x,code:c})});await b.commit()}}
 
 // ---- Support tickets ----
-export const createTicket=async t=>{await setDoc(doc(db,"tickets",t.id),t);return t.id};
+export const createTicket=async t=>{const b=writeBatch(db);b.set(doc(db,"tickets",t.id),t);b.set(doc(db,"assetLatest",t.assetCode),{ticketId:t.id,at:t.created});await b.commit();return t.id};
+// Latest ticket of an asset (live): pointer doc -> ticket doc
+export const watchLatest=(code,ok,err)=>{let u2=null;const u1=onSnapshot(doc(db,"assetLatest",code),s=>{if(u2){u2();u2=null}if(!s.exists()){ok(null);return}u2=onSnapshot(doc(db,"tickets",s.data().ticketId),d=>ok(d.exists()?{...d.data(),id:d.id}:null),err)},err);return()=>{u1();if(u2)u2()}};
+// Admin: make sure every asset points to its newest ticket (covers tickets created before this feature)
+export const syncLatest=async list=>{const m={};list.forEach(t=>{if(t.assetCode&&(!m[t.assetCode]||(t.created||0)>(m[t.assetCode].created||0)))m[t.assetCode]=t});
+  for(const c in m){try{await setDoc(doc(db,"assetLatest",c),{ticketId:m[c].id,at:m[c].created})}catch(e){}}};
 export const getTicket=async id=>{const s=await getDoc(doc(db,"tickets",id));return s.exists()?{...s.data(),id:s.id}:null};
 export const watchTickets=(ok,err)=>onSnapshot(collection(db,"tickets"),s=>ok(s.docs.map(d=>({...d.data(),id:d.id}))),err);
 export const updateTicket=(id,patch)=>updateDoc(doc(db,"tickets",id),patch);
 export const removeTicket=id=>deleteDoc(doc(db,"tickets",id));
 export const watchTicket=(id,ok,err)=>onSnapshot(doc(db,"tickets",id),s=>ok(s.exists()?{...s.data(),id:s.id}:null),err);
-export const actTicket=(id,status,notes,entry)=>updateDoc(doc(db,"tickets",id),{status,notes,updated:Date.now(),history:arrayUnion(entry)});
+export const actTicket=(id,patch,entry)=>updateDoc(doc(db,"tickets",id),{...patch,updated:Date.now(),history:arrayUnion(entry)});
+export const sendFeedback=(id,fbk)=>updateDoc(doc(db,"tickets",id),{feedback:fbk});
