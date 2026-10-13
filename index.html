@@ -336,6 +336,9 @@ function bulkSheets(withData){
  return[{name:"Assets",rows:rows,widths:BH.map(function(k){return W[k]||15}),header:true,textCols:true,freeze:true,validationRows:Math.max(2000,rows.length+500),
   validations:[{col:BH.indexOf("company"),list:CO.map(function(c){return c[0]})},{col:BH.indexOf("type"),list:TL},{col:BH.indexOf("st"),list:ST},{col:BH.indexOf("cond"),list:CD}]},
   {name:"Instructions",rows:bulkHelp(),widths:[28,110],header:true,wrap:true}]}
+function xlOk(){if(typeof XL!=="undefined"&&self.fflate)return true;
+ bshow("<h2>Excel module not loaded</h2><p>The files <b>xlsx.js</b> (main folder) and <b>vendor/fflate.min.js</b> are missing on the website, so Excel files cannot be created or read.</p><p>Upload both files to GitHub (same place as index.html and the vendor folder), wait for Vercel to finish deploying, then press Ctrl+F5 and try again.</p><p class='stat'>Check: opening your-site/xlsx.js in the browser should show code, not a 404 page.</p><div class='bar'><button data-b='back'>Back</button></div>");return false}
+function xlGo(f){try{f()}catch(x){bshow("<h2>Could not create the Excel file</h2><p>"+esc(x.message)+"</p><div class='bar'><button data-b='back'>Back</button></div>")}}
 var XLSX_MIME="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",BROWS=null,BNAME="";
 function bshow(h){$("bulkc").innerHTML=h;$("bulk").style.display="block"}
 function bclose(){$("bulk").style.display="none";$("bulkc").innerHTML=""}
@@ -358,9 +361,9 @@ function bpreview(p){
 $("bulkb").onclick=bmenu;
 $("bulk").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||!b.dataset.b)return;var a=b.dataset.b;
  if(a==="x")bclose();else if(a==="back")bmenu();
- else if(a==="tpl")dl("asset-template.xlsx",XL.write({sheets:bulkSheets(false)}),XLSX_MIME);
- else if(a==="all"){if(ADM)dl("sandeep-assets-edit-"+new Date().toISOString().slice(0,10)+".xlsx",XL.write({sheets:bulkSheets(true)}),XLSX_MIME)}
- else if(a==="up")$("bf").click();
+ else if(a==="tpl"){if(xlOk())xlGo(function(){dl("asset-template.xlsx",XL.write({sheets:bulkSheets(false)}),XLSX_MIME)})}
+ else if(a==="all"){if(ADM&&xlOk())xlGo(function(){dl("sandeep-assets-edit-"+new Date().toISOString().slice(0,10)+".xlsx",XL.write({sheets:bulkSheets(true)}),XLSX_MIME)})}
+ else if(a==="up"){if(xlOk())$("bf").click()}
  else if(a==="go"){b.disabled=true;var p=bulkPlan(BROWS),W=p.rows.filter(function(r){return r.kind==="new"||r.kind==="upd"});if(!W.length){bmenu();return}
   var nn=W.filter(function(r){return r.kind==="new"}).length;
   fb.restore(W.map(function(r){return r.o})).then(function(){bshow("<h2>Import complete</h2><p>"+nn+" asset(s) added, "+(W.length-nn)+" updated.</p><div class='bar'><button class='p' data-b='x'>Close</button></div>")})
