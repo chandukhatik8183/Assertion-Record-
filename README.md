@@ -5,3 +5,14 @@
 3. Firestore -> Rules: paste `firestore.rules` (put your admin email) and Publish. (Required again after this update: it adds the `assetLatest` rule.)
 4. Upload this folder to a GitHub repo. In Vercel: Add New Project -> import the repo -> Deploy (no build settings needed).
 5. Open your Vercel URL, log in, add assets, print labels from that URL (QR codes use the address you opened).
+
+## Files (all must be uploaded)
+- `index.html`, `fb.js`, `xlsx.js`, `firestore.rules`, `vercel.json`
+- `vendor/JsBarcode.all.min.js`, `vendor/qrcode.js`, `vendor/fflate.min.js`
+
+`xlsx.js` sits next to `index.html`; `fflate.min.js` goes inside the `vendor` folder.
+After changing `firestore.rules`, paste it in Firebase -> Firestore -> Rules and press Publish.
+
+## Bulk Add / Edit (Excel)
+Assets screen -> "Bulk Add/Edit (Excel)": download the blank template (add) or all current assets (edit), fill it in Excel, upload .xlsx/.csv, check the preview, press Import.
+
