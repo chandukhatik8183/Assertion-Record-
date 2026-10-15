@@ -146,7 +146,16 @@ textarea{width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;bac
 import * as fb from "/fb.js";
 var CO=[["Sandeep Hyundai","SH"],["Sandeep Kia","SK"],["Sandeep Bajaj","SB"],["Sandeep Bajaj Chetak","SC"],["Sandeep Ford","FD"],["Sandeep SG Associates","SG"],["Sandeep STPL","ST"],["SMPL Finance","SF"]];
 /* Branches of each company (shown in the Branch Location dropdown). Add more names inside the [ ] of a company. Branches already used by saved assets also appear automatically. */
-var BR={"Sandeep Hyundai":["Hyundai HO"],"Sandeep Kia":["Rajsamand"],"Sandeep Bajaj":[],"Sandeep Bajaj Chetak":[],"Sandeep Ford":[],"Sandeep SG Associates":[],"Sandeep STPL":[],"SMPL Finance":[]};
+var BR={
+  "Sandeep Hyundai":["Hyundai HO", "Hyundai DBU", "Hyundai Workshop Riico", "Hyundai Workshop Atton", "Hyundai Workshop Gulabpura", "Hyundai Shahpura"],
+  "Sandeep Kia":["KIA HO", "Kia workshop Riico", "Kia Chittorgarh", "Kia Rajsamand"],
+  "Sandeep Bajaj":["Bajaj HO", "Bajaj Ajmer Road", "Bajaj Workshop Pansal Chouraha"],
+  "Sandeep Bajaj Chetak":["Chetak HO", "Chetak Workshop Pansal Choras"],
+  "Sandeep Ford":["Ford Workshop Riico"],
+  "Sandeep SG Associates":["SG HO", "SG Plant", "SG Mandal", "SG Udaipur"],
+  "Sandeep STPL":["STPL HO", "STPL Mandal", "STPL Chanderia", "STPL Rithola", "STPL Chittorgarh", "STPL Rajsamand", "STPL Beawer", "STPL Nashirabad", "STPL Shrinagar", "STPL Ajmer", "STPL Udaipur", "STPL soniyana", "STPL Gegal"],
+  "SMPL Finance":["HO"]
+};
 function branchesFor(co){var out=[],seen={};function add(b){b=String(b||"").trim();var k=b.toLowerCase();if(b&&!seen[k]){seen[k]=1;out.push(b)}}
  (BR[co]||[]).forEach(add);A.filter(function(a){return a.company===co}).map(function(a){return a.loc}).sort().forEach(add);return out}
 var PC=["cpu","ram","hdd","os"];
@@ -170,7 +179,7 @@ function opt(el,arr,first){if(first)el.add(new Option(first,""));arr.forEach(fun
 function pre(n){for(var i=0;i<CO.length;i++)if(CO[i][0]===n)return CO[i][1];return"XX"}
 function keysOf(t){var sp=T[t][1].filter(function(k){return MK.indexOf(k)<0}),mo=T[t][1].filter(function(k){return MK.indexOf(k)>-1});return BK.slice(0,2).concat(sp,BK.slice(2,8),mo,BK.slice(8))}
 function mk(k){var d=document.createElement("div");d.id="w_"+k;var inp=k==="st"?"<select id='f_st'></select>":k==="loc"?"<select id='f_loc'></select>":"<input id='f_"+k+"'"+(/(^|_)(pd|wt)$/.test(k)?" type='date'":"")+">";d.innerHTML="<label>"+L[k]+"</label>"+inp;return d}
-BK.forEach(function(k){$("base").appendChild(mk(k))});SK.forEach(function(k){$(MK.indexOf(k)>-1?"monspecs":"specs").appendChild(mk(k))});
+BK.forEach(function(k){$("base").appendChild(mk(k))});(function(){var cd=$("f_company").parentNode;cd.parentNode.insertBefore($("w_loc"),cd.nextSibling)})();SK.forEach(function(k){$(MK.indexOf(k)>-1?"monspecs":"specs").appendChild(mk(k))});
 var AXH="<span class='ax' style='display:none'><input data-f='sn' placeholder='Serial No.'><label>Purchase Date<input type='date' data-f='pd'></label><label>Warranty Till<input type='date' data-f='wt'></label></span>";
 $("accs").innerHTML=ACC.map(function(x){return"<div class='ai'><label class='tki'><input type='checkbox' class='acc' value='"+esc(x)+"'> "+esc(x)+"</label>"+AXH+"</div>"}).join("")+"<div class='ai'><label class='tki'><input type='checkbox' id='acc_o'> Other:</label><input id='acc_ot' placeholder='specify other accessory' style='width:220px;display:inline-block;vertical-align:middle'>"+AXH+"</div>";
 $("conds").innerHTML=CD.map(function(x){return"<label class='tki'><input type='checkbox' class='cnd' value='"+x+"'> "+x+"</label>"}).join("");
@@ -261,7 +270,7 @@ $("bk").onclick=function(){dl("sandeep-assets-backup-"+new Date().toISOString().
 $("rs").onclick=function(){if(ADM)$("rsf").click()};
 $("rsf").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var d=JSON.parse(r.result);if(!Array.isArray(d)||!d.every(function(x){return x&&x.code}))throw 1;if(confirm("Restore "+d.length+" assets from this backup? Assets with the same code will be overwritten."))fb.restore(d).then(function(){alert("Restore complete")}).catch(function(x){alert("Restore failed: "+x.message)})}catch(x){alert("Invalid backup file.")}};r.readAsText(f);e.target.value=""};
 /* BULK-START ---------- Bulk add / edit from Excel (.xlsx) or CSV ---------- */
-var BH=["code","company","type"].concat(BK,SK,["acc","accOther","cond"]),
+var BH=["code","company","loc","type"].concat(BK.filter(function(k){return k!=="loc"}),SK,["acc","accOther","cond"]),
 BL=Object.assign({},L,{acc:"Accessories (separate with ;)",accOther:"Other Accessory",cond:"Condition at Handover"}),
 HM={assetcode:"code",producttype:"type",brandmodel:"model",desktopbrandmodel:"model",assetlocation:"aloc",branch:"loc"},IGN={accd:1,accessorydetails:1},DK={pd:1,wt:1,mon_pd:1,mon_wt:1};
 function nz(s){return String(s==null?"":s).toLowerCase().replace(/[^a-z0-9]/g,"")}
