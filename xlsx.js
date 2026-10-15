@@ -162,13 +162,13 @@
     }
     x += '</sheetData>';
     if (sh.header && nc) x += '<autoFilter ref="A1:' + colName(nc - 1) + Math.max(rows.length, 1) + '"/>';
-    var vals = (sh.validations || []).filter(function (v) { return v.list.join(",").length <= 250; });
+    var vals = (sh.validations || []).filter(function (v) { return v.formula || v.list.join(",").length <= 250; });
     if (vals.length) {
       var last = sh.validationRows || 2000;
       x += '<dataValidations count="' + vals.length + '">';
       vals.forEach(function (v) {
         var c = colName(v.col);
-        x += '<dataValidation type="list" allowBlank="1" showErrorMessage="1" errorTitle="Invalid value" error="Please pick a value from the list." sqref="' + c + '2:' + c + last + '"><formula1>"' + xesc(v.list.join(",")) + '"</formula1></dataValidation>';
+        x += '<dataValidation type="list" allowBlank="1" showErrorMessage="1"' + (v.warn ? ' errorStyle="warning"' : '') + ' errorTitle="Check value" error="' + xesc(v.msg || "Please pick a value from the list.") + '" sqref="' + c + '2:' + c + last + '"><formula1>' + (v.formula ? xesc(v.formula) : '"' + xesc(v.list.join(",")) + '"') + '</formula1></dataValidation>';
       });
       x += '</dataValidations>';
     }
@@ -194,7 +194,8 @@
     wr += '<Relationship Id="rId' + (n + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
     files["[Content_Types].xml"] = F.strToU8(ct + '</Types>');
     files["_rels/.rels"] = F.strToU8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
-    files["xl/workbook.xml"] = F.strToU8(wbx + '</sheets></workbook>');
+    var nm = (book.names || []).map(function (q) { return '<definedName name="' + xesc(q.name) + '">' + xesc(q.ref) + '</definedName>'; }).join('');
+    files["xl/workbook.xml"] = F.strToU8(wbx + '</sheets>' + (nm ? '<definedNames>' + nm + '</definedNames>' : '') + '</workbook>');
     files["xl/_rels/workbook.xml.rels"] = F.strToU8(wr);
     files["xl/styles.xml"] = F.strToU8(STYLES);
     return F.zipSync(files, { level: 6 });
