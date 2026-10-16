@@ -1,7 +1,7 @@
 // Firebase adapter: paste your own Firebase web config below.
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,collection,doc,getDoc,setDoc,deleteDoc,onSnapshot,writeBatch,updateDoc,arrayUnion} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,collection,doc,getDoc,setDoc,deleteDoc,onSnapshot,writeBatch,updateDoc,arrayUnion,arrayRemove} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCn8SG8bRCUekJ7KOOQKYyBnIbhGim7wk0",
@@ -47,3 +47,43 @@ export async function restoreTickets(list,current){
     list.slice(i,i+400).forEach(x=>b.set(doc(db,"tickets",x.id),{...x,id:x.id}));await b.commit()}
   const m={};(current||[]).forEach(t=>{m[t.id]=t});list.forEach(t=>{m[t.id]=t});
   await syncLatest(Object.values(m))}
+
+// ---- Branch list (config/branches) : admin edits it, the add-only user can only read it ----
+const cfgRef=doc(db,"config","branches");
+export const watchConfig=(ok,err)=>onSnapshot(cfgRef,s=>ok(s.exists()?s.data():{}),err);
+export const seedBranches=(seed,v)=>{const o={__v:v};Object.keys(seed).forEach(c=>{if(seed[c].length)o[c]=arrayUnion(...seed[c])});return setDoc(cfgRef,o,{merge:true})};
+export const addBranch=(co,b)=>setDoc(cfgRef,{[co]:arrayUnion(b)},{merge:true});
+export const removeBranch=(co,b)=>setDoc(cfgRef,{[co]:arrayRemove(b)},{merge:true});
+
+// ---- Asset codes without listing all assets (counters = "last number used" hint, never trusted blindly) ----
+const cid=p=>String(p).slice(0,5);                       // "SK-DT-" -> "SK-DT"
+async function hint(p){try{const s=await getDoc(doc(db,"counters",cid(p)));return s.exists()?(+s.data().n||0):0}catch(e){return 0}}
+export async function nextFree(p){let n=await hint(p);
+  for(let i=0;i<500;i++){n++;const c=p+String(n).padStart(4,"0");if(!(await getDoc(doc(db,"assets",c))).exists())return c}
+  throw new Error("No free asset code found")}
+// Add-only user: create ONE new asset. If the code was taken meanwhile, pick the next free one and retry.
+export async function createAsset(o){let code=o.code,last;
+  for(let t=0;t<4;t++){const p=code.slice(0,6),num=parseInt(code.slice(6),10),b=writeBatch(db);
+    b.set(doc(db,"assets",code),{...o,code});
+    if(num>await hint(p))b.set(doc(db,"counters",cid(p)),{n:num});
+    try{await b.commit();return{...o,code}}catch(e){last=e;code=await nextFree(p)}}
+  throw last}
+// Add-only user: create many NEW assets (items = [{p:"SK-DT-",o:asset}]); codes are allotted here. Returns the codes.
+export async function bulkCreate(items){const cur={};
+  for(const it of items){const p=it.p;if(cur[p]===undefined)cur[p]=await hint(p);it.code="";
+    for(let i=0;i<500&&!it.code;i++){cur[p]++;const c=p+String(cur[p]).padStart(4,"0");if(!(await getDoc(doc(db,"assets",c))).exists())it.code=c}
+    if(!it.code)throw new Error("No free asset code found")}
+  for(let i=0;i<items.length;i+=400){const b=writeBatch(db);items.slice(i,i+400).forEach(it=>b.set(doc(db,"assets",it.code),{...it.o,code:it.code}));await b.commit()}
+  const mx={};items.forEach(it=>{mx[it.p]=Math.max(mx[it.p]||0,parseInt(it.code.slice(6),10))});
+  for(const p in mx){try{if(mx[p]>await hint(p))await setDoc(doc(db,"counters",cid(p)),{n:mx[p]})}catch(e){}}
+  return items.map(it=>it.code)}
+// Admin: keep the counters up to date (so the add-only user finds the next free code quickly)
+export async function bumpCounters(codes){const mx={};
+  codes.forEach(c=>{const m=/^([A-Z]{2}-[A-Z]{2})-(\d{4})$/.exec(String(c).toUpperCase());if(m)mx[m[1]]=Math.max(mx[m[1]]||0,+m[2])});
+  for(const k in mx){try{const s=await getDoc(doc(db,"counters",k));if(!s.exists()||(+s.data().n||0)<mx[k])await setDoc(doc(db,"counters",k),{n:mx[k]})}catch(e){}}}
+export const syncCounters=list=>bumpCounters(list.map(a=>a.code));
+
+// ---- Asset movement / repair approval (admin) ----
+// Next gate-pass number for a financial year, e.g. fy "2026-27" -> 1, 2, 3 ...
+export async function nextGP(fy){const r=doc(db,"counters","GP"+fy);let n=0;try{const s=await getDoc(r);if(s.exists())n=+s.data().n||0}catch(e){}n++;await setDoc(r,{n});return n}
+export const setAssetStatus=(code,st)=>updateDoc(doc(db,"assets",code),{st});

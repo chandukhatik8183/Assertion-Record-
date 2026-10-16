@@ -1,6 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // ---------- who is who ----------
     function isAdmin() {
       return request.auth != null && request.auth.token.email == "it@assets.local";
     }
@@ -8,28 +10,93 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.email == "user@assets.local";
     }
 
+    // optional text field: if present it must be a short string
+    function okStr(k, n) {
+      return !(k in request.resource.data)
+        || (request.resource.data[k] is string && request.resource.data[k].size() <= n);
+    }
+
+    // What the ADD-ONLY user is allowed to create: a brand new asset with a valid code,
+    // a known company / product type / status, and a branch that is in the admin's branch list.
+    function newAssetOk(code) {
+      return request.resource.data.keys().hasOnly(['company','type','code','model','sn','loc','aloc','dept','usr','pd','wt','st','rm','cpu','ram','hdd','os','size','res','ports','ip','mac','ntype','sip','smask','sgw','dns1','dns2','cap','batt','mon_model','mon_sn','mon_pd','mon_wt','acc','accd','accOther','cond'])
+        && request.resource.data.keys().hasAll(['code','company','type','loc','aloc','st'])
+        && request.resource.data.code == code
+        && code.matches('^[A-Z]{2}-[A-Z]{2}-[0-9]{4}$')
+        && request.resource.data.company in ['Sandeep Hyundai','Sandeep Kia','Sandeep Bajaj','Sandeep Bajaj Chetak','Sandeep Ford','Sandeep SG Associates','Sandeep STPL','SMPL Finance','Sandeep SMAVL (BKT)']
+        && request.resource.data.type in ['Desktop','Laptop','All-in-One','Monitor','Networking','Server','Printer','Biometric','Mobile','Tablet','ISP','UPS']
+        && request.resource.data.st in ['In Use','In Stock','Under Repair','Scrapped']
+        && request.resource.data.loc is string
+        && request.resource.data.loc.size() <= 80
+        && request.resource.data.loc in get(/databases/$(database)/documents/config/branches).data[request.resource.data.company]
+        && request.resource.data.aloc is string && request.resource.data.aloc.size() <= 200
+        && (!('acc' in request.resource.data) || (request.resource.data.acc is list && request.resource.data.acc.size() <= 20))
+        && (!('accd' in request.resource.data) || (request.resource.data.accd is map && request.resource.data.accd.size() <= 20))
+        && okStr('model', 200) &&
+        okStr('sn', 200) &&
+        okStr('usr', 200) &&
+        okStr('dept', 200) &&
+        okStr('rm', 500) &&
+        okStr('accOther', 200);
+    }
+
+    // ---------- ASSETS ----------
     match /assets/{code} {
-      // Anyone can read ONE asset (QR scan), nobody else can list them all
+      // anyone can read ONE asset (needed for the QR-scan page) - nobody can list them except admin
       allow get: if true;
-      // admin and the add-only user can see the list and add new assets
-      allow list, create: if isAdmin() || isAddOnly();
+      allow list: if isAdmin();
+      // admin: anything. add-only user: only NEW assets that pass newAssetOk (cannot overwrite an existing one)
+      allow create: if isAdmin() || (isAddOnly() && newAssetOk(code));
       // ONLY admin can edit or delete
       allow update, delete: if isAdmin();
     }
 
+    // ---------- Branch list per company (admin edits, add-only user can only read) ----------
+    match /config/{doc} {
+      allow get: if isAdmin() || isAddOnly();
+      allow write: if isAdmin();
+    }
+
+    // ---------- Next-code hints (SK-DT -> last used number) ----------
+    match /counters/{pfx} {
+      allow get: if isAdmin() || isAddOnly();
+      allow write: if isAdmin() || (isAddOnly()
+        && pfx.matches('^[A-Z]{2}-[A-Z]{2}$')
+        && request.resource.data.keys().hasOnly(['n'])
+        && request.resource.data.n is int
+        && request.resource.data.n >= 1 && request.resource.data.n <= 9999
+        && (resource == null || request.resource.data.n > resource.data.n));
+    }
+
+    // ---------- TICKETS ----------
     match /tickets/{id} {
-      // Anyone who scans the QR can create a ticket (with strict checks). Admin can also create any ticket (needed for Restore).
-      allow create: if isAdmin() || (request.resource.data.keys().hasOnly(['id','assetCode','assetType','assetLoc','company','name','dept','mobile','category','priority','issue','status','notes','created'])
+      // Anyone who scans the QR can raise a ticket for a REAL asset (strict checks).
+      // Admin can also create any ticket (needed for Restore).
+      allow create: if isAdmin() || (request.resource.data.keys().hasOnly(['id','assetCode','assetType','assetLoc','company','name','dept','mobile','category','priority','issue','status','notes','created','move'])
         && request.resource.data.id == id
-        && id.size() >= 10
+        && id.size() >= 10 && id.size() <= 40
         && request.resource.data.assetCode is string
+        && exists(/databases/$(database)/documents/assets/$(request.resource.data.assetCode))
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 80
-        && request.resource.data.dept.size() <= 60
-        && request.resource.data.mobile.size() <= 15
+        && request.resource.data.dept is string && request.resource.data.dept.size() <= 60
+        && request.resource.data.mobile is string && request.resource.data.mobile.size() <= 15
+        && request.resource.data.assetType is string && request.resource.data.assetType.size() <= 60
+        && request.resource.data.assetLoc is string && request.resource.data.assetLoc.size() <= 250
+        && request.resource.data.company is string && request.resource.data.company.size() <= 80
+        && request.resource.data.category is string && request.resource.data.category.size() <= 40
+        && request.resource.data.priority is string && request.resource.data.priority.size() <= 20
+        && request.resource.data.notes is string && request.resource.data.notes.size() == 0
+        && request.resource.data.created is number
         && request.resource.data.issue is string
         && request.resource.data.issue.size() >= 5 && request.resource.data.issue.size() <= 1000
-        && request.resource.data.status == 'Open');
+        && request.resource.data.status == 'Open'
+        // optional asset-movement request (where the asset is sent, with whom, when)
+        && (!('move' in request.resource.data) || (request.resource.data.move is map
+          && request.resource.data.move.keys().hasOnly(['dest','carrier','at'])
+          && request.resource.data.move.dest is string && request.resource.data.move.dest.size() >= 2 && request.resource.data.move.dest.size() <= 150
+          && request.resource.data.move.carrier is string && request.resource.data.move.carrier.size() >= 2 && request.resource.data.move.carrier.size() <= 80
+          && request.resource.data.move.at is number)));
 
       // Only someone who knows the long random ticket id can read that one ticket
       allow get: if true;
@@ -37,7 +104,7 @@ service cloud.firestore {
       // ONLY admin can see the ticket list or delete
       allow list, delete: if isAdmin();
 
-      // Admin can update anything. The ticket owner (anyone with the ticket) may ONLY add one feedback, and only after it is Resolved.
+      // Admin can update anything. The ticket owner may ONLY add one feedback, and only after it is Resolved.
       allow update: if isAdmin() || (
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['feedback'])
         && resource.data.status == 'Resolved'
@@ -49,14 +116,16 @@ service cloud.firestore {
         && request.resource.data.feedback.at is number);
     }
 
-    // Pointer: asset code -> its newest ticket id (so a QR scan can show the latest ticket without a ticket number)
+    // ---------- Pointer: asset code -> its newest ticket (QR page shows the latest ticket) ----------
     match /assetLatest/{code} {
       allow get: if true;
-      allow create, update: if request.resource.data.keys().hasOnly(['ticketId','at'])
+      allow create, update: if isAdmin() || (request.resource.data.keys().hasOnly(['ticketId','at'])
         && request.resource.data.ticketId is string
         && getAfter(/databases/$(database)/documents/tickets/$(request.resource.data.ticketId)).data.assetCode == code
-        && getAfter(/databases/$(database)/documents/tickets/$(request.resource.data.ticketId)).data.created == request.resource.data.at;
+        && getAfter(/databases/$(database)/documents/tickets/$(request.resource.data.ticketId)).data.created == request.resource.data.at);
       allow delete: if isAdmin();
     }
+
+    // everything else is closed
   }
 }
