@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1d4ed8">
+<link rel="manifest" href="/manifest.webmanifest">
 <title>Sandeep Group – Asset Tracker</title>
 <script src="/vendor/JsBarcode.all.min.js"></script>
 <script src="/vendor/qrcode.js"></script>
@@ -84,13 +86,35 @@ dt{color:var(--mu);font-size:13px;overflow-wrap:anywhere}dd{margin:0;font-weight
 #hform{font-size:11px;padding:8mm}#hform th,#hform td{padding:3px 6px;font-size:11px}#hform .at th{width:auto}#hform h3{margin:8px 0 3px}#hform .sgs{margin-top:26px}
 #nv_t.p .badge{color:#fff;border-color:#fff}
 textarea{width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--tx);font:inherit}
+
+/* ---- digital look ---- */
+header{background:linear-gradient(135deg,#1d4ed8,#0ea5e9);color:#fff;border:0;position:sticky;top:0;z-index:20;box-shadow:0 2px 12px rgba(0,0,0,.18)}
+header p{color:rgba(255,255,255,.88)}header .badge{color:#fff;border-color:rgba(255,255,255,.65)}
+header button{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.55)}
+section{border-radius:14px;box-shadow:0 1px 3px rgba(16,24,40,.07)}
+button{border-radius:8px;transition:box-shadow .15s,transform .05s}button:hover{box-shadow:0 2px 8px rgba(0,0,0,.14)}button:active{transform:translateY(1px)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);outline-offset:1px}
+/* ---- digital gate pass (on-screen) ---- */
+.gpv{background:#fff;color:#000;font:12px/1.5 Arial,sans-serif;padding:14px;border-radius:10px;border:1px solid #cfd6e0;overflow-x:auto}
+.gpv h1{text-align:center;font-size:17px;margin:0 0 2px;color:#000}.gpv .sub{text-align:center;margin-bottom:6px}
+.gpv h3{font-size:13px;margin:10px 0 4px;border-bottom:1px solid #000;padding-bottom:2px;color:#000}
+.gpv table{width:100%;min-width:0;border-collapse:collapse}.gpv th,.gpv td{border:1px solid #000;padding:3px 6px;font-size:12px;text-align:left;color:#000}.gpv th{width:32%;background:#eee}
+.gpv .top{display:flex;justify-content:space-between;align-items:center;gap:10px}.gpv .sgs{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap}.gpv .sg{flex:1;min-width:130px}.gpv .ln{border-top:1px solid #000;margin-bottom:4px;margin-top:22px}
+.dstamp{text-align:center;font-size:10px;letter-spacing:.5px;color:#1d4ed8;border:1px dashed #1d4ed8;border-radius:4px;padding:2px 6px;margin:4px auto 6px;max-width:420px}
+.dg{color:#0a7a2f;font-weight:700;margin:14px 0 4px;border-bottom:1px solid #0a7a2f;padding-bottom:3px}
+#hform .dstamp{color:#000;border-color:#000}#hform .dg{color:#000;border-color:#000}
+
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.kc{padding:12px 14px;border-radius:12px;background:var(--bg);border:1px solid var(--bd)}.kc b{display:block;font-size:28px;line-height:1.1}.kc span{font-size:12px;color:var(--mu)}.kc.w b{color:#d97706}.kc.r b{color:var(--dg)}.kc.ok b{color:#16a34a}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}.bars .br{display:grid;grid-template-columns:minmax(90px,150px) 1fr 34px;gap:8px;align-items:center;margin:6px 0;font-size:13px}.bars .bt{height:10px;border-radius:99px;background:var(--bg);border:1px solid var(--bd);overflow:hidden}.bars .bt i{display:block;height:100%;background:linear-gradient(90deg,#1d4ed8,#0ea5e9)}
+.gpv .ck span{display:inline-block;margin-right:14px}.gpv ol{margin:4px 0;padding-left:18px}.gpv .at th{width:auto}
+#nv_d,#nv_a,#nv_t,#nv_u{border-radius:99px;padding:8px 16px}
 </style>
 </head>
 <body>
-<header><h1>Sandeep Group – IT Asset Tracker</h1><p>Desktop, Laptop, Networking, Server, Printer, Biometric, Mobile, Tablet, ISP, UPS – asset code, configuration, location, QR + barcode <span class="badge" id="mode">…</span> <button id="lo" style="display:none;padding:2px 8px;margin-left:6px">Logout</button></p></header>
+<header><h1>Sandeep Group – Digital Asset Tracker</h1><p>Desktop, Laptop, Networking, Server, Printer, Biometric, Mobile, Tablet, ISP, UPS – asset code, configuration, location, QR + barcode <span class="badge" id="mode">…</span> <button id="lo" style="display:none;padding:2px 8px;margin-left:6px">Logout</button><button id="cpw" style="display:none;padding:2px 8px;margin-left:6px">Password</button></p></header>
 <main id="app" style="display:none">
 <section id="det"></section>
-<div class="bar" style="margin:0 0 12px"><button class="p" id="nv_a">Assets</button><button id="nv_t">Tickets <span class="badge" id="tbadge">0</span></button></div>
+<div class="bar" style="margin:0 0 12px"><button id="nv_d">Dashboard</button><button class="p" id="nv_a">Assets</button><button id="nv_t">Tickets <span class="badge" id="tbadge">0</span></button><button id="nv_u">Users</button></div>
 <div id="tab_assets">
 
 <section>
@@ -126,8 +150,15 @@ textarea{width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;bac
 <div class="bar"><button id="tcsv">Excel/CSV Export</button><button id="tbk">Backup (JSON)</button><button id="trs">Restore</button><input type="file" id="trf" accept=".json" style="display:none"></div>
 <div class="stat" id="tcnt" style="margin:8px 0"></div>
 <div class="tw"><table><thead><tr><th>Ticket</th><th>Asset</th><th>Reported by</th><th>Issue</th><th>Status / IT note</th></tr></thead><tbody id="ttb"></tbody></table></div></section></div>
+<div id="tab_dashboard" style="display:none"><section><h2>Dashboard</h2><div class="kp" id="kp"></div></section>
+<div class="g2"><section><h2>Assets by company</h2><div class="bars" id="bco"></div></section><section><h2>Assets by type</h2><div class="bars" id="bty"></div></section></div>
+<section><h2>Latest tickets &amp; movements</h2><div class="tw"><table style="min-width:520px"><thead><tr><th>Ticket</th><th>Asset</th><th>Stage</th><th>When</th></tr></thead><tbody id="dtb"></tbody></table></div></section></div>
+<div id="tab_users" style="display:none"><section><h2>Add User</h2><p class="stat">The user logs in with this <b>username</b> and password (no e-mail needed). Role: add assets only - cannot edit, delete, export or see tickets.</p>
+<div class="g"><div><label>Full name</label><input id="uf_name" maxlength="80" placeholder="e.g. Ramesh Kumar"></div><div><label>Username (used to login)</label><input id="uf_user" maxlength="30" autocapitalize="none" placeholder="e.g. ramesh.kumar"></div><div><label>Password (min 8)</label><input id="uf_pw" type="text" autocomplete="off" maxlength="128"></div><div><label>Role</label><select id="uf_role"><option value="user">User - add assets only</option></select></div></div>
+<div class="bar"><button class="p" id="uf_go">Create user</button><button id="uf_gen">Generate password</button><span class="stat" id="uf_msg"></span></div></section>
+<section><h2>Users</h2><div class="tw"><table style="min-width:620px"><thead><tr><th>Username / name</th><th>Role</th><th>Status</th><th>Last login</th><th></th></tr></thead><tbody id="utb"></tbody></table></div></section></div>
 </main>
-<main id="lg" style="display:none"><section style="max-width:380px;margin:30px auto"><h2>Login</h2><label>Email</label><input id="le" type="email" autocomplete="username"><label style="margin-top:8px">Password</label><input id="lp" type="password" autocomplete="current-password"><div class="bar"><button class="p" id="lb">Login</button></div><div class="stat" id="lerr" style="margin-top:8px"></div></section></main>
+<main id="lg" style="display:none"><section style="max-width:380px;margin:30px auto"><h2>Login</h2><label>Username or e-mail</label><input id="le" autocomplete="username" autocapitalize="none" spellcheck="false"><label style="margin-top:8px">Password</label><input id="lp" type="password" autocomplete="current-password"><div class="bar"><button class="p" id="lb">Login</button></div><div class="stat" id="lerr" style="margin-top:8px"></div><div class="stat" style="margin-top:10px"><a href="#" id="forgot">Forgot password?</a></div></section></main>
 <main id="pub" style="display:none"><section id="pc"></section>
 <section id="tkst" style="display:none"><h2>Status of your latest ticket</h2><div id="tkview"></div></section>
 <section id="tk" style="display:none"><h2>Report an issue with this asset</h2><div id="tkf"><div class="g">
@@ -183,7 +214,7 @@ var BK=["model","sn","loc","aloc","dept","usr","pd","wt","st","rm"];
 var SK=["cpu","ram","hdd","os","size","res","ports","ip","mac","ntype","sip","smask","sgw","dns1","dns2","cap","batt"].concat(MK);
 var L={company:"Company",type:"Product Type",code:"Asset Code",model:"Brand / Model",sn:"Serial No.",cpu:"Processor",ram:"RAM",hdd:"Storage",os:"Operating System",size:"Screen Size",res:"Resolution",ports:"Ports",ip:"IP Address",sip:"Static IP Address",smask:"Subnet Mask",sgw:"Default Gateway",dns1:"Preferred DNS Server",dns2:"Alternate DNS Server",mac:"MAC Address",ntype:"Device (Switch/Router/AP/Firewall)",cap:"Capacity (VA / kVA)",batt:"Battery Details (Qty / Ah)",mon_model:"Monitor Brand / Model",mon_sn:"Monitor Serial No.",mon_pd:"Monitor Purchase Date",mon_wt:"Monitor Warranty Till",loc:"Branch Location",aloc:"Asset Location (Floor / Room / Desk)",dept:"Department",usr:"Assigned User",pd:"Purchase Date",wt:"Warranty Till",st:"Status",rm:"Remarks"};
 var ST=["In Use","In Stock","Under Repair","Scrapped"];
-var A=[],editId=null,ADM=false,ADMIN="it@assets.local",CFG={},unsubs=[],AUTHED=false,ctrSync=false,seeding=false,codeTok=0;
+var A=[],editId=null,ADM=false,ADMIN="techpoint.chandu@gmail.com",CFG={},unsubs=[],AUTHED=false,ctrSync=false,seeding=false,codeTok=0;
 var ACC=["Charger / Adapter","Power cable","Mouse","Keyboard","Bag / Cover"],CD=["New","Good","Fair"];
 var DL={model:"Desktop Brand / Model",sn:"Desktop Serial No.",pd:"Desktop Purchase Date",wt:"Desktop Warranty Till"};
 function lab(k,t){return t==="Desktop"&&DL[k]?DL[k]:L[k]}
@@ -244,7 +275,7 @@ function filtered(){
  var q=$("q").value.toLowerCase(),c=$("fco").value,t=$("fty").value,s=$("fst").value;
  return A.filter(function(a){if(c&&a.company!==c)return false;if(t&&a.type!==t)return false;if(s&&a.st!==s)return false;return !q||JSON.stringify(a).toLowerCase().indexOf(q)>-1}).sort(function(a,b){return a.code<b.code?-1:1})}
 function conf(a){if(!T[a.type])return"";var p=T[a.type][1].filter(function(k){return MK.indexOf(k)<0}).map(function(k){return a[k]}).filter(Boolean);if(a.mon_model||a.mon_sn)p.push("Monitor: "+[a.mon_model,a.mon_sn?"SN "+a.mon_sn:""].filter(Boolean).join(" "));return p.join(" | ")}
-function render(){
+function render(){rdash();
  var R=filtered();$("cnt").textContent=ADM?R.length+" / "+A.length+" assets":A.length+" asset(s) added in this session";
  $("tb").innerHTML=R.map(function(a){var i=esc(a.code);return"<tr><td class='code'>"+i+"</td><td>"+esc(a.company)+"</td><td>"+esc(a.type)+"<br><span class='stat'>"+esc(a.model)+(a.sn?" · SN "+esc(a.sn):"")+"</span></td><td>"+esc(conf(a))+"</td><td>"+esc(a.loc)+(a.aloc?" – "+esc(a.aloc):"")+"<br><span class='stat'>"+esc([a.dept,a.usr].filter(Boolean).join(" · "))+"</span></td><td>"+esc(a.st)+"</td><td style='white-space:nowrap'><button data-a='v' data-c='"+i+"'>Detail</button> <button data-a='l' data-c='"+i+"'>Label</button> <button data-a='h' data-c='"+i+"'>Handover</button> "+(ADM?"<button data-a='e' data-c='"+i+"'>Edit</button> <button class='d' data-a='x' data-c='"+i+"'>Del</button>":"")+"</td></tr>"}).join("")||"<tr><td colspan=7 class='stat'>No assets found.</td></tr>"}
 function detail(a){
@@ -270,7 +301,7 @@ function handover(a){
  "<h3>4. Terms &amp; Declaration</h3><ol><li>The asset is the property of "+esc(a.company)+" and is issued for official use only.</li><li>The employee is responsible for its safe custody and must report any loss, theft or damage to the IT department immediately.</li><li>Installing unauthorised software, changing hardware or passing the asset to another person is not permitted.</li><li>The asset must be returned in good condition on request, transfer or resignation.</li><li>Loss or damage caused by negligence may be recovered as per company policy.</li></ol>"+
  "<p>I acknowledge that I have received the above asset in the stated condition and agree to the terms above.</p>"+
  "<div class='sgs'>"+sg("Issued by (IT Department)")+sg("Received by (Employee)",a.usr)+sg("Approved by (Manager / HOD)")+"</div>";
- bar("#hbc",a.code);document.body.className="ph";setTimeout(function(){window.print()},300)}
+ var ph=$("hform").innerHTML;$("hform").innerHTML="";openPass(ph.replace("id='hbc'","id='vbc'"),ph,a.code)}
 window.onafterprint=function(){document.body.className=""};
 function onClick(e){
  var b=e.target.closest("button");if(!b||!b.dataset.c)return;var a=find(b.dataset.c);if(!a)return;
@@ -439,7 +470,7 @@ $("bf").onchange=function(e){var f=e.target.files[0];e.target.value="";if(!f)ret
  rd.readAsArrayBuffer(f)};
 /* BULK-END */
 clearForm();render();
-$("lb").onclick=function(){$("lerr").textContent="";fb.login($("le").value.trim(),$("lp").value).catch(function(e){$("lerr").textContent="Login failed: "+e.message})};
+$("lb").onclick=function(){$("lerr").textContent="";fb.login($("le").value.trim(),$("lp").value).catch(function(e){$("lerr").textContent="Login failed: "+(/invalid-credential|wrong-password|user-not-found|invalid-email|user-disabled/.test(e.code||"")?"wrong username / password, or the account is disabled.":e.message)})};
 $("lp").addEventListener("keydown",function(e){if(e.key==="Enter")$("lb").click()});
 function mineCodes(){try{return JSON.parse(sessionStorage.getItem("mine_codes")||"[]")}catch(e){return[]}}
 function rememberMine(codes){try{var l=mineCodes();codes.forEach(function(c){if(l.indexOf(c)<0)l.push(c)});sessionStorage.setItem("mine_codes",JSON.stringify(l))}catch(e){}loadMine()}
@@ -457,11 +488,11 @@ function publicView(c){
 var pm=location.pathname.match(/\/a\/([^\/]+)/),pq=new URLSearchParams(location.search).get("a"),pcode=pm?decodeURIComponent(pm[1]):pq;
 if(pcode){publicView(pcode)}else{
  fb.onAuth(function(u){
-  if(u){ADM=(u.email||"").toLowerCase()===ADMIN;["rs","csv","bk","brm"].forEach(function(id){$(id).style.display=ADM?"":"none"});$("bulkb").textContent=ADM?"Bulk Add/Edit (Excel)":"Bulk Add (Excel)";$("nv_a").parentNode.style.display=ADM?"":"none";$("lg").style.display="none";$("app").style.display="";$("lo").style.display="";$("mode").textContent=u.email+(ADM?" (Admin)":" (Add only)");
-   AUTHED=true;unsubs.push(fb.watchConfig(function(c){CFG=c||{};fillBranch($("f_loc").value);if(ADM){syncCfg();bmRender()}},function(){}));
+  if(u){ADM=(u.email||"").toLowerCase()===ADMIN;["rs","csv","bk","brm"].forEach(function(id){$(id).style.display=ADM?"":"none"});$("bulkb").textContent=ADM?"Bulk Add/Edit (Excel)":"Bulk Add (Excel)";$("nv_a").parentNode.style.display=ADM?"":"none";$("lg").style.display="none";$("app").style.display="";$("lo").style.display="";$("cpw").style.display="";$("cpw").textContent=ADM?"Reset password (e-mail)":"Change password";$("mode").textContent=uname(u.email)+(ADM?" (Admin)":" (User · add only)");
+   AUTHED=true;ME=u.email||"";tab(ADM?"d":"a");unsubs.push(fb.watchConfig(function(c){CFG=c||{};fillBranch($("f_loc").value);if(ADM){syncCfg();bmRender()}},function(){}));
    if(ADM){unsubs.push(fb.watch(function(l){A=l;fillBranch($("f_loc").value);if(!editId)refresh();render();if(!ctrSync){ctrSync=true;fb.syncCounters(l)}},function(e){alert("Could not load assets: "+e.message)}));watchT()}
    else{A=[];loadMine();refresh()}}
-  else{unsubs.forEach(function(f){try{f()}catch(e){}});unsubs=[];ADM=false;AUTHED=false;ctrSync=false;CFG={};window.__sync=0;try{sessionStorage.removeItem("mine_codes")}catch(e){}A=[];TK=[];$("app").style.display="none";$("lo").style.display="none";$("lg").style.display=""}})}
+  else{unsubs.forEach(function(f){try{f()}catch(e){}});unsubs=[];ADM=false;AUTHED=false;ctrSync=false;CFG={};window.__sync=0;try{sessionStorage.removeItem("mine_codes")}catch(e){}A=[];TK=[];$("app").style.display="none";$("lo").style.display="none";$("cpw").style.display="none";ME="";$("lg").style.display=""}})}
 
 /* ---------- Support tickets ---------- */
 var TK=[],PA=null,TS=["Open","In Progress","Resolved","Closed"],seenT=null;
@@ -497,21 +528,33 @@ function mvBox(t){var m=t.move,r=t.repair,k=t.track||{};if(!m&&!r)return"";
  if(m)h+="<div class='stp'>"+st.map(function(s,i){return"<div class='sp"+(s[1]?" done":"")+(i===cur?" cur":"")+"'><span class='dot'>"+(s[1]?"&#10003;":i+1)+"</span><span class='sl'>"+s[0]+"</span></div>"}).join("")+"</div>";
  if(m&&!r)h+="<div style='margin-top:8px'><b>Waiting for IT repair approval.</b> The Gate Pass is issued only after IT approves the repair. Please do not take the asset out before that.</div>";
  if(r){h+="<div style='margin-top:8px'>Repair approved by IT: <b>"+esc(r.type)+"</b> · "+esc(fiso(r.date))+(r.partyName?" · Party: "+esc(r.partyName):"")+"</div>";
-  h+=r.gate?"<div class='bar' style='margin-top:8px'><button class='p' data-gp='1'>Print Gate Pass ("+esc(r.gp)+")</button></div>":"<div class='stat'>Repair is done on site - no gate pass needed.</div>"}
+  h+=r.gate?"<div class='bar' style='margin-top:8px'><button class='p' data-gp='1'>View / Print Gate Pass ("+esc(r.gp)+")</button></div>":"<div class='stat'>Repair is done on site - no gate pass needed.</div>";if(k.ret&&t.ret)h+="<div style='margin-top:8px'>Asset returned by IT to <b>"+esc(t.ret.to)+"</b>"+(t.ret.loc?" ("+esc(t.ret.loc)+")":"")+" &middot; sent with <b>"+esc(t.ret.carrier)+"</b> &middot; "+esc(fdt(t.ret.at||k.ret))+"</div>"}
  return h+"</div>"}
-function printGP(t,a){
- a=a||{};var r=t.repair||{},m=t.move||{},U="__________________";
- var rows=function(l){return l.map(function(x){return"<tr><th>"+x[0]+"</th><td>"+esc(x[1]||"")+"&nbsp;</td></tr>"}).join("")};
- var sg=function(x,n){return"<div class='sg'><div class='ln'></div><b>"+x+"</b><br>Name: "+esc(n||U)+"<br>Date &amp; time: ______________</div>"};
- $("hform").innerHTML="<div class='top'><div><b style='font-size:15px'>"+esc(t.company||a.company||"")+"</b></div><svg id='hbc'></svg></div><h1>ASSET GATE PASS (RETURNABLE)</h1>"+
- "<div class='sub'>Gate Pass No: <b>"+esc(r.gp||"")+"</b> &nbsp;|&nbsp; Date: "+esc(fiso(r.date))+" &nbsp;|&nbsp; Ticket No: <b>"+esc(ftk(t.id))+"</b></div>"+
- "<h3>1. Asset Details</h3><table>"+rows([["Asset Code",t.assetCode],["Asset",(t.assetType||a.type||"")+(a.model?" - "+a.model:"")],["Serial No.",a.sn],["Company",t.company||a.company],["Branch",a.loc],["Asset Location",a.aloc||(a.loc?"":t.assetLoc)]])+"</table>"+
- "<h3>2. Movement Details</h3><table>"+rows([["Sent by",t.name+(t.dept?" ("+t.dept+")":"")],["Mobile",t.mobile],["Sent with",m.carrier],["Sent to",m.dest],["Date &amp; time sent",m.at?fdt(m.at):""],["Problem / reason",t.issue]])+"</table>"+
- "<h3>3. IT Repair Approval</h3><table>"+rows([["Repair type",r.type],["Party",(r.party||"")+(r.partyName?" - "+r.partyName:"")],["Approved on",fiso(r.date)],["Approval ref.",r.txn]])+"</table>"+
+var GPH="",GPC="";
+function gpBase(co,title,meta,bc){return"<div class='top'><div><b style='font-size:15px'>"+esc(co||"")+"</b></div><svg id='"+bc+"'></svg></div><h1>"+title+"</h1><div class='sub'>"+meta+"</div><div class='dstamp'>DIGITAL GATE PASS &middot; generated "+esc(fdt(Date.now()))+"</div>"}
+function gpRows(l){return l.map(function(x){return"<tr><th>"+x[0]+"</th><td>"+esc(x[1]||"")+"&nbsp;</td></tr>"}).join("")}
+function gpSg(x,n,at){return"<div class='sg'>"+(at?"<div class='dg'>&#10003; Digitally approved</div>":"<div class='ln'></div>")+"<b>"+x+"</b><br>Name: "+esc(n||"__________________")+"<br>Date &amp; time: "+(at?esc(fdt(at)):"______________")+"</div>"}
+function gpQr(t,txt){return"<div style='margin-top:14px;display:flex;gap:10px;align-items:center'>"+qrSvg(t.assetCode,3)+"<span style='font-size:10px'>"+txt+"</span></div>"}
+function gpOutHtml(t,a,bc){a=a||{};var r=t.repair||{},m=t.move||{};
+ return gpBase(t.company||a.company,"ASSET GATE PASS (RETURNABLE)","Gate Pass No: <b>"+esc(r.gp||"")+"</b> &nbsp;|&nbsp; Date: "+esc(fiso(r.date))+" &nbsp;|&nbsp; Ticket No: <b>"+esc(ftk(t.id))+"</b>",bc)+
+ "<h3>1. Asset Details</h3><table>"+gpRows([["Asset Code",t.assetCode],["Asset",(t.assetType||a.type||"")+(a.model?" - "+a.model:"")],["Serial No.",a.sn],["Company",t.company||a.company],["Branch",a.loc],["Asset Location",a.aloc||(a.loc?"":t.assetLoc)]])+"</table>"+
+ "<h3>2. Movement Details</h3><table>"+gpRows([["Sent by",t.name+(t.dept?" ("+t.dept+")":"")],["Mobile",t.mobile],["Sent with",m.carrier],["Sent to",m.dest],["Date &amp; time sent",m.at?fdt(m.at):""],["Problem / reason",t.issue]])+"</table>"+
+ "<h3>3. IT Repair Approval</h3><table>"+gpRows([["Repair type",r.type],["Party",(r.party||"")+(r.partyName?" - "+r.partyName:"")],["Approved on",fiso(r.date)],["Approval ref.",r.txn]])+"</table>"+
  "<p style='margin-top:8px'>This asset is being sent out for repair and is <b>returnable</b>. Security: please allow it to leave only with this gate pass and note the date and time.</p>"+
- "<div class='sgs'>"+sg("Sent by (Employee)",t.name)+sg("Approved by (IT Department)")+sg("Security (gate out)")+sg("Received by (IT / Vendor)")+"</div>"+
- "<div style='margin-top:14px;display:flex;gap:10px;align-items:center'>"+qrSvg(t.assetCode,3)+"<span style='font-size:10px'>Scan the QR to check this asset and the latest status of ticket "+esc(ftk(t.id))+".</span></div>";
- bar("#hbc",t.assetCode);document.body.className="ph";setTimeout(function(){window.print()},300)}
+ "<div class='sgs'>"+gpSg("Sent by (Employee)",t.name)+gpSg("Approved by (IT Department)","IT Department",r.at||Date.now())+gpSg("Security (gate out)")+gpSg("Received by (IT / Vendor)")+"</div>"+
+ gpQr(t,"Scan the QR to check this asset and the latest status of ticket "+esc(ftk(t.id))+".")}
+function gpRetHtml(t,a,bc){a=a||{};var r=t.repair||{},x=t.ret||{},k=t.track||{},when=x.at||k.ret;
+ return gpBase(t.company||a.company,"RETURN GATE PASS (ASSET RETURNED FROM IT)","Return Gate Pass No: <b>"+esc(x.rgp||"")+"</b> &nbsp;|&nbsp; Date: "+esc(fdt(when))+" &nbsp;|&nbsp; Ticket No: <b>"+esc(ftk(t.id))+"</b>",bc)+
+ "<h3>1. Asset Details</h3><table>"+gpRows([["Asset Code",t.assetCode],["Asset",(t.assetType||a.type||"")+(a.model?" - "+a.model:"")],["Serial No.",a.sn],["Company",t.company||a.company],["Branch",a.loc],["Asset Location",a.aloc||(a.loc?"":t.assetLoc)]])+"</table>"+
+ "<h3>2. Return Details (IT Department to destination)</h3><table>"+gpRows([["Returned from","IT Department"],["Returned to",x.to],["Return location",x.loc],["Sent with (person carrying)",x.carrier],["Date &amp; time",when?fdt(when):""],["Remarks / work done",x.note]])+"</table>"+
+ "<h3>3. Original Request &amp; Repair</h3><table>"+gpRows([["Originally sent by",t.name+(t.dept?" ("+t.dept+")":"")],["Problem reported",t.issue],["Received at IT",k.rcv?fdt(k.rcv):""],["Repair type",r.type],["Party",(r.party||"")+(r.partyName?" - "+r.partyName:"")],["Outgoing Gate Pass",r.gp]])+"</table>"+
+ "<p style='margin-top:8px'>This asset is being <b>returned after repair</b>. Security: please allow it only with this pass and note the date and time. <i>IT department copy.</i></p>"+
+ "<div class='sgs'>"+gpSg("Issued by (IT Department)","IT Department",when||Date.now())+gpSg("Carried by",x.carrier)+gpSg("Security (gate)")+gpSg("Received by",x.to)+"</div>"+
+ gpQr(t,"Scan the QR to check this asset. Return Gate Pass is for IT records only.")}
+function openPass(vh,ph,code){GPH=ph;GPC=code;bshow("<div class='bar' style='margin:0 0 10px'><button class='p' data-b='gpprint'>Print / Save as PDF</button><button data-b='x'>Close</button></div><div class='gpv'>"+vh+"</div>");bar("#vbc",code)}
+function printGP(t,a){openPass(gpOutHtml(t,a,"vbc"),gpOutHtml(t,a,"hbc"),t.assetCode)}
+function printRGP(t,a){openPass(gpRetHtml(t,a,"vbc"),gpRetHtml(t,a,"hbc"),t.assetCode)}
+$("bulkc").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||b.dataset.b!=="gpprint")return;$("hform").innerHTML=GPH;bar("#hbc",GPC);document.body.className="ph";setTimeout(function(){window.print()},300)});
 /* public page: user sends the asset to IT */
 $("mv_open").onclick=function(){if(!PA)return;
  $("mv_sum").innerHTML="<b>Asset (filled automatically)</b><br>"+esc(PA.code)+" · "+esc(PA.type||"")+(PA.model?" · "+esc(PA.model):"")+(PA.sn?" · S/N "+esc(PA.sn):"")+"<br>"+esc(PA.company||"")+" · "+esc(PA.loc||"")+(PA.aloc?" / "+esc(PA.aloc):"");
@@ -557,15 +600,15 @@ function raOpen(t){
   (gate&&!r.gp?fb.nextGP(fy).then(function(n){return"GP/"+fy+"/"+String(n).padStart(4,"0")}):Promise.resolve(r.gp||""))
   .then(function(gp){var nr={type:ty,party:pc,partyName:$("ra_pn").value.trim(),cost:$("ra_cost").value.trim(),note:note,remarks:$("ra_rem").value.trim(),date:dt,txn:$("ra_txn").value,gate:gate,gp:gp,at:r.at||Date.now()},ns=t.status==="Open"?"In Progress":t.status;
    return fb.actTicket(t.id,{repair:nr,status:ns},{status:ns,note:"Repair approved: "+ty+(gate&&gp?" · Gate pass "+gp:""),at:Date.now()}).then(function(){return nr})})
-  .then(function(nr){bclose();if(nr.gate&&confirm("Repair approved. Gate pass "+nr.gp+" is ready.\n\nPrint the gate pass now?"))printGP(Object.assign({},t,{repair:nr}),a)})
+  .then(function(nr){bclose();if(nr.gate&&confirm("Repair approved. Gate pass "+nr.gp+" is ready.\n\nView the gate pass now?"))printGP(Object.assign({},t,{repair:nr}),a)})
   .catch(function(x){btn.disabled=false;m.textContent="Could not save: "+x.message})}}
 function admBtns(t){var r=t.repair,k=t.track||{},id=esc(t.id),h="<button data-tid='"+id+"' data-ta='ra'>"+(r?"Edit Repair Approval":"Repair Approval")+"</button>";
- if(r&&r.gate){h+="<button data-tid='"+id+"' data-ta='gp'>Gate Pass</button>";if(!k.rcv)h+="<button data-tid='"+id+"' data-ta='rc'>Received at IT</button>";else if(!k.ret)h+="<button data-tid='"+id+"' data-ta='rt'>Returned to user</button>"}
+ if(r&&r.gate){h+="<button data-tid='"+id+"' data-ta='gp'>Gate Pass</button>";if(!k.rcv)h+="<button data-tid='"+id+"' data-ta='rc'>Received at IT</button>";else if(!k.ret)h+="<button data-tid='"+id+"' data-ta='rt'>Return to user</button>";if(k.ret)h+="<button data-tid='"+id+"' data-ta='rgp'>Return Gate Pass</button>"}
  return h}
 function mvAdm(t){var m=t.move,r=t.repair,k=t.track||{},h="";
  if(m)h+="<div class='stat' style='margin-top:6px'><b>Asset movement:</b> sent to "+esc(m.dest)+" with "+esc(m.carrier)+" on "+esc(fdt(m.at))+"</div>";
  if(r)h+="<div class='stat'><b>Repair:</b> "+esc(r.type)+(r.gate&&r.gp?" · Gate pass "+esc(r.gp):"")+(r.party?" · Party "+esc(r.party)+(r.partyName?" ("+esc(r.partyName)+")":""):"")+"</div>";
- if(k.rcv)h+="<div class='stat'>Received at IT: "+esc(fdt(k.rcv))+"</div>";if(k.ret)h+="<div class='stat'>Returned to user: "+esc(fdt(k.ret))+"</div>";return h}
+ if(k.rcv)h+="<div class='stat'>Received at IT: "+esc(fdt(k.rcv))+"</div>";if(k.ret)h+="<div class='stat'>Returned: "+esc(fdt(k.ret))+(t.ret?" &middot; to "+esc(t.ret.to)+" with "+esc(t.ret.carrier)+" &middot; Return GP "+esc(t.ret.rgp):"")+"</div>";return h}
 var TXT={"Open":"Your ticket has been received. IT team will pick it up soon.","In Progress":"IT team is working on your issue.","Resolved":"IT team has fixed the issue. Please confirm everything works.","Closed":"This ticket is closed."};
 var unsubT=null;
 var FR=0;
@@ -603,7 +646,7 @@ function beep(){try{var c=new (window.AudioContext||window.webkitAudioContext)()
 var ENG=[{n:"Bhanwar Vaishnav",m:"7300257678"},{n:"Chandraprakash Khatik",m:"9116044500"}];
 function engOpts(cur){return"<option value=''>-- Assign IT engineer --</option>"+ENG.map(function(e,i){return"<option value='"+i+"'"+(e.n===cur?" selected":"")+">"+esc(e.n)+" ("+esc(e.m)+")</option>"}).join("")}
 function fbHtml(t){return t.feedback?"<div class='stat' style='margin-top:6px'><b>User feedback:</b> <span style='color:#f5a623'>"+stars(t.feedback.rating)+"</span> "+esc(t.feedback.comment||"")+"</div>":""}
-function rtk(){
+function rtk(){rdash();
  var f=$("tfs").value,q=$("tq").value.toLowerCase(),R=TK.filter(function(t){
   if(f==="Active"&&!isOpen(t))return false;if(f!=="Active"&&f!=="All"&&t.status!==f)return false;
   return !q||(ftk(t.id)+" "+JSON.stringify(t)).toLowerCase().indexOf(q)>-1}).sort(function(a,b){return(b.created||0)-(a.created||0)});
@@ -619,17 +662,17 @@ $("ttb").addEventListener("click",function(e){var b=e.target.closest("button");i
  if(b.dataset.ta==="gp"&&tk)printGP(tk,find(tk.assetCode)||{});
  if(b.dataset.ta==="rc"&&tk&&confirm("Mark this asset as RECEIVED at IT?\nThe asset status will change to Under Repair."))
   fb.actTicket(id,{track:Object.assign({},tk.track||{},{rcv:Date.now()})},{status:tk.status,note:"Asset received at IT",at:Date.now()}).then(function(){if(find(tk.assetCode))return fb.setAssetStatus(tk.assetCode,"Under Repair")}).catch(function(x){alert("Could not update: "+x.message)});
- if(b.dataset.ta==="rt"&&tk&&confirm("Mark this asset as RETURNED to the user?\nThe asset status will change back to In Use."))
-  fb.actTicket(id,{track:Object.assign({},tk.track||{},{ret:Date.now()})},{status:tk.status,note:"Asset returned to user",at:Date.now()}).then(function(){if(find(tk.assetCode))return fb.setAssetStatus(tk.assetCode,"In Use")}).catch(function(x){alert("Could not update: "+x.message)});
+ if(b.dataset.ta==="rt"&&tk)retOpen(tk);
+ if(b.dataset.ta==="rgp"&&tk)printRGP(tk,find(tk.assetCode)||{});
  if(b.dataset.ta==="x"&&ADM&&confirm("Delete this ticket?"))fb.removeTicket(id).catch(function(x){alert("Could not delete: "+x.message)})});
 ["tfs","tq"].forEach(function(i){$(i).oninput=rtk});
 /* ---------- Tickets: export / backup / restore (all statuses, not only the filtered list) ---------- */
 function cq(v){v=v==null?"":String(v);if(/^[=+\-@\t\r]/.test(v))v="'"+v;return'"'+v.replace(/"/g,'""')+'"'}
 $("tcsv").onclick=function(){
  if(!TK.length){alert("No tickets to export.");return}
- var H=["Ticket No","Created","Last Updated","Status","Priority","Category","Asset Code","Asset Type","Company","Asset Location","Reported By","Department","Mobile","Issue","IT Engineer","Engineer Mobile","IT Note","Feedback Rating","Feedback Comment","Movement To","Sent With","Sent On","Repair Type","Party Code","Party Name","Estimated Cost","Approval Date","Gate Pass No","Received At IT","Returned To User","Action History","Ticket ID"],
+ var H=["Ticket No","Created","Last Updated","Status","Priority","Category","Asset Code","Asset Type","Company","Asset Location","Reported By","Department","Mobile","Issue","IT Engineer","Engineer Mobile","IT Note","Feedback Rating","Feedback Comment","Movement To","Sent With","Sent On","Repair Type","Party Code","Party Name","Estimated Cost","Approval Date","Gate Pass No","Received At IT","Returned To User","Return To","Return Sent With","Return Gate Pass No","Action History","Ticket ID"],
  L=TK.slice().sort(function(a,b){return(a.created||0)-(b.created||0)}),
- rows=[H.map(cq).join(",")].concat(L.map(function(t){var f=t.feedback||{};return[ftk(t.id),fdt(t.created),t.updated?fdt(t.updated):"",t.status,t.priority,t.category,t.assetCode,t.assetType,t.company,t.assetLoc,t.name,t.dept,t.mobile,t.issue,t.eng,t.engMob,t.notes,f.rating,f.comment,(t.move||{}).dest,(t.move||{}).carrier,(t.move?fdt(t.move.at):""),(t.repair||{}).type,(t.repair||{}).party,(t.repair||{}).partyName,(t.repair||{}).cost,(t.repair||{}).date,(t.repair||{}).gp,((t.track||{}).rcv?fdt(t.track.rcv):""),((t.track||{}).ret?fdt(t.track.ret):""),
+ rows=[H.map(cq).join(",")].concat(L.map(function(t){var f=t.feedback||{};return[ftk(t.id),fdt(t.created),t.updated?fdt(t.updated):"",t.status,t.priority,t.category,t.assetCode,t.assetType,t.company,t.assetLoc,t.name,t.dept,t.mobile,t.issue,t.eng,t.engMob,t.notes,f.rating,f.comment,(t.move||{}).dest,(t.move||{}).carrier,(t.move?fdt(t.move.at):""),(t.repair||{}).type,(t.repair||{}).party,(t.repair||{}).partyName,(t.repair||{}).cost,(t.repair||{}).date,(t.repair||{}).gp,((t.track||{}).rcv?fdt(t.track.rcv):""),((t.track||{}).ret?fdt(t.track.ret):""),(t.ret||{}).to,(t.ret||{}).carrier,(t.ret||{}).rgp,
   (t.history||[]).map(function(h){return fdt(h.at)+" "+h.status+(h.eng?" ["+h.eng+"]":"")+(h.note?" - "+h.note:"")}).join(" | "),t.id].map(cq).join(",")}));
  dl("sandeep-tickets-"+new Date().toISOString().slice(0,10)+".csv","\ufeff"+rows.join("\n"),"text/csv")};
 $("tbk").onclick=function(){if(!TK.length){alert("No tickets to back up.");return}dl("sandeep-tickets-backup-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify(TK),"application/json")};
@@ -641,10 +684,88 @@ $("trf").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new Fil
   if(confirm("Restore "+d.length+" tickets ("+TS.map(function(k){return k+": "+(c[k]||0)}).join(", ")+")?\nEach ticket goes back with the same status, notes, engineer and history. Tickets with the same number will be overwritten."))
    fb.restoreTickets(d,TK).then(function(){alert("Tickets restored")}).catch(function(x){alert("Restore failed: "+x.message)})
  }catch(x){alert("Invalid tickets backup file.")}};r.readAsText(f);e.target.value=""};
-function tab(t){$("tab_assets").style.display=t==="a"?"":"none";$("tab_tickets").style.display=t==="t"?"":"none";$("nv_a").className=t==="a"?"p":"";$("nv_t").className=t==="t"?"p":""}
-$("nv_a").onclick=function(){tab("a")};$("nv_t").onclick=function(){tab("t")};
+function tab(t){var M={d:"dashboard",a:"assets",t:"tickets",u:"users"};Object.keys(M).forEach(function(k){$("tab_"+M[k]).style.display=k===t?"":"none";$("nv_"+k).className=k===t?"p":""});if(t==="u")loadUsers();if(t==="d")rdash()}
+$("nv_a").onclick=function(){tab("a")};$("nv_t").onclick=function(){tab("t")};$("nv_d").onclick=function(){tab("d")};$("nv_u").onclick=function(){tab("u")};
 function watchT(){unsubs.push(fb.watchTickets(function(l){TK=l;var o=l.filter(isOpen).length;$("tbadge").textContent=o;document.title=(o?"("+o+") ":"")+"Sandeep Group – Asset Tracker";
  if(seenT){l.forEach(function(t){if(!seenT[t.id]&&isOpen(t))beep()})}seenT={};l.forEach(function(t){seenT[t.id]=1});rtk();if(!window.__sync){window.__sync=1;fb.syncLatest(l)}},function(){}))}
+
+/* ---------- Return to user: where / who / with whom + separate Return Gate Pass (admin only) ---------- */
+function retOpen(t){
+ var a=find(t.assetCode)||{},ro=function(l,v){return"<div><label>"+l+"</label><input value=\""+esc(v||"")+"\" disabled></div>"};
+ bshow("<h2>Return Asset – Ticket #"+esc(ftk(t.id))+"</h2><div class='g'>"+ro("Asset Code",t.assetCode)+ro("Asset",(t.assetType||a.type||"")+(a.model?" - "+a.model:""))+ro("Originally sent by",t.name)+"</div>"+
+ "<div class='g' style='margin-top:10px'><div><label>Returning to (person name) *</label><input id='rt_to' maxlength='80'></div><div><label>Return location (branch / dept / desk) *</label><input id='rt_loc' maxlength='150'></div><div><label>Sent with (person carrying it) *</label><input id='rt_with' maxlength='80' placeholder='Name of the person taking the asset'></div></div>"+
+ "<div style='margin-top:10px'><label>Remarks / work done</label><textarea id='rt_note' rows='2' maxlength='500'></textarea></div>"+
+ "<p class='stat'>A separate <b>Return Gate Pass</b> (RGP) number is created now. It is visible only here in the admin panel - not on the user's QR page.</p><div class='stat' id='rt_msg'></div>"+
+ "<div class='bar'><button class='p' id='rt_ok'>Confirm return &amp; create Return Gate Pass</button><button data-b='x'>Cancel</button></div>");
+ $("rt_to").value=t.name||"";$("rt_loc").value=a.loc?a.loc+(a.aloc?" / "+a.aloc:""):(t.assetLoc||"");
+ $("rt_ok").onclick=function(){
+  var to=$("rt_to").value.trim(),loc=$("rt_loc").value.trim(),wi=$("rt_with").value.trim(),m=$("rt_msg"),btn=this;
+  if(to.length<2){m.textContent="Please write who the asset is returned to.";return}
+  if(loc.length<2){m.textContent="Please write the return location.";return}
+  if(wi.length<2){m.textContent="Please write who is carrying the asset.";return}
+  var now=Date.now(),sy=fyOf(new Date(now).toISOString().slice(0,10)),fy=sy+"-"+String(sy+1).slice(2),note=$("rt_note").value.trim();btn.disabled=true;
+  fb.nextGP(fy,"RGP").then(function(n){
+   var rgp="RGP/"+fy+"/"+String(n).padStart(4,"0"),ret={to:to,loc:loc,carrier:wi,note:note,rgp:rgp,at:now,by:ME},trk=Object.assign({},t.track||{},{ret:now});
+   return fb.actTicket(t.id,{track:trk,ret:ret},{status:t.status,note:"Asset returned to "+to+" with "+wi,at:now})
+    .then(function(){return find(t.assetCode)?fb.setAssetStatus(t.assetCode,"In Use"):0})
+    .then(function(){return{ret:ret,trk:trk}})})
+  .then(function(o){bclose();if(confirm("Asset marked as returned.\nReturn Gate Pass "+o.ret.rgp+" is ready.\n\nOpen it now?"))printRGP(Object.assign({},t,{ret:o.ret,track:o.trk}),a)})
+  .catch(function(x){btn.disabled=false;m.textContent="Could not save: "+x.message})}}
+
+/* ---------- Helpers ---------- */
+function slug(x){return String(x||"").trim().toLowerCase().replace(/\s+/g,".").replace(/[^a-z0-9._-]/g,"")}
+function uname(e){return String(e||"").replace(/@assets\.local$/i,"")}
+function genPw(){var c="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789",a=new Uint8Array(10),o="";crypto.getRandomValues(a);a.forEach(function(x){o+=c[x%c.length]});return o}
+
+/* ---------- Dashboard (admin) ---------- */
+function bars(el,map){var k=Object.keys(map).sort(function(a,b){return map[b]-map[a]}),mx=k.length?map[k[0]]:1;$(el).innerHTML=k.map(function(n){return"<div class='br'><span>"+esc(n)+"</span><div class='bt'><i style='width:"+Math.max(3,Math.round(map[n]/mx*100))+"%'></i></div><b>"+map[n]+"</b></div>"}).join("")||"<p class='stat'>No data yet.</p>"}
+function stage(t){var k=t.track||{};if(k.ret)return"Returned";if(k.rcv)return"At IT (repair)";if(t.repair)return t.repair.gate?"Approved - gate pass issued":"Repair approved";if(t.move)return"Waiting for approval";return t.status}
+function rdash(){if(!ADM||!$("kp"))return;var T=(typeof TK!=="undefined"&&TK)||[],c={};ST.forEach(function(x){c[x]=0});A.forEach(function(a){c[a.st]=(c[a.st]||0)+1});
+ var open=T.filter(isOpen).length,atIT=T.filter(function(t){return t.track&&t.track.rcv&&!t.track.ret}).length,wait=T.filter(function(t){return t.move&&!t.repair&&isOpen(t)}).length;
+ var K=[[A.length,"Total assets",""],[c["In Use"],"In use","ok"],[c["In Stock"],"In stock",""],[c["Under Repair"],"Under repair","w"],[open,"Open tickets",open?"w":""],[wait,"Waiting for approval",wait?"r":""],[atIT,"At IT now",atIT?"w":""]];
+ $("kp").innerHTML=K.map(function(x){return"<div class='kc "+x[2]+"'><b>"+x[0]+"</b><span>"+x[1]+"</span></div>"}).join("");
+ var co={},ty={};A.forEach(function(a){co[a.company]=(co[a.company]||0)+1;ty[a.type]=(ty[a.type]||0)+1});bars("bco",co);bars("bty",ty);
+ $("dtb").innerHTML=T.slice().sort(function(a,b){return(b.updated||b.created||0)-(a.updated||a.created||0)}).slice(0,8).map(function(t){return"<tr><td class='code'>"+esc(ftk(t.id))+"</td><td><b>"+esc(t.assetCode)+"</b><br><span class='stat'>"+esc(t.name)+"</span></td><td>"+esc(stage(t))+"</td><td class='stat'>"+esc(fdt(t.updated||t.created))+"</td></tr>"}).join("")||"<tr><td colspan='4' class='stat'>No tickets yet.</td></tr>"}
+
+/* ---------- Users (admin) ---------- */
+var US=[],ME="";
+function loadUsers(){if(!ADM)return;$("utb").innerHTML="<tr><td colspan='5' class='stat'>Loading...</td></tr>";
+ fb.usersApi("list").then(function(r){US=r.users||[];renderUsers()}).catch(function(e){$("utb").innerHTML="<tr><td colspan='5' class='stat'>"+esc(e.message)+"</td></tr>"})}
+function renderUsers(){var adm="<tr><td><b>"+esc(ADMIN)+"</b><br><span class='stat'>Admin</span></td><td>Admin - full access</td><td><span class='badge'>Active</span></td><td class='stat'>-</td><td class='stat'>Password: use \"Reset password (e-mail)\" in the header</td></tr>";
+ $("utb").innerHTML=adm+US.map(function(u){var n=esc(u.username);return"<tr><td><b>"+n+"</b><br><span class='stat'>"+esc(u.name||"")+"</span></td><td>User - add only</td><td>"+(u.disabled?"<span class='badge'>Disabled</span>":"<span class='badge' style='color:#16a34a;border-color:#16a34a'>Active</span>")+"</td><td class='stat'>"+esc(u.last?fdt(u.last):"never")+"</td><td style='white-space:nowrap'><button data-u='"+n+"' data-ua='pw'>Set password</button> <button data-u='"+n+"' data-ua='dis'>"+(u.disabled?"Enable":"Disable")+"</button> <button class='d' data-u='"+n+"' data-ua='del'>Delete</button></td></tr>"}).join("")}
+$("uf_name").oninput=function(){if(!$("uf_user").dataset.t)$("uf_user").value=slug(this.value)};
+$("uf_user").oninput=function(){this.dataset.t=this.value?"1":""};
+$("uf_gen").onclick=function(){$("uf_pw").value=genPw()};
+$("uf_go").onclick=function(){var n=$("uf_name").value.trim(),u=slug($("uf_user").value||n),p=$("uf_pw").value,m=$("uf_msg"),b=this;m.textContent="";
+ if(!/^[a-z0-9._-]{3,30}$/.test(u)){m.textContent="Username: 3-30 letters/numbers (a-z, 0-9, . _ -).";return}
+ if(p.length<8){m.textContent="Password must be at least 8 characters.";return}
+ b.disabled=true;m.textContent="Creating...";
+ fb.usersApi("create",{username:u,name:n,password:p}).then(function(){b.disabled=false;m.textContent="User created. Login: "+u+" / "+p+"  (note it down now).";$("uf_name").value="";$("uf_user").value="";$("uf_user").dataset.t="";$("uf_pw").value="";loadUsers()}).catch(function(e){b.disabled=false;m.textContent=e.message})};
+$("utb").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||!b.dataset.u)return;var u=b.dataset.u,usr=US.filter(function(x){return x.username===u})[0]||{};
+ if(b.dataset.ua==="pw")bshow("<h2>Set password - "+esc(u)+"</h2><p class='stat'>No old password needed. The user is logged out everywhere and must use the new password.</p><div class='g'><div><label>New password (min 8)</label><input id='sp_p' type='text' autocomplete='off'></div></div><div class='stat' id='sp_m' style='margin-top:8px'></div><div class='bar'><button class='p' id='sp_go'>Save password</button><button id='sp_gen'>Generate</button><button data-b='x'>Cancel</button></div>");
+ if(b.dataset.ua==="dis")fb.usersApi("setDisabled",{username:u,disabled:!usr.disabled}).then(loadUsers).catch(function(x){alert(x.message)});
+ if(b.dataset.ua==="del"&&confirm("Delete user "+u+" permanently?\nThe assets this user added are NOT deleted."))fb.usersApi("delete",{username:u}).then(loadUsers).catch(function(x){alert(x.message)})});
+$("bulkc").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;
+ if(b.id==="sp_gen")$("sp_p").value=genPw();
+ if(b.id==="sp_go"){var t=$("bulkc").querySelector("h2").textContent.replace("Set password - ",""),p=$("sp_p").value,m=$("sp_m");if(p.length<8){m.textContent="Password must be at least 8 characters.";return}
+  b.disabled=true;fb.usersApi("setPassword",{username:t,password:p}).then(function(){m.textContent="Password changed. New password: "+p+"  (note it down now)."}).catch(function(x){b.disabled=false;m.textContent=x.message})}});
+
+/* ---------- Passwords ---------- */
+/* Admin: ONLY through the Firebase e-mail link. Other users: direct change, or admin sets it in the Users tab. */
+function pwErr(e){var c=(e&&e.code)||"";if(/wrong-password|invalid-credential|invalid-login/.test(c))return"Current password is wrong.";if(/weak-password/.test(c))return"New password is too weak (use at least 8 characters).";if(/too-many/.test(c))return"Too many attempts. Please wait a few minutes and try again.";if(/requires-recent-login/.test(c))return"Please logout, login again and retry.";return(e&&e.message)||"Could not complete the request."}
+$("cpw").onclick=function(){
+ if(ADM){if(confirm("Send a password reset e-mail to "+ME+"?\nOpen the link in that mailbox to set a new password."))fb.sendReset(ME).then(function(){alert("Reset e-mail sent to "+ME+". Check the inbox (and Spam).")}).catch(function(e){alert(pwErr(e))});return}
+ bshow("<h2>Change Password</h2><h3 style='margin:0 0 6px;font-size:15px'>"+esc(uname(ME))+"</h3><div class='g'><div><label>Current password</label><input id='pw_o' type='password' autocomplete='current-password'></div><div><label>New password (min 8 characters)</label><input id='pw_n1' type='password' autocomplete='new-password'></div><div><label>Confirm new password</label><input id='pw_n2' type='password' autocomplete='new-password'></div></div><div class='bar'><button class='p' id='pw_go'>Change my password</button><button data-b='x'>Close</button></div><div class='stat' id='pw_m' style='margin-top:8px'></div>")};
+$("bulkc").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||b.id!=="pw_go")return;var o=$("pw_o").value,n1=$("pw_n1").value,n2=$("pw_n2").value,m=$("pw_m");
+ if(!o){m.textContent="Enter your current password.";return}
+ if(n1.length<8){m.textContent="New password must be at least 8 characters.";return}
+ if(n1!==n2){m.textContent="New password and confirm password do not match.";return}
+ if(n1===o){m.textContent="New password must be different from the current one.";return}
+ b.disabled=true;m.textContent="Changing...";
+ fb.changeMyPassword(o,n1).then(function(){b.disabled=false;["pw_o","pw_n1","pw_n2"].forEach(function(i){$(i).value=""});m.textContent="Password changed. Use the new password from your next login."}).catch(function(x){b.disabled=false;m.textContent=pwErr(x)})});
+$("forgot").onclick=function(e){e.preventDefault();var v=$("le").value.trim(),m=$("lerr");
+ if(v.indexOf("@")<0){m.textContent="Admin: type your e-mail above and click again to get the reset link. Other users: ask the admin to set a new password.";return}
+ fb.sendReset(v).then(function(){m.textContent="If this e-mail is registered, a password reset link has been sent. Check the inbox (and Spam)."}).catch(function(x){m.textContent=pwErr(x)})};
 </script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 // Firebase adapter: paste your own Firebase web config below.
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged,sendPasswordResetEmail,updatePassword,reauthenticateWithCredential,EmailAuthProvider} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore,collection,doc,getDoc,setDoc,deleteDoc,onSnapshot,writeBatch,updateDoc,arrayUnion,arrayRemove} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -13,7 +13,11 @@ const firebaseConfig = {
 };
 
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),col=collection(db,"assets");
-export const login=(e,p)=>signInWithEmailAndPassword(auth,e,p);
+export const ADMIN_EMAIL="techpoint.chandu@gmail.com";
+const slug=s=>String(s||"").trim().toLowerCase().replace(/\s+/g,".").replace(/[^a-z0-9._-]/g,"");
+// "ramesh" -> ramesh@assets.local ; a real e-mail (admin) is used as it is
+export const login=(e,p)=>signInWithEmailAndPassword(auth,String(e).includes("@")?String(e).trim():slug(e)+"@assets.local",p);
+export const sendReset=e=>sendPasswordResetEmail(auth,e);
 export const logout=()=>signOut(auth);
 export const onAuth=cb=>onAuthStateChanged(auth,cb);
 export const watch=(ok,err)=>onSnapshot(col,s=>ok(s.docs.map(d=>({...d.data(),code:d.id}))),err);
@@ -85,5 +89,15 @@ export const syncCounters=list=>bumpCounters(list.map(a=>a.code));
 
 // ---- Asset movement / repair approval (admin) ----
 // Next gate-pass number for a financial year, e.g. fy "2026-27" -> 1, 2, 3 ...
-export async function nextGP(fy){const r=doc(db,"counters","GP"+fy);let n=0;try{const s=await getDoc(r);if(s.exists())n=+s.data().n||0}catch(e){}n++;await setDoc(r,{n});return n}
+export async function nextGP(fy,pfx){pfx=pfx||"GP";const r=doc(db,"counters",pfx+fy);let n=0;try{const s=await getDoc(r);if(s.exists())n=+s.data().n||0}catch(e){}n++;await setDoc(r,{n});return n}
 export const setAssetStatus=(code,st)=>updateDoc(doc(db,"assets",code),{st});
+
+// ---- Passwords (direct change, no e-mail) ----
+// Own password: re-login with the current password, then set the new one.
+export async function changeMyPassword(oldPw,newPw){const u=auth.currentUser;if(!u)throw new Error("Not logged in");
+  await reauthenticateWithCredential(u,EmailAuthProvider.credential(u.email,oldPw));await updatePassword(u,newPw)}
+// Admin: user management through the secure server function /api/users
+export async function usersApi(action,data){const u=auth.currentUser;if(!u)throw new Error("Not logged in");
+  const tok=await u.getIdToken(true),r=await fetch("/api/users",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+tok},body:JSON.stringify({...(data||{}),action})});
+  let j={};try{j=await r.json()}catch(e){}
+  if(!r.ok)throw new Error(r.status===404?"Server function not found - deploy this folder on Vercel (api/users.js).":(j.error||"Server error "+r.status));return j}

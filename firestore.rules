@@ -4,10 +4,12 @@ service cloud.firestore {
 
     // ---------- who is who ----------
     function isAdmin() {
-      return request.auth != null && request.auth.token.email == "it@assets.local";
+      return request.auth != null && request.auth.token.email == "techpoint.chandu@gmail.com";
     }
+    // add-only users are created by the admin in the app (Users tab); the server gives them the claim role = "user"
     function isAddOnly() {
-      return request.auth != null && request.auth.token.email == "user@assets.local";
+      return request.auth != null && ('role' in request.auth.token) && request.auth.token.role == "user"
+        && request.auth.token.email.matches('.*@assets[.]local');
     }
 
     // optional text field: if present it must be a short string

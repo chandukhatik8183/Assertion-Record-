@@ -23,3 +23,28 @@ Who can do what: Admin = everything. Add-only user = create NEW assets only (bra
 4. Admin marks "Received at IT" (asset status -> Under Repair) and "Returned to user" (asset status -> In Use). The user sees each step.
 After changing `firestore.rules`, publish it again in Firebase.
 
+
+## Return to user + separate Return Gate Pass (IT only)
+1. When the repair is finished: Admin -> Tickets -> **Return to user**. A form asks: **Returning to** (person), **Return location**, **Sent with** (who carries it) and remarks.
+2. On confirm, a separate **Return Gate Pass** number `RGP/2026-27/0001` is created (own counter, not mixed with the outgoing `GP/...` numbers) and the asset status goes back to *In Use*.
+3. The Return Gate Pass is shown **only in the admin panel** (button *Return Gate Pass* on the ticket). The user's QR page shows only the outgoing Gate Pass and a line "Asset returned to ... sent with ...".
+4. All gate passes now open as a **digital pass on screen** (IT approval is stamped digitally with date/time); use *Print / Save as PDF* only if paper is needed. Ticket CSV export has the new return columns.
+No change in `firestore.rules` is needed for this.
+
+## Accounts, roles and passwords (v3)
+**Only one admin:** `techpoint.chandu@gmail.com`. The old `it@assets.local` / `user@assets.local` accounts have no power any more (rules changed) - delete them in Firebase -> Authentication.
+
+One-time setup:
+1. Firebase -> Authentication -> Users -> **Add user**: e-mail `techpoint.chandu@gmail.com` + any temporary password. Then in the app click **Forgot password?** (login page) or **Reset password (e-mail)** to set your real password from the e-mail link.
+2. Firebase -> Firestore -> Rules: paste the new `firestore.rules` and **Publish** (required).
+3. For the Users tab: Firebase -> Project settings -> Service accounts -> **Generate new private key**. In Vercel -> Settings -> Environment Variables add `FIREBASE_SERVICE_ACCOUNT` = full content of the JSON file. Redeploy. Never put this file in GitHub.
+
+Passwords:
+* **Admin:** only by Firebase e-mail link (header button *Reset password (e-mail)* or *Forgot password?* on the login page).
+* **Other users:** log in with the **username** (e.g. `ramesh.kumar`). They can change their own password (header -> Change password); the admin can set a new one any time in **Users -> Set password**.
+
+## Users tab (admin)
+Add a user with Full name + Username + Password (or *Generate password*). Role: **User - add assets only** (cannot edit, delete, export, see tickets). Admin can also Disable/Enable and Delete users. Username `Ramesh Kumar` becomes `ramesh.kumar` (login is not case sensitive).
+
+## Digital
+Dashboard (totals, assets by company/type, latest tickets), digital gate passes / return gate passes / handover forms that open on screen (Print / Save as PDF only if needed), installable as an app on phone (Add to Home screen).
