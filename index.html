@@ -1,165 +1,897 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Sandeep Group – Asset Tracker</title>
-<script src="/vendor/JsBarcode.all.min.js"></script>
-<script src="/vendor/qrcode.js"></script>
-<script src="/vendor/fflate.min.js"></script>
-<script src="/xlsx.js"></script>
+<title>Sandeep Group – Digital Asset Tracker & NOC</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Libraries for QR, Barcode, Zip, Excel -->
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'sans-serif'],
+          mono: ['JetBrains Mono', 'monospace'],
+          display: ['Space Grotesk', 'sans-serif'],
+        },
+        colors: {
+          cyber: {
+            bg: '#090d16',
+            card: '#111827',
+            border: '#1f293d',
+            accent: '#6366f1',
+            cyan: '#06b6d4',
+            emerald: '#10b981',
+            amber: '#f59e0b',
+            rose: '#f43f5e',
+          }
+        }
+      }
+    }
+  }
+</script>
+
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--tx:#1b1f24;--mu:#667085;--bd:#d9dde3;--ac:#1d4ed8;--ac2:#fff;--dg:#c62828;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171c;--card:#1e232b;--tx:#e8eaee;--mu:#9aa3b2;--bd:#323a46;--ac:#6d9bff;--ac2:#0b1220;--dg:#ff7b72}}
-:root[data-theme="dark"]{--bg:#14171c;--card:#1e232b;--tx:#e8eaee;--mu:#9aa3b2;--bd:#323a46;--ac:#6d9bff;--ac2:#0b1220;--dg:#ff7b72}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-header{padding:14px 16px;background:var(--card);border-bottom:1px solid var(--bd)}
-h1{font-size:18px;margin:0}header p{margin:2px 0 0;color:var(--mu);font-size:13px}
-main{max-width:1100px;margin:0 auto;padding:14px}
-section{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:14px}
-h2{font-size:16px;margin:0 0 10px}
-.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
-.tki{display:inline-flex!important;gap:6px;align-items:center;margin:0 16px 8px 0!important;color:var(--tx)!important;font-size:14px!important;cursor:pointer}.tki input{width:auto}
-label{display:block;font-size:12px;color:var(--mu);margin-bottom:3px}
-input,select{width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--tx);font:inherit}
-button{padding:8px 12px;border:1px solid var(--bd);border-radius:6px;background:var(--card);color:var(--tx);cursor:pointer;font:inherit}
-button.p{background:var(--ac);color:var(--ac2);border-color:var(--ac)}
-button.d{color:var(--dg)}
-.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
-.codes{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:12px;padding:10px;border:1px dashed var(--bd);border-radius:8px}
-.codes svg,.codes .qr{background:#fff;border-radius:4px;padding:4px;max-width:100%}
-.tw{overflow-x:auto}
-table{border-collapse:collapse;width:100%;min-width:780px}
-th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font-size:13px;vertical-align:top}
-th{color:var(--mu);font-weight:600}
-.code{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700}
-.stat{font-size:12px;color:var(--mu)}
-#det{display:none;border:2px solid var(--ac)}
-dl{display:grid;grid-template-columns:minmax(120px,max-content) minmax(0,1fr);gap:4px 14px;margin:0;min-width:0}
-dt{color:var(--mu);font-size:13px;overflow-wrap:anywhere}dd{margin:0;font-weight:500;min-width:0;overflow-wrap:anywhere;word-break:break-word}
-.g>*{min-width:0}section{min-width:0;overflow-wrap:anywhere}
-@media (max-width:600px){dl{grid-template-columns:minmax(0,1fr);gap:0}dt{margin-top:10px}dd{font-size:15px}}
-.badge{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--bd);color:var(--mu)}
-.stp{display:flex;margin:14px 0 6px}
-.sp{flex:1;text-align:center;position:relative;font-size:12px;color:var(--mu)}
-.sp:before{content:"";position:absolute;top:13px;left:-50%;width:100%;height:3px;background:var(--bd)}
-.sp:first-child:before{display:none}
-.sp .dot{position:relative;z-index:1;display:inline-flex;width:28px;height:28px;border-radius:50%;align-items:center;justify-content:center;background:var(--card);border:2px solid var(--bd);font-weight:700;font-size:13px}
-.sp.done .dot{background:var(--ac);border-color:var(--ac);color:var(--ac2)}
-.sp.done:before,.sp.cur:before{background:var(--ac)}
-.sp.cur .dot{border-color:var(--ac);color:var(--ac);box-shadow:0 0 0 4px rgba(29,78,216,.18)}
-.sp.cur.done .dot{color:var(--ac2)}
-.sp .sl{display:block;margin-top:4px}.sp.cur .sl{color:var(--tx);font-weight:700}
-.tl{list-style:none;margin:10px 0 0;padding:0 0 0 18px;border-left:2px solid var(--bd)}
-.tl li{position:relative;padding:0 0 14px 12px}
-.tl li:before{content:"";position:absolute;left:-25px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--bd)}
-.tl li:first-child:before{background:var(--ac)}
-.tkc{display:inline-block;margin:0 6px 6px 0;padding:4px 10px;font-size:12px}
-.sbig{display:inline-block;padding:3px 12px;border-radius:99px;background:var(--ac);color:var(--ac2);font-weight:700;font-size:13px}
-.stb{padding:0 4px;font-size:26px;line-height:1;border:0;background:none;color:var(--bd);cursor:pointer}.stb.on{color:#f5a623}
-.eng{margin:10px 0;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg)}
-#labels{display:none}
-.lb{border:1px solid #000;padding:6px;width:64mm;text-align:center;color:#000;background:#fff;break-inside:avoid;font:11px Arial,sans-serif}
-.lb b{display:block;font-size:12px}
-.lb svg{max-width:100%;height:auto}
-#hform{display:none;color:#000;background:#fff;font:12px/1.5 Arial,sans-serif;padding:10mm}
-#hform h1{text-align:center;font-size:18px;margin:0 0 2px}#hform .sub{text-align:center;margin-bottom:8px}
-#hform h3{font-size:13px;margin:12px 0 4px;border-bottom:1px solid #000;padding-bottom:2px}
-#hform table{width:100%;min-width:0;border-collapse:collapse}
-#hform th,#hform td{border:1px solid #000;padding:4px 6px;font-size:12px;text-align:left;color:#000}
-#hform th{width:32%;background:#eee}
-#hform .ck span{display:inline-block;margin-right:14px}
-#hform ol{margin:4px 0;padding-left:18px}
-#hform .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
-#hform .sgs{display:flex;gap:16px;margin-top:38px}#hform .sg{flex:1}#hform .ln{border-top:1px solid #000;margin-bottom:4px}
-@media print{
- body>*{display:none!important}
- body.pl #labels{display:flex!important;flex-wrap:wrap;gap:4mm;padding:4mm}
- body.ph #hform{display:block!important}
- body{background:#fff}
+:root {
+  --bg: #090d16;
+  --card: #111827;
+  --card-glow: rgba(17, 24, 39, 0.7);
+  --tx: #f3f4f6;
+  --tx-muted: #9ca3af;
+  --bd: #1f293d;
+  --ac: #6366f1;
+  --ac-glow: rgba(99, 102, 241, 0.35);
+  --ac-text: #ffffff;
+  --dg: #f43f5e;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --cyan: #06b6d4;
+  --code-bg: #030712;
 }
-.ai{margin-bottom:2px}.ax{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin:2px 0 10px 24px;max-width:760px}.ax label{margin:0}
-#hform{font-size:11px;padding:8mm}#hform th,#hform td{padding:3px 6px;font-size:11px}#hform .at th{width:auto}#hform h3{margin:8px 0 3px}#hform .sgs{margin-top:26px}
-#nv_t.p .badge{color:#fff;border-color:#fff}
-textarea{width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--tx);font:inherit}
+
+[data-theme="light"] {
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --card-glow: rgba(255, 255, 255, 0.85);
+  --tx: #0f172a;
+  --tx-muted: #64748b;
+  --bd: #e2e8f0;
+  --ac: #4f46e5;
+  --ac-glow: rgba(79, 70, 229, 0.18);
+  --ac-text: #ffffff;
+  --dg: #e11d48;
+  --success: #059669;
+  --warning: #d97706;
+  --cyan: #0891b2;
+  --code-bg: #f1f5f9;
+}
+
+*{box-sizing:border-box}
+body {
+  margin:0;
+  background-color: var(--bg);
+  color: var(--tx);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-image: 
+    radial-gradient(rgba(99, 102, 241, 0.08) 1px, transparent 1px),
+    radial-gradient(rgba(6, 182, 212, 0.05) 1px, var(--bg) 1px);
+  background-size: 32px 32px;
+  background-position: 0 0, 16px 16px;
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Glassmorphism Cyber Card */
+.glass-panel {
+  background: var(--card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--bd);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.glass-panel:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.code {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--cyan);
+}
+
+/* Digital Input Styles */
+input, select, textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  background: var(--code-bg);
+  color: var(--tx);
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--ac);
+  box-shadow: 0 0 0 3px var(--ac-glow);
+}
+
+/* Digital Buttons */
+button {
+  padding: 8px 16px;
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--tx);
+  font-weight: 500;
+  font-size: 13.5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+button:hover {
+  border-color: var(--ac);
+  transform: translateY(-1px);
+}
+button.p {
+  background: var(--ac);
+  color: var(--ac-text);
+  border-color: var(--ac);
+  box-shadow: 0 4px 14px var(--ac-glow);
+}
+button.p:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 6px 20px var(--ac-glow);
+}
+button.d {
+  color: var(--dg);
+  border-color: rgba(244, 63, 94, 0.3);
+}
+button.d:hover {
+  background: rgba(244, 63, 94, 0.1);
+  border-color: var(--dg);
+}
+
+/* Digital Grid Tables */
+.tw { overflow-x: auto; }
+table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 800px; }
+th {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--bd);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tx-muted);
+  font-weight: 600;
+  background: rgba(0,0,0,0.05);
+}
+td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--bd);
+  font-size: 13.5px;
+  vertical-align: middle;
+}
+tr:hover td {
+  background: rgba(99, 102, 241, 0.04);
+}
+
+/* Badges & Status */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  border: 1px solid var(--bd);
+  color: var(--tx-muted);
+  letter-spacing: 0.02em;
+}
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--tx-muted);
+}
+.badge-success { background: rgba(16, 185, 129, 0.12); color: var(--success); border-color: rgba(16, 185, 129, 0.3); }
+.badge-success .badge-dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
+.badge-warning { background: rgba(245, 158, 11, 0.12); color: var(--warning); border-color: rgba(245, 158, 11, 0.3); }
+.badge-warning .badge-dot { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
+.badge-cyan { background: rgba(6, 182, 212, 0.12); color: var(--cyan); border-color: rgba(6, 182, 212, 0.3); }
+.badge-cyan .badge-dot { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+.badge-danger { background: rgba(244, 63, 94, 0.12); color: var(--dg); border-color: rgba(244, 63, 94, 0.3); }
+.badge-danger .badge-dot { background: var(--dg); box-shadow: 0 0 8px var(--dg); }
+
+/* QR & Barcode Container */
+.codes {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 14px;
+  background: var(--code-bg);
+  border: 1px dashed var(--bd);
+  border-radius: 10px;
+}
+.codes svg, .codes .qr {
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 6px;
+  max-width: 100%;
+}
+
+/* Stepper */
+.stp { display: flex; margin: 16px 0 8px; }
+.sp { flex: 1; text-align: center; position: relative; font-size: 12px; color: var(--tx-muted); }
+.sp:before { content:""; position: absolute; top: 13px; left: -50%; width: 100%; height: 2px; background: var(--bd); }
+.sp:first-child:before { display: none; }
+.sp .dot { position: relative; z-index: 1; display: inline-flex; width: 28px; height: 28px; border-radius: 50%; align-items: center; justify-content: center; background: var(--card); border: 2px solid var(--bd); font-weight: 700; font-size: 12px; }
+.sp.done .dot { background: var(--ac); border-color: var(--ac); color: #fff; }
+.sp.done:before, .sp.cur:before { background: var(--ac); }
+.sp.cur .dot { border-color: var(--ac); color: var(--ac); box-shadow: 0 0 0 4px var(--ac-glow); }
+
+/* Print Styles */
+#labels { display: none; }
+.lb { border: 1px solid #000; padding: 6px; width: 64mm; text-align: center; color: #000; background: #fff; break-inside: avoid; font: 11px Arial, sans-serif; }
+.lb b { display: block; font-size: 12px; }
+.lb svg { max-width: 100%; height: auto; }
+#hform { display: none; color: #000; background: #fff; font: 11px/1.4 Arial, sans-serif; padding: 8mm; }
+#hform h1 { text-align: center; font-size: 16px; margin: 0 0 2px; text-transform: uppercase; }
+#hform .sub { text-align: center; margin-bottom: 8px; }
+#hform h3 { font-size: 12px; margin: 8px 0 3px; border-bottom: 1px solid #000; padding-bottom: 2px; text-transform: uppercase; }
+#hform table { width: 100%; min-width: 0; border-collapse: collapse; }
+#hform th, #hform td { border: 1px solid #000; padding: 3px 6px; font-size: 11px; text-align: left; color: #000; }
+#hform th { width: 30%; background: #f3f4f6; font-weight: bold; }
+#hform .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+#hform .sgs { display: flex; gap: 16px; margin-top: 26px; }
+#hform .sg { flex: 1; }
+#hform .ln { border-top: 1px solid #000; margin-bottom: 4px; }
+
+@media print {
+  body > * { display: none !important; }
+  body.pl #labels { display: flex !important; flex-wrap: wrap; gap: 4mm; padding: 4mm; background: #fff; }
+  body.ph #hform { display: block !important; }
+  body { background: #fff !important; color: #000 !important; }
+}
+
+/* Pulsing Online Dot */
+.pulse-green {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: pulseGreen 2s infinite;
+}
+@keyframes pulseGreen {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Toast Notifications */
+#toast_container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 380px;
+}
+.toast {
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--tx);
+  border: 1px solid var(--bd);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  animation: slideIn 0.3s ease forwards;
+}
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
 </style>
 </head>
 <body>
-<header><h1>Sandeep Group – IT Asset Tracker</h1><p>Desktop, Laptop, Networking, Server, Printer, Biometric, Mobile, Tablet, ISP, UPS – asset code, configuration, location, QR + barcode <span class="badge" id="mode">…</span> <button id="lo" style="display:none;padding:2px 8px;margin-left:6px">Logout</button></p></header>
-<main id="app" style="display:none">
-<section id="det"></section>
-<div class="bar" style="margin:0 0 12px"><button class="p" id="nv_a">Assets</button><button id="nv_t">Tickets <span class="badge" id="tbadge">0</span></button></div>
-<div id="tab_assets">
 
-<section>
-<h2 id="ft">Add New Asset</h2>
-<div class="g">
-<div><label>Company</label><select id="f_company"></select></div>
-<div><label>Product Type</label><select id="f_type"></select></div>
-<div><label>Asset Code (auto)</label><input id="f_code" class="code" readonly></div>
-</div>
-<div class="g" id="base" style="margin-top:10px"></div>
-<div class="g" id="specs" style="margin-top:10px"></div>
-<div id="monbox" style="display:none;margin-top:12px"><label style="font-size:13px;font-weight:600;color:var(--tx)">Monitor (with this desktop)</label><div class="g" id="monspecs" style="margin-top:6px"></div></div>
-<div style="margin-top:12px"><label>Accessories issued</label><div id="accs"></div></div>
-<div style="margin-top:6px"><label>Condition at handover</label><div id="conds"></div></div>
-<div class="codes"><div class="qr" id="pqr"></div><svg id="pbc"></svg><span class="stat">QR (scan with phone) + Barcode (scan with scanner)</span></div>
-<div class="bar"><button class="p" id="save">Save</button><button id="clear">New / Clear</button><label style="display:flex;gap:6px;align-items:center;margin:0;color:var(--tx)"><input type="checkbox" id="hf" style="width:auto"> Print handover form after saving</label></div>
-</section>
+<!-- Header -->
+<header class="border-b border-[var(--bd)] bg-[var(--card)] sticky top-0 z-40 backdrop-blur-md bg-opacity-80">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-400 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-indigo-500/20">
+        SG
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-base font-bold font-display tracking-wide uppercase">Sandeep Group</h1>
+          <span class="badge badge-success"><span class="pulse-green"></span> NOC ACTIVE</span>
+        </div>
+        <p class="text-xs text-[var(--tx-muted)]">Enterprise IT Asset Tracker & Digital Lifecycle Desk</p>
+      </div>
+    </div>
 
-<section>
-<h2>Asset List</h2>
-<div class="g">
-<div><label>Search / Scan (press Enter)</label><input id="q" placeholder="code, user, location, serial..."></div>
-<div><label>Company</label><select id="fco"></select></div>
-<div><label>Type</label><select id="fty"></select></div>
-<div><label>Status</label><select id="fst"></select></div>
-</div>
-<div class="bar"><button class="p" id="plAll">Print Labels (all listed)</button><button id="csv">Excel/CSV Export</button><button id="bk">Backup (JSON)</button><button id="rs">Restore</button><input type="file" id="rsf" accept=".json" style="display:none"><button id="bulkb">Bulk Add/Edit (Excel)</button><button id="brm">Manage Branches</button><input type="file" id="bf" accept=".xlsx,.csv,.txt" style="display:none"><span class="stat" id="cnt"></span></div>
-<div class="tw" style="margin-top:10px"><table><thead><tr><th>Asset Code</th><th>Company</th><th>Type / Model</th><th>Configuration</th><th>Branch / Asset Location / User</th><th>Status</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>
-</section>
-</div>
-<div id="tab_tickets" style="display:none"><section><h2>Support Tickets</h2>
-<div class="g"><div><label>Status</label><select id="tfs"></select></div><div><label>Search</label><input id="tq" placeholder="ticket no, asset code, name, issue..."></div></div>
-<div class="bar"><button id="tcsv">Excel/CSV Export</button><button id="tbk">Backup (JSON)</button><button id="trs">Restore</button><input type="file" id="trf" accept=".json" style="display:none"></div>
-<div class="stat" id="tcnt" style="margin:8px 0"></div>
-<div class="tw"><table><thead><tr><th>Ticket</th><th>Asset</th><th>Reported by</th><th>Issue</th><th>Status / IT note</th></tr></thead><tbody id="ttb"></tbody></table></div></section></div>
+    <div class="flex items-center gap-3">
+      <div id="live_clock" class="hidden sm:block text-xs font-mono text-[var(--tx-muted)] bg-[var(--code-bg)] px-3 py-1.5 rounded-lg border border-[var(--bd)]">--:--:--</div>
+      
+      <!-- Theme Switcher -->
+      <button id="theme_toggle" class="p-2 rounded-lg text-xs" title="Toggle Digital Dark / Light Theme">
+        <svg id="theme_icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+      </button>
+
+      <span class="badge" id="mode">Authenticating...</span>
+      <button id="lo" style="display:none;" class="d text-xs py-1 px-3">Logout</button>
+    </div>
+  </div>
+</header>
+
+<!-- Main App Hub -->
+<main id="app" class="max-w-7xl mx-auto px-4 py-6" style="display:none">
+
+  <!-- HUD Stats Counter Bar -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="glass-panel p-4 flex items-center gap-4">
+      <div class="p-3 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+      </div>
+      <div>
+        <div class="text-xs text-[var(--tx-muted)] uppercase tracking-wider font-semibold">Total Assets</div>
+        <div id="stat_total" class="text-2xl font-bold font-mono">0</div>
+      </div>
+    </div>
+
+    <div class="glass-panel p-4 flex items-center gap-4">
+      <div class="p-3 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+      </div>
+      <div>
+        <div class="text-xs text-[var(--tx-muted)] uppercase tracking-wider font-semibold">In Active Use</div>
+        <div id="stat_inuse" class="text-2xl font-bold font-mono text-emerald-400">0</div>
+      </div>
+    </div>
+
+    <div class="glass-panel p-4 flex items-center gap-4">
+      <div class="p-3 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+      </div>
+      <div>
+        <div class="text-xs text-[var(--tx-muted)] uppercase tracking-wider font-semibold">Under Repair</div>
+        <div id="stat_repair" class="text-2xl font-bold font-mono text-amber-400">0</div>
+      </div>
+    </div>
+
+    <div class="glass-panel p-4 flex items-center gap-4">
+      <div class="p-3 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5z"></path></svg>
+      </div>
+      <div>
+        <div class="text-xs text-[var(--tx-muted)] uppercase tracking-wider font-semibold">Open Tickets</div>
+        <div id="stat_tickets" class="text-2xl font-bold font-mono text-cyan-400">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Segmented Control -->
+  <div class="flex border-b border-[var(--bd)] mb-6 gap-2">
+    <button id="nv_a" class="p font-semibold rounded-b-none border-b-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+      Asset Registry
+    </button>
+    <button id="nv_t" class="rounded-b-none border-b-2 border-transparent">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+      Support Tickets <span class="badge ml-1" id="tbadge">0</span>
+    </button>
+  </div>
+
+  <!-- Asset Registry Tab -->
+  <div id="tab_assets" class="space-y-6">
+
+    <!-- Asset Detail Panel Drawer -->
+    <div id="det" class="glass-panel p-6 border-2 border-[var(--ac)] hidden shadow-2xl relative"></div>
+
+    <!-- Form Section -->
+    <section class="glass-panel p-6">
+      <div class="flex items-center justify-between mb-4 pb-2 border-b border-[var(--bd)]">
+        <h2 id="ft" class="text-base font-bold font-display uppercase tracking-wider text-[var(--ac)] flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+          Register New Asset
+        </h2>
+        <span class="text-xs font-mono text-[var(--tx-muted)]">Digital Asset Encoder</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Company</label><select id="f_company"></select></div>
+        <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Product Type</label><select id="f_type"></select></div>
+        <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Asset Code (Auto)</label><input id="f_code" class="code font-bold bg-[var(--code-bg)]" readonly></div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4" id="base"></div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4" id="specs"></div>
+
+      <!-- Monitor Sub-section -->
+      <div id="monbox" class="hidden mt-4 p-4 rounded-xl border border-[var(--bd)] bg-black/10">
+        <label class="block text-xs font-bold uppercase tracking-wider text-[var(--cyan)] mb-2">Attached Monitor Specs</label>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="monspecs"></div>
+      </div>
+
+      <!-- Accessories & Condition -->
+      <div class="mt-4 pt-4 border-t border-[var(--bd)] grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-xs font-semibold text-[var(--tx-muted)] mb-2">Accessories Issued</label>
+          <div id="accs" class="space-y-2"></div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-[var(--tx-muted)] mb-2">Condition at Handover</label>
+          <div id="conds" class="flex flex-wrap gap-3"></div>
+        </div>
+      </div>
+
+      <!-- Barcode / QR Preview Box -->
+      <div class="codes mt-6">
+        <div class="qr" id="pqr"></div>
+        <svg id="pbc"></svg>
+        <span class="text-xs text-[var(--tx-muted)]">Live Asset QR Tag & Matrix 128 Barcode</span>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-4 mt-6 pt-4 border-t border-[var(--bd)]">
+        <div class="flex items-center gap-3">
+          <button class="p" id="save">Save Asset Record</button>
+          <button id="clear">Clear / Reset Form</button>
+        </div>
+        <label class="flex items-center gap-2 text-xs text-[var(--tx-muted)] cursor-pointer">
+          <input type="checkbox" id="hf" class="w-auto"> Print Handover Form after saving
+        </label>
+      </div>
+    </section>
+
+    <!-- Asset List Section -->
+    <section class="glass-panel p-6">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+        <h2 class="text-base font-bold font-display uppercase tracking-wider">Asset Registry Database</h2>
+        <span class="text-xs font-mono text-[var(--tx-muted)]" id="cnt">0 Assets Loaded</span>
+      </div>
+
+      <!-- Search & Filters -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Search (press Enter)</label><input id="q" placeholder="Code, user, location, serial..."></div>
+        <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Filter Company</label><select id="fco"></select></div>
+        <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Filter Type</label><select id="fty"></select></div>
+        <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Filter Status</label><select id="fst"></select></div>
+      </div>
+
+      <!-- Action Toolbar -->
+      <div class="flex flex-wrap gap-2 mb-4">
+        <button class="p text-xs" id="plAll">Print Labels (All Listed)</button>
+        <button class="text-xs" id="csv">Excel/CSV Export</button>
+        <button class="text-xs" id="bk">Backup JSON</button>
+        <button class="text-xs" id="rs">Restore</button>
+        <input type="file" id="rsf" accept=".json" style="display:none">
+        <button class="text-xs" id="bulkb">Bulk Add/Edit (Excel)</button>
+        <button class="text-xs" id="brm">Manage Branches</button>
+        <input type="file" id="bf" accept=".xlsx,.csv,.txt" style="display:none">
+      </div>
+
+      <!-- Data Table -->
+      <div class="tw rounded-lg border border-[var(--bd)]">
+        <table>
+          <thead>
+            <tr>
+              <th>Asset Code</th>
+              <th>Company</th>
+              <th>Type / Model</th>
+              <th>Configuration Specs</th>
+              <th>Branch / Location / User</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tb"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Tickets Tab -->
+  <div id="tab_tickets" style="display:none" class="space-y-6">
+    <section class="glass-panel p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-bold font-display uppercase tracking-wider">NOC & IT Support Desk Tickets</h2>
+        <span id="tcnt" class="text-xs font-mono text-[var(--tx-muted)]">0 Tickets</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Filter Status</label><select id="tfs"></select></div>
+        <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Search Tickets</label><input id="tq" placeholder="Ticket ID, asset code, user name, issue..."></div>
+      </div>
+
+      <div class="flex flex-wrap gap-2 mb-4">
+        <button class="text-xs" id="tcsv">Excel Export</button>
+        <button class="text-xs" id="tbk">Backup JSON</button>
+        <button class="text-xs" id="trs">Restore</button>
+        <input type="file" id="trf" accept=".json" style="display:none">
+      </div>
+
+      <div class="tw rounded-lg border border-[var(--bd)]">
+        <table>
+          <thead>
+            <tr>
+              <th>Ticket ID</th>
+              <th>Asset</th>
+              <th>Reported By</th>
+              <th>Issue Description</th>
+              <th>Status / Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ttb"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
 </main>
-<main id="lg" style="display:none"><section style="max-width:380px;margin:30px auto"><h2>Login</h2><label>Email</label><input id="le" type="email" autocomplete="username"><label style="margin-top:8px">Password</label><input id="lp" type="password" autocomplete="current-password"><div class="bar"><button class="p" id="lb">Login</button></div><div class="stat" id="lerr" style="margin-top:8px"></div></section></main>
-<main id="pub" style="display:none"><section id="pc"></section>
-<section id="tkst" style="display:none"><h2>Status of your latest ticket</h2><div id="tkview"></div></section>
-<section id="tk" style="display:none"><h2>Report an issue with this asset</h2><div id="tkf"><div class="g">
-<div><label>Your name *</label><input id="t_name" maxlength="80"></div>
-<div><label>Department</label><input id="t_dept" maxlength="60"></div>
-<div><label>Mobile number</label><input id="t_mob" type="tel" maxlength="15"></div>
-<div><label>Issue type</label><select id="t_cat"></select></div>
-<div><label>Priority</label><select id="t_pri"></select></div></div>
-<div style="margin-top:10px"><label>Describe the problem *</label><textarea id="t_issue" rows="4" maxlength="1000" placeholder="Describe the problem (at least 5 characters)"></textarea></div>
-<input id="t_hp" style="display:none" tabindex="-1" autocomplete="off">
-<div class="bar"><button class="p" id="t_go">Submit ticket</button></div><div class="stat" id="t_msg" style="margin-top:8px"></div></div>
-<div id="tkdone" style="display:none"></div></section>
-<section id="mv" style="display:none"><h2>Send this asset to IT (Asset Movement)</h2>
-<p class="stat">Use this when the asset has a problem and you are taking it to the IT department. IT will approve the repair and then a Gate Pass can be printed here.</p>
-<div class="bar"><button class="p" id="mv_open">Send this asset to IT</button></div>
-<div id="mvf" style="display:none"><div class="eng" id="mv_sum"></div>
-<div class="g"><div><label>Sent by (your name) *</label><input id="mv_name" maxlength="80"></div>
-<div><label>Department</label><input id="mv_dept" maxlength="60"></div>
-<div><label>Mobile number</label><input id="mv_mob" type="tel" maxlength="15"></div>
-<div><label>Where are you sending it? *</label><input id="mv_to" maxlength="150" placeholder="e.g. IT Department, Head Office"></div>
-<div><label>Sent with (person carrying it) *</label><input id="mv_with" maxlength="80" placeholder="Name of the person taking the asset"></div></div>
-<div style="margin-top:10px"><label>What issue is the asset having? *</label><textarea id="mv_issue" rows="3" maxlength="1000" placeholder="Describe the problem (at least 5 characters)"></textarea></div>
-<input id="mv_hp" style="display:none" tabindex="-1" autocomplete="off">
-<div class="bar"><button class="p" id="mv_go">Submit request</button><button id="mv_x">Cancel</button></div><div class="stat" id="mv_msg" style="margin-top:8px"></div></div>
-<div id="mvdone" style="display:none"></div></section></main>
-<div id="labels"></div><div id="hform"></div>
-<div id="bulk" style="display:none;position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:60;overflow:auto"><div id="bulkc" style="max-width:780px;margin:24px auto;padding:18px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:12px"></div></div>
+
+<!-- Login Container -->
+<main id="lg" style="display:none" class="max-w-md mx-auto px-4 py-16">
+  <div class="glass-panel p-8 shadow-2xl">
+    <div class="text-center mb-6">
+      <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-cyan-400 mx-auto flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/30 mb-3">
+        SG
+      </div>
+      <h2 class="text-xl font-bold font-display">IT Portal Login</h2>
+      <p class="text-xs text-[var(--tx-muted)] mt-1">Authenticate to access the Asset Operations Portal</p>
+    </div>
+
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-[var(--tx-muted)] mb-1">Email Address</label>
+        <input id="le" type="email" placeholder="admin@assets.local" autocomplete="username">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-[var(--tx-muted)] mb-1">Password</label>
+        <input id="lp" type="password" autocomplete="current-password">
+      </div>
+      <button class="p w-full py-2.5 mt-2" id="lb">Authenticate</button>
+      <div class="text-xs text-rose-400 text-center font-mono" id="lerr"></div>
+    </div>
+  </div>
+</main>
+
+<!-- Public QR View Container -->
+<main id="pub" style="display:none" class="max-w-4xl mx-auto px-4 py-8 space-y-6">
+  <section id="pc" class="glass-panel p-6"></section>
+  <section id="tkst" style="display:none" class="glass-panel p-6">
+    <h2 class="text-base font-bold font-display uppercase tracking-wider mb-4">Latest Ticket Status</h2>
+    <div id="tkview"></div>
+  </section>
+  <section id="tk" style="display:none" class="glass-panel p-6">
+    <h2 class="text-base font-bold font-display uppercase tracking-wider mb-4">Report an Issue with this Asset</h2>
+    <div id="tkf">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Your Name *</label><input id="t_name" maxlength="80"></div>
+        <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Department</label><input id="t_dept" maxlength="60"></div>
+        <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Mobile Number</label><input id="t_mob" type="tel" maxlength="15"></div>
+        <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Issue Category</label><select id="t_cat"></select></div>
+        <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Priority Level</label><select id="t_pri"></select></div>
+      </div>
+      <div class="mt-4">
+        <label class="block text-xs text-[var(--tx-muted)] mb-1">Describe the problem in detail *</label>
+        <textarea id="t_issue" rows="4" maxlength="1000" placeholder="Minimum 5 characters..."></textarea>
+      </div>
+      <input id="t_hp" style="display:none" tabindex="-1" autocomplete="off">
+      <div class="mt-4 flex items-center justify-between">
+        <button class="p" id="t_go">Submit Support Ticket</button>
+        <div id="t_msg" class="text-xs text-rose-400 font-mono"></div>
+      </div>
+    </div>
+    <div id="tkdone" style="display:none"></div>
+  </section>
+
+  <!-- Asset Movement Request Section -->
+  <section id="mv" style="display:none" class="glass-panel p-6">
+    <h2 class="text-base font-bold font-display uppercase tracking-wider mb-2">Send Asset to IT Department</h2>
+    <p class="text-xs text-[var(--tx-muted)] mb-4">Submit an asset movement request if physical repairs are needed at the IT department or external vendor.</p>
+    <button class="p text-xs" id="mv_open">Send Asset to IT</button>
+
+    <div id="mvf" style="display:none" class="mt-4 pt-4 border-t border-[var(--bd)] space-y-4">
+      <div class="p-3 rounded-lg bg-[var(--code-bg)] text-xs border border-[var(--bd)]" id="mv_sum"></div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Sender Name *</label><input id="mv_name" maxlength="80"></div>
+        <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Department</label><input id="mv_dept" maxlength="60"></div>
+        <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Mobile Number</label><input id="mv_mob" type="tel" maxlength="15"></div>
+        <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Destination Location *</label><input id="mv_to" maxlength="150" placeholder="e.g. Head Office IT Dept"></div>
+        <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Carried By (Person Name) *</label><input id="mv_with" maxlength="80" placeholder="Person taking the asset"></div>
+      </div>
+      <div>
+        <label class="block text-xs text-[var(--tx-muted)] mb-1">Movement Reason / Issue *</label>
+        <textarea id="mv_issue" rows="3" maxlength="1000" placeholder="Minimum 5 characters..."></textarea>
+      </div>
+      <input id="mv_hp" style="display:none" tabindex="-1" autocomplete="off">
+      <div class="flex items-center gap-3">
+        <button class="p text-xs" id="mv_go">Submit Movement Request</button>
+        <button class="text-xs" id="mv_x">Cancel</button>
+        <div id="mv_msg" class="text-xs text-rose-400 font-mono"></div>
+      </div>
+    </div>
+    <div id="mvdone" style="display:none"></div>
+  </section>
+</main>
+
+<!-- Printable Containers -->
+<div id="labels"></div>
+<div id="hform"></div>
+
+<!-- Bulk Add/Edit Overlay Modal -->
+<div id="bulk" style="display:none" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 overflow-y-auto">
+  <div class="min-h-screen px-4 flex items-center justify-center">
+    <div id="bulkc" class="glass-panel p-6 max-w-3xl w-full shadow-2xl border border-[var(--ac)] my-8"></div>
+  </div>
+</div>
+
+<!-- Custom Digital Toast Container -->
+<div id="toast_container"></div>
+
+<!-- Custom Confirm Cyber Modal -->
+<div id="confirm_modal" style="display:none" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="glass-panel p-6 max-w-sm w-full border border-[var(--ac)] text-center space-y-4 shadow-2xl">
+    <h3 id="confirm_title" class="text-base font-bold font-display uppercase tracking-wider text-[var(--ac)]">Confirmation Required</h3>
+    <p id="confirm_msg" class="text-xs text-[var(--tx-muted)]"></p>
+    <div class="flex justify-center gap-3 pt-2">
+      <button id="confirm_ok" class="p text-xs">Proceed</button>
+      <button id="confirm_cancel" class="text-xs">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase & Application Script -->
 <script type="module">
-import * as fb from "/fb.js";
-var CO=[["Sandeep Hyundai","SH"],["Sandeep Kia","SK"],["Sandeep Bajaj","SB"],["Sandeep Bajaj Chetak","SC"],["Sandeep Ford","FD"],["Sandeep SG Associates","SG"],["Sandeep STPL","ST"],["SMPL Finance","SF"],["Sandeep SMAVL (BKT)","SM"]];
-/* Starting list of branches. The real list lives in the database (config/branches) and is edited with the "Manage Branches" button (admin). The add-only user can only pick branches that are in the database. */
-var BR={
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, setDoc, deleteDoc, onSnapshot, writeBatch, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCn8SG8bRCUekJ7KOOQKYyBnIbhGim7wk0",
+  authDomain: "assertion-record.firebaseapp.com",
+  projectId: "assertion-record",
+  storageBucket: "assertion-record.firebasestorage.app",
+  messagingSenderId: "454128517792",
+  appId: "1:454128517792:web:a0b3b8dba55e29a829bfc5"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const col = collection(db, "assets");
+
+// Firebase Methods Object
+const fb = {
+  login: (e,p) => signInWithEmailAndPassword(auth, e, p),
+  logout: () => signOut(auth),
+  onAuth: cb => onAuthStateChanged(auth, cb),
+  watch: (ok, err) => onSnapshot(col, s => ok(s.docs.map(d => ({...d.data(), code: d.id}))), err),
+  getOne: async c => { const s = await getDoc(doc(db, "assets", c)); return s.exists() ? {...s.data(), code: s.id} : null; },
+  save: async (o, isNew) => {
+    let code = o.code;
+    if(isNew){
+      const m = /^(.*-)(\d+)$/.exec(code);
+      if(m){
+        let n = +m[2];
+        while((await getDoc(doc(db, "assets", code))).exists()){ n++; code = m[1] + String(n).padStart(4, "0"); }
+      }
+    }
+    const d = {...o, code};
+    await setDoc(doc(db, "assets", code), d);
+    return d;
+  },
+  remove: c => deleteDoc(doc(db, "assets", c)),
+  restore: async list => {
+    for(let i=0; i<list.length; i+=400){
+      const b = writeBatch(db);
+      list.slice(i, i+400).forEach(x => { const c = String(x.code).toUpperCase(); b.set(doc(db, "assets", c), {...x, code: c}); });
+      await b.commit();
+    }
+  },
+  createTicket: async t => {
+    const b = writeBatch(db);
+    b.set(doc(db, "tickets", t.id), t);
+    b.set(doc(db, "assetLatest", t.assetCode), {ticketId: t.id, at: t.created});
+    await b.commit();
+    return t.id;
+  },
+  watchLatest: (code, ok, err) => {
+    let u2 = null;
+    const u1 = onSnapshot(doc(db, "assetLatest", code), s => {
+      if(u2){u2(); u2=null;}
+      if(!s.exists()){ok(null); return;}
+      u2 = onSnapshot(doc(db, "tickets", s.data().ticketId), d => ok(d.exists() ? {...d.data(), id: d.id} : null), err);
+    }, err);
+    return () => { u1(); if(u2) u2(); };
+  },
+  syncLatest: async list => {
+    const m = {};
+    list.forEach(t => { if(t.assetCode && (!m[t.assetCode] || (t.created||0) > (m[t.assetCode].created||0))) m[t.assetCode] = t; });
+    for(const c in m){ try{ await setDoc(doc(db, "assetLatest", c), {ticketId: m[c].id, at: m[c].created}); }catch(e){} }
+  },
+  getTicket: async id => { const s = await getDoc(doc(db, "tickets", id)); return s.exists() ? {...s.data(), id: s.id} : null; },
+  watchTickets: (ok, err) => onSnapshot(collection(db, "tickets"), s => ok(s.docs.map(d => ({...d.data(), id: d.id}))), err),
+  updateTicket: (id, patch) => updateDoc(doc(db, "tickets", id), patch),
+  removeTicket: id => deleteDoc(doc(db, "tickets", id)),
+  watchTicket: (id, ok, err) => onSnapshot(doc(db, "tickets", id), s => ok(s.exists() ? {...s.data(), id: s.id} : null), err),
+  actTicket: (id, patch, entry) => updateDoc(doc(db, "tickets", id), {...patch, updated: Date.now(), history: arrayUnion(entry)}),
+  sendFeedback: (id, fbk) => updateDoc(doc(db, "tickets", id), {feedback: fbk}),
+  restoreTickets: async (list, current) => {
+    for(let i=0; i<list.length; i+=400){
+      const b = writeBatch(db);
+      list.slice(i, i+400).forEach(x => b.set(doc(db, "tickets", x.id), {...x, id: x.id}));
+      await b.commit();
+    }
+    const m = {}; (current||[]).forEach(t => {m[t.id]=t}); list.forEach(t => {m[t.id]=t});
+    await fb.syncLatest(Object.values(m));
+  },
+  watchConfig: (ok, err) => onSnapshot(doc(db, "config", "branches"), s => ok(s.exists() ? s.data() : {}), err),
+  seedBranches: (seed, v) => {
+    const o = {__v: v};
+    Object.keys(seed).forEach(c => { if(seed[c].length) o[c] = arrayUnion(...seed[c]); });
+    return setDoc(doc(db, "config", "branches"), o, {merge: true});
+  },
+  addBranch: (co, b) => setDoc(doc(db, "config", "branches"), {[co]: arrayUnion(b)}, {merge: true}),
+  removeBranch: (co, b) => setDoc(doc(db, "config", "branches"), {[co]: arrayRemove(b)}, {merge: true}),
+  cid: p => String(p).slice(0, 5),
+  hint: async p => { try{ const s = await getDoc(doc(db, "counters", fb.cid(p))); return s.exists() ? (+s.data().n || 0) : 0; }catch(e){ return 0; } },
+  nextFree: async p => {
+    let n = await fb.hint(p);
+    for(let i=0; i<500; i++){
+      n++; const c = p + String(n).padStart(4, "0");
+      if(!(await getDoc(doc(db, "assets", c))).exists()) return c;
+    }
+    throw new Error("No free asset code found");
+  },
+  createAsset: async o => {
+    let code = o.code, last;
+    for(let t=0; t<4; t++){
+      const p = code.slice(0, 6), num = parseInt(code.slice(6), 10), b = writeBatch(db);
+      b.set(doc(db, "assets", code), {...o, code});
+      if(num > await fb.hint(p)) b.set(doc(db, "counters", fb.cid(p)), {n: num});
+      try { await b.commit(); return {...o, code}; } catch(e){ last = e; code = await fb.nextFree(p); }
+    }
+    throw last;
+  },
+  bulkCreate: async items => {
+    const cur = {};
+    for(const it of items){
+      const p = it.p; if(cur[p] === undefined) cur[p] = await fb.hint(p);
+      it.code = "";
+      for(let i=0; i<500 && !it.code; i++){
+        cur[p]++; const c = p + String(cur[p]).padStart(4, "0");
+        if(!(await getDoc(doc(db, "assets", c))).exists()) it.code = c;
+      }
+      if(!it.code) throw new Error("No free asset code found");
+    }
+    for(let i=0; i<items.length; i+=400){
+      const b = writeBatch(db);
+      items.slice(i, i+400).forEach(it => b.set(doc(db, "assets", it.code), {...it.o, code: it.code}));
+      await b.commit();
+    }
+    const mx = {}; items.forEach(it => { mx[it.p] = Math.max(mx[it.p]||0, parseInt(it.code.slice(6), 10)); });
+    for(const p in mx){ try{ if(mx[p] > await fb.hint(p)) await setDoc(doc(db, "counters", fb.cid(p)), {n: mx[p]}); }catch(e){} }
+    return items.map(it => it.code);
+  },
+  bumpCounters: async codes => {
+    const mx = {};
+    codes.forEach(c => { const m = /^([A-Z]{2}-[A-Z]{2})-(\d{4})$/.exec(String(c).toUpperCase()); if(m) mx[m[1]] = Math.max(mx[m[1]]||0, +m[2]); });
+    for(const k in mx){ try{ const s = await getDoc(doc(db, "counters", k)); if(!s.exists() || (+s.data().n||0) < mx[k]) await setDoc(doc(db, "counters", k), {n: mx[k]}); }catch(e){} }
+  },
+  syncCounters: list => fb.bumpCounters(list.map(a => a.code)),
+  nextGP: async fy => {
+    const r = doc(db, "counters", "GP" + fy); let n = 0;
+    try{ const s = await getDoc(r); if(s.exists()) n = +s.data().n || 0; }catch(e){}
+    n++; await setDoc(r, {n}); return n;
+  },
+  setAssetStatus: (code, st) => updateDoc(doc(db, "assets", code), {st})
+};
+
+// XL Wrapper for SheetJS
+window.XL = {
+  read: (u, sheetName) => {
+    const wb = XLSX.read(u, {type: 'array'});
+    const sn = sheetName && wb.Sheets[sheetName] ? sheetName : wb.SheetNames[0];
+    const ws = wb.Sheets[sn];
+    const rows = XLSX.utils.sheet_to_json(ws, {header: 1, raw: false, dateNF: 'yyyy-mm-dd'});
+    rows.d1904 = wb.Workbook && wb.Workbook.WBProps && wb.Workbook.WBProps.date1904;
+    return rows;
+  },
+  csv: t => {
+    const wb = XLSX.read(t, {type: 'string'});
+    return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, raw: false});
+  },
+  write: opt => {
+    const wb = XLSX.utils.book_new();
+    (opt.sheets||[]).forEach(s => {
+      const ws = XLSX.utils.aoa_to_sheet(s.rows||[]);
+      if(s.widths) ws['!cols'] = s.widths.map(w => ({wch: w}));
+      XLSX.utils.book_append_sheet(wb, ws, s.name||'Sheet1');
+    });
+    return XLSX.write(wb, {bookType: 'xlsx', type: 'array'});
+  }
+};
+
+// UI Toast Notification Replacement
+function showToast(msg, type='info') {
+  const container = document.getElementById('toast_container');
+  const t = document.createElement('div');
+  t.className = `toast ${type === 'error' ? 'border-rose-500/50' : 'border-indigo-500/50'}`;
+  const icon = type === 'error' ? '❌' : '⚡';
+  t.innerHTML = `<span>${icon}</span> <span>${msg}</span>`;
+  container.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
+}
+
+// UI Confirm Modal Replacement
+function showConfirm(title, msg, onConfirm) {
+  const modal = document.getElementById('confirm_modal');
+  document.getElementById('confirm_title').textContent = title;
+  document.getElementById('confirm_msg').textContent = msg;
+  modal.style.display = 'flex';
+  
+  const okBtn = document.getElementById('confirm_ok');
+  const cancelBtn = document.getElementById('confirm_cancel');
+  
+  const cleanup = () => {
+    modal.style.display = 'none';
+    okBtn.onclick = null;
+    cancelBtn.onclick = null;
+  };
+  
+  okBtn.onclick = () => { cleanup(); onConfirm(); };
+  cancelBtn.onclick = () => { cleanup(); };
+}
+
+// Digital Clock
+setInterval(() => {
+  const el = document.getElementById('live_clock');
+  if(el) el.textContent = new Date().toLocaleTimeString('en-US', {hour12: false}) + ' UTC';
+}, 1000);
+
+// Theme Switcher Logic
+const themeBtn = document.getElementById('theme_toggle');
+themeBtn.onclick = () => {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  const target = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', target);
+  if(target === 'dark') document.documentElement.classList.add('dark');
+  else document.documentElement.classList.remove('dark');
+};
+
+// Application Global State & Configuration Constants
+const CO = [["Sandeep Hyundai","SH"],["Sandeep Kia","SK"],["Sandeep Bajaj","SB"],["Sandeep Bajaj Chetak","SC"],["Sandeep Ford","FD"],["Sandeep SG Associates","SG"],["Sandeep STPL","ST"],["SMPL Finance","SF"],["Sandeep SMAVL (BKT)","SM"]];
+const BR = {
   "Sandeep Hyundai":["Hyundai HO", "Hyundai DBU", "Hyundai Workshop Riico", "Hyundai Workshop Atton", "Hyundai Workshop Gulabpura", "Hyundai Shahpura"],
   "Sandeep Kia":["KIA HO", "Kia workshop Riico", "Kia Chittorgarh", "Kia Rajsamand"],
   "Sandeep Bajaj":["Bajaj HO", "Bajaj Ajmer Road", "Bajaj Workshop Pansal Chouraha"],
@@ -170,481 +902,741 @@ var BR={
   "SMPL Finance":["HO", "SMPL HO", "SMPL Chittorgarh", "SMPL Ajmer"],
   "Sandeep SMAVL (BKT)":["SMAVL HO", "SMAVL Swaroopganj", "SMAVL Ajmer"]
 };
-var BRV=2; /* raise this number after adding names to BR: the admin login then copies the new names to the database once */
-function branchesFor(co){var out=[],seen={};function add(b){b=String(b||"").trim();var k=b.toLowerCase();if(b&&!seen[k]){seen[k]=1;out.push(b)}}
- (CFG[co]||[]).forEach(add);
- if(ADM){A.filter(function(a){return a.company===co}).map(function(a){return a.loc}).sort().forEach(add)}
- return out}
-var PC=["cpu","ram","hdd","os"];
-var MK=["mon_model","mon_sn","mon_pd","mon_wt"];
-var T={"Desktop":["DT",PC.concat(MK)],"Laptop":["LT",PC],"All-in-One":["AO",PC],"Monitor":["MN",["size","res","ports"]],"Networking":["NW",["ntype","ports","ip","mac"]],"Server":["SV",PC.concat("ip")],"Printer":["PR",["ports","ip","mac"]],"Biometric":["BM",["ip","mac"]],"Mobile":["MB",["ram","hdd","os"]],"Tablet":["TB",["ram","hdd","os","size"]],"ISP":["IS",["sip","smask","sgw","dns1","dns2"]],"UPS":["UP",["cap","batt"]]};
-var HT=["Monitor"],TL=Object.keys(T).filter(function(k){return HT.indexOf(k)<0});
-var BK=["model","sn","loc","aloc","dept","usr","pd","wt","st","rm"];
-var SK=["cpu","ram","hdd","os","size","res","ports","ip","mac","ntype","sip","smask","sgw","dns1","dns2","cap","batt"].concat(MK);
-var L={company:"Company",type:"Product Type",code:"Asset Code",model:"Brand / Model",sn:"Serial No.",cpu:"Processor",ram:"RAM",hdd:"Storage",os:"Operating System",size:"Screen Size",res:"Resolution",ports:"Ports",ip:"IP Address",sip:"Static IP Address",smask:"Subnet Mask",sgw:"Default Gateway",dns1:"Preferred DNS Server",dns2:"Alternate DNS Server",mac:"MAC Address",ntype:"Device (Switch/Router/AP/Firewall)",cap:"Capacity (VA / kVA)",batt:"Battery Details (Qty / Ah)",mon_model:"Monitor Brand / Model",mon_sn:"Monitor Serial No.",mon_pd:"Monitor Purchase Date",mon_wt:"Monitor Warranty Till",loc:"Branch Location",aloc:"Asset Location (Floor / Room / Desk)",dept:"Department",usr:"Assigned User",pd:"Purchase Date",wt:"Warranty Till",st:"Status",rm:"Remarks"};
-var ST=["In Use","In Stock","Under Repair","Scrapped"];
-var A=[],editId=null,ADM=false,ADMIN="it@assets.local",CFG={},unsubs=[],AUTHED=false,ctrSync=false,seeding=false,codeTok=0;
-var ACC=["Charger / Adapter","Power cable","Mouse","Keyboard","Bag / Cover"],CD=["New","Good","Fair"];
-var DL={model:"Desktop Brand / Model",sn:"Desktop Serial No.",pd:"Desktop Purchase Date",wt:"Desktop Warranty Till"};
-function lab(k,t){return t==="Desktop"&&DL[k]?DL[k]:L[k]}
-function ak(x){return String(x).replace(/[^A-Za-z0-9]+/g,"_")}
-function accLines(a){var s=a.acc||[],D=a.accd||{};return s.map(function(x){var v=D[ak(x)]||{},n=x==="Other"&&a.accOther?"Other: "+a.accOther:x,p=[];if(v.sn)p.push("SN: "+v.sn);if(v.pd)p.push("Purchased: "+v.pd);if(v.wt)p.push("Warranty till: "+v.wt);return[n,p.join("  ·  ")]})}
-function cv(a,k){if(k==="accd")return accLines(a).map(function(r){return r.join(" ")}).join("; ");var v=a[k];return Array.isArray(v)?v.join("; "):(v==null?"":v)}
-var $=function(i){return document.getElementById(i)};
-function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function opt(el,arr,first){if(first)el.add(new Option(first,""));arr.forEach(function(v){el.add(new Option(v,v))})}
-function pre(n){for(var i=0;i<CO.length;i++)if(CO[i][0]===n)return CO[i][1];return"XX"}
-function keysOf(t){var sp=T[t][1].filter(function(k){return MK.indexOf(k)<0}),mo=T[t][1].filter(function(k){return MK.indexOf(k)>-1});return BK.slice(0,2).concat(sp,BK.slice(2,8),mo,BK.slice(8))}
-function mk(k){var d=document.createElement("div");d.id="w_"+k;var inp=k==="st"?"<select id='f_st'></select>":k==="loc"?"<select id='f_loc'></select>":"<input id='f_"+k+"'"+(/(^|_)(pd|wt)$/.test(k)?" type='date'":"")+">";d.innerHTML="<label>"+L[k]+"</label>"+inp;return d}
-BK.forEach(function(k){$("base").appendChild(mk(k))});(function(){var cd=$("f_company").parentNode;cd.parentNode.insertBefore($("w_loc"),cd.nextSibling)})();SK.forEach(function(k){$(MK.indexOf(k)>-1?"monspecs":"specs").appendChild(mk(k))});
-var AXH="<span class='ax' style='display:none'><input data-f='sn' placeholder='Serial No.'><label>Purchase Date<input type='date' data-f='pd'></label><label>Warranty Till<input type='date' data-f='wt'></label></span>";
-$("accs").innerHTML=ACC.map(function(x){return"<div class='ai'><label class='tki'><input type='checkbox' class='acc' value='"+esc(x)+"'> "+esc(x)+"</label>"+AXH+"</div>"}).join("")+"<div class='ai'><label class='tki'><input type='checkbox' id='acc_o'> Other:</label><input id='acc_ot' placeholder='specify other accessory' style='width:220px;display:inline-block;vertical-align:middle'>"+AXH+"</div>";
-$("conds").innerHTML=CD.map(function(x){return"<label class='tki'><input type='checkbox' class='cnd' value='"+x+"'> "+x+"</label>"}).join("");
-$("conds").addEventListener("change",function(e){if(e.target.checked)document.querySelectorAll(".cnd").forEach(function(c){if(c!==e.target)c.checked=false})});
-function axShow(c){var b=c.closest(".ai").querySelector(".ax");b.style.display=c.checked?"":"none"}
-$("accs").addEventListener("change",function(e){if(e.target.type==="checkbox")axShow(e.target)});
-$("acc_ot").addEventListener("input",function(){if($("acc_ot").value.trim()){$("acc_o").checked=true;axShow($("acc_o"))}});
-function getAccD(){var r={};document.querySelectorAll("#accs .ai").forEach(function(d){var c=d.querySelector("input[type=checkbox]");if(!c.checked)return;var o={};d.querySelectorAll("[data-f]").forEach(function(i){var v=i.value.trim();if(v)o[i.dataset.f]=v});r[ak(c.id==="acc_o"?"Other":c.value)]=o});return r}
-function setAccD(a){var D=(a&&a.accd)||{};document.querySelectorAll("#accs .ai").forEach(function(d){var c=d.querySelector("input[type=checkbox]"),v=D[ak(c.id==="acc_o"?"Other":c.value)]||{};d.querySelectorAll("[data-f]").forEach(function(i){i.value=v[i.dataset.f]||""});axShow(c)})}
-function getAcc(){var r=[];document.querySelectorAll(".acc").forEach(function(c){if(c.checked)r.push(c.value)});if($("acc_o").checked)r.push("Other");return r}
-function getCond(){var r="";document.querySelectorAll(".cnd").forEach(function(c){if(c.checked)r=c.value});return r}
-function setTicks(a){setTicks0(a);setAccD(a)}
-function setTicks0(a){var s=(a&&a.acc)||[];document.querySelectorAll(".acc").forEach(function(c){c.checked=s.indexOf(c.value)>-1});$("acc_o").checked=s.indexOf("Other")>-1;$("acc_ot").value=(a&&a.accOther)||"";document.querySelectorAll(".cnd").forEach(function(c){c.checked=!!a&&a.cond===c.value})}
-opt($("f_st"),ST);opt($("f_company"),CO.map(function(c){return c[0]}));opt($("f_type"),TL);
-opt($("fco"),CO.map(function(c){return c[0]}),"All companies");opt($("fty"),TL,"All types");opt($("fst"),ST,"All statuses");
-function showSpecs(){var t=$("f_type").value;if(!T[t])return;SK.forEach(function(k){$("w_"+k).style.display=T[t][1].indexOf(k)>-1?"":"none"});$("monbox").style.display=T[t][1].indexOf("mon_sn")>-1?"":"none";Object.keys(DL).forEach(function(k){$("w_"+k).querySelector("label").textContent=lab(k,t)})}
-function nextCode(co,t){var p=pre(co)+"-"+T[t][0]+"-",m=0;A.forEach(function(a){if(a.code.indexOf(p)===0){var k=parseInt(a.code.slice(p.length),10);if(k>m)m=k}});return p+("0000"+(m+1)).slice(-4)}
-function urlFor(c){return location.origin+"/a/"+encodeURIComponent(c)}
-function qrSvg(c,cell){try{var q=qrcode(0,"M");q.addData(urlFor(c));q.make();return q.createSvgTag(cell||3,0)}catch(e){return""}}
-function bar(el,code){try{JsBarcode(el,code,{format:"CODE128",height:45,width:2,fontSize:13,margin:4})}catch(e){}}
-function showCode(){$("pqr").innerHTML=qrSvg($("f_code").value,3);bar("#pbc",$("f_code").value)}
-function refresh(){showSpecs();
- if(!editId){var co=$("f_company").value,ty=$("f_type").value;
-  if(ADM)$("f_code").value=nextCode(co,ty);
-  else if(AUTHED&&T[ty]){var tk=++codeTok;$("f_code").value="";fb.nextFree(pre(co)+"-"+T[ty][0]+"-").then(function(c){if(tk===codeTok&&!editId){$("f_code").value=c;showCode()}}).catch(function(){})}}
- showCode()}
-function fillBranch(keep){var sel=$("f_loc"),l=branchesFor($("f_company").value),k=keep==="__new"?"":String(keep||"").trim(),hit=null;
- l.forEach(function(x){if(k&&x.toLowerCase()===k.toLowerCase())hit=x});if(k&&!hit){l.push(k);hit=k}
- sel.innerHTML="";sel.add(new Option("-- Select branch --",""));l.forEach(function(b){sel.add(new Option(b,b))});if(ADM)sel.add(new Option("+ Add new branch...","__new"));sel.value=hit||""}
-function clearForm(){editId=null;BK.concat(SK).forEach(function(k){$("f_"+k).value=k==="st"?"In Use":""});$("ft").textContent="Add New Asset";setTicks(null);fillBranch("");refresh()}
-/* storage: Firebase */
-function put(o,isNew){return(ADM?fb.save(o,isNew):fb.createAsset(o)).then(function(r){if(r&&r.code){if(ADM)fb.bumpCounters([r.code]);else rememberMine([r.code])}return r}).catch(function(e){alert("Could not save: "+e.message+(ADM?"":"\n\nIf the problem continues, refresh the page and try again. A branch that is not in the list must be added by the admin first."))})}
-function del(c){return fb.remove(c).catch(function(e){alert("Could not delete: "+e.message)})}
-function save(){if(editId&&!ADM){alert("Only admin can edit assets.");return}
- var t=$("f_type").value,o={company:$("f_company").value,type:t,code:$("f_code").value};
- BK.concat(SK).forEach(function(k){if(k==="st"||keysOf(t).indexOf(k)>-1)o[k]=$("f_"+k).value.trim()});
- o.acc=getAcc();o.accd=getAccD();o.accOther=$("acc_o").checked?$("acc_ot").value.trim():"";o.cond=getCond();
- if(!o.loc){alert("Branch Location is required.");return}
- if(!o.aloc){alert("Asset Location is required.");return}
- if(!editId)o.code=ADM?nextCode(o.company,t):$("f_code").value;
- if(!o.code){alert("Please wait a moment - the asset code is being prepared.");return}
- put(o,!editId).then(function(r){clearForm();if(r&&r.code&&$("hf").checked)handover(find(r.code)||r)})}
-function find(c){c=String(c).trim().toLowerCase();return A.filter(function(a){return a.code.toLowerCase()===c})[0]}
-function filtered(){
- var q=$("q").value.toLowerCase(),c=$("fco").value,t=$("fty").value,s=$("fst").value;
- return A.filter(function(a){if(c&&a.company!==c)return false;if(t&&a.type!==t)return false;if(s&&a.st!==s)return false;return !q||JSON.stringify(a).toLowerCase().indexOf(q)>-1}).sort(function(a,b){return a.code<b.code?-1:1})}
-function conf(a){if(!T[a.type])return"";var p=T[a.type][1].filter(function(k){return MK.indexOf(k)<0}).map(function(k){return a[k]}).filter(Boolean);if(a.mon_model||a.mon_sn)p.push("Monitor: "+[a.mon_model,a.mon_sn?"SN "+a.mon_sn:""].filter(Boolean).join(" "));return p.join(" | ")}
-function render(){
- var R=filtered();$("cnt").textContent=ADM?R.length+" / "+A.length+" assets":A.length+" asset(s) added in this session";
- $("tb").innerHTML=R.map(function(a){var i=esc(a.code);return"<tr><td class='code'>"+i+"</td><td>"+esc(a.company)+"</td><td>"+esc(a.type)+"<br><span class='stat'>"+esc(a.model)+(a.sn?" · SN "+esc(a.sn):"")+"</span></td><td>"+esc(conf(a))+"</td><td>"+esc(a.loc)+(a.aloc?" – "+esc(a.aloc):"")+"<br><span class='stat'>"+esc([a.dept,a.usr].filter(Boolean).join(" · "))+"</span></td><td>"+esc(a.st)+"</td><td style='white-space:nowrap'><button data-a='v' data-c='"+i+"'>Detail</button> <button data-a='l' data-c='"+i+"'>Label</button> <button data-a='h' data-c='"+i+"'>Handover</button> "+(ADM?"<button data-a='e' data-c='"+i+"'>Edit</button> <button class='d' data-a='x' data-c='"+i+"'>Del</button>":"")+"</td></tr>"}).join("")||"<tr><td colspan=7 class='stat'>No assets found.</td></tr>"}
-function detail(a){
- var ks=["company","type","code"].concat(keysOf(a.type)),h="<h2>Asset Detail – "+esc(a.code)+"</h2><div class='g'><dl>";
- ks.forEach(function(k){if(a[k])h+="<dt>"+esc(lab(k,a.type))+"</dt><dd>"+esc(a[k])+"</dd>"});
- accLines(a).forEach(function(r){h+="<dt>Accessory – "+esc(r[0])+"</dt><dd>"+esc(r[1]||"Issued")+"</dd>"});if(a.cond)h+="<dt>Condition at Handover</dt><dd>"+esc(a.cond)+"</dd>";
- h+="</dl><div class='codes' style='margin:0'><div class='qr'>"+qrSvg(a.code,4)+"</div><svg id='dbc'></svg></div></div><div class='bar'><button class='p' data-a='l' data-c='"+esc(a.code)+"'>Label Print</button><button data-a='h' data-c='"+esc(a.code)+"'>Handover Form</button>"+(ADM?"<button data-a='e' data-c='"+esc(a.code)+"'>Edit</button>":"")+"<button id='dx'>Close</button></div>";
- var d=$("det");d.innerHTML=h;d.style.display="block";bar("#dbc",a.code);$("dx").onclick=function(){d.style.display="none"};window.scrollTo(0,0)}
-function printLabels(R){
- if(!R.length){alert("No assets to print.");return}
- $("labels").innerHTML=R.map(function(a,i){return"<div class='lb'><b>"+esc(a.company)+"</b>"+qrSvg(a.code,3)+"<svg id='l"+i+"'></svg><div>"+esc(a.type+" – "+a.loc+(a.aloc?" / "+a.aloc:""))+"</div><div style='font-size:9px'>Scan for details / report an issue</div></div>"}).join("");
- R.forEach(function(a,i){bar("#l"+i,a.code)});document.body.className="pl";setTimeout(function(){window.print()},200)}
-function handover(a){
- if(!a)return;
- var rows=["company","type","code"].concat(keysOf(a.type).filter(function(k){return["rm","usr","dept","st"].indexOf(k)<0})).filter(function(k){return a[k]}).map(function(k){return"<tr><th>"+esc(lab(k,a.type))+"</th><td>"+esc(a[k])+"</td></tr>"}).join("");
- var d=new Date().toLocaleDateString("en-GB"),U="__________________",sel=a.acc||[],bx=function(on){return on?"&#9745;":"&#9744;"},ck=ACC.map(function(x){return"<span>"+bx(sel.indexOf(x)>-1)+" "+esc(x)+"</span>"}).join("")+"<span>"+bx(sel.indexOf("Other")>-1)+" Other: "+(a.accOther?esc(a.accOther):"____________")+"</span>",cd=CD.map(function(x){return"<span>"+bx(a.cond===x)+" "+x+"</span>"}).join("");
- var AD=a.accd||{},ar=ACC.concat("Other").map(function(x){var on=sel.indexOf(x)>-1,v=AD[ak(x)]||{},nm=x==="Other"?"Other: "+(a.accOther?esc(a.accOther):"__________"):esc(x);return"<tr><td>"+bx(on)+" "+nm+"</td><td>"+esc(v.sn)+"&nbsp;</td><td>"+esc(v.pd)+"</td><td>"+esc(v.wt)+"</td></tr>"}).join(""),at="<table class='at' style='margin-top:4px'><tr><th>Accessory</th><th>Serial No.</th><th>Purchase Date</th><th>Warranty Till</th></tr>"+ar+"</table>";
- var sg=function(t,n){return"<div class='sg'><div class='ln'></div><b>"+t+"</b><br>Name: "+esc(n||U)+"<br>Date: ________________</div>"};
- $("hform").innerHTML="<div class='top'><div><b style='font-size:15px'>"+esc(a.company)+"</b></div><svg id='hbc'></svg></div><h1>ASSET HANDOVER FORM</h1><div class='sub'>Date: "+d+"</div>"+
- "<h3>1. Asset Details</h3><table>"+rows+"</table>"+
- "<h3>2. Handed Over To</h3><table><tr><th>Employee Name</th><td>"+esc(a.usr)+"&nbsp;</td></tr><tr><th>Employee ID</th><td>&nbsp;</td></tr><tr><th>Department</th><td>"+esc(a.dept)+"&nbsp;</td></tr><tr><th>Designation</th><td>&nbsp;</td></tr><tr><th>Branch Location</th><td>"+esc(a.loc)+"&nbsp;</td></tr><tr><th>Asset Location</th><td>"+esc(a.aloc)+"&nbsp;</td></tr><tr><th>Date of Handover</th><td>"+d+"</td></tr></table>"+
- "<h3>3. Accessories &amp; Condition</h3><b>Accessories issued:</b>"+at+"<div class='ck' style='margin-top:4px'><b>Condition at handover:</b> "+cd+"</div><div style='margin-top:6px'>Remarks: ______________________________________________________________</div>"+
- "<h3>4. Terms &amp; Declaration</h3><ol><li>The asset is the property of "+esc(a.company)+" and is issued for official use only.</li><li>The employee is responsible for its safe custody and must report any loss, theft or damage to the IT department immediately.</li><li>Installing unauthorised software, changing hardware or passing the asset to another person is not permitted.</li><li>The asset must be returned in good condition on request, transfer or resignation.</li><li>Loss or damage caused by negligence may be recovered as per company policy.</li></ol>"+
- "<p>I acknowledge that I have received the above asset in the stated condition and agree to the terms above.</p>"+
- "<div class='sgs'>"+sg("Issued by (IT Department)")+sg("Received by (Employee)",a.usr)+sg("Approved by (Manager / HOD)")+"</div>";
- bar("#hbc",a.code);document.body.className="ph";setTimeout(function(){window.print()},300)}
-window.onafterprint=function(){document.body.className=""};
-function onClick(e){
- var b=e.target.closest("button");if(!b||!b.dataset.c)return;var a=find(b.dataset.c);if(!a)return;
- if(!ADM&&(b.dataset.a==="e"||b.dataset.a==="x"))return;
- if(b.dataset.a==="v")detail(a);
- if(b.dataset.a==="l")printLabels([a]);
- if(b.dataset.a==="h")handover(a);
- if(b.dataset.a==="x"&&confirm("Delete "+a.code+"?"))del(a.code);
- if(b.dataset.a==="e"){editId=a.code;$("f_company").value=a.company;if(TL.indexOf(a.type)<0&&![].some.call($("f_type").options,function(o){return o.value===a.type}))$("f_type").add(new Option(a.type,a.type));$("f_type").value=a.type;showSpecs();BK.concat(SK).forEach(function(k){$("f_"+k).value=a[k]||""});fillBranch(a.loc);setTicks(a);$("f_code").value=a.code;$("pqr").innerHTML=qrSvg(a.code,3);bar("#pbc",a.code);$("ft").textContent="Edit: "+a.code;window.scrollTo(0,0)}}
-$("tb").addEventListener("click",onClick);$("det").addEventListener("click",onClick);
-$("save").onclick=save;$("clear").onclick=clearForm;$("f_loc").onchange=function(){if(this.value!=="__new"||!ADM)return;var n=prompt("Enter the new branch name for "+$("f_company").value+":");n=n?n.trim().slice(0,60):"";if(n&&!branchesFor($("f_company").value).some(function(x){return x.toLowerCase()===n.toLowerCase()}))fb.addBranch($("f_company").value,n).catch(function(x){alert("Could not save the new branch: "+x.message)});fillBranch(n)};$("f_company").onchange=function(){fillBranch("");refresh()};$("f_type").onchange=refresh;
-["q","fco","fty","fst"].forEach(function(i){$(i).oninput=render});
-$("q").addEventListener("keydown",function(e){if(e.key!=="Enter")return;var m=$("q").value.match(/[A-Za-z]{2}-[A-Za-z]{2}-\d{4}/),a=m&&find(m[0]);if(a){detail(a);$("q").value=""; render()}});
-$("plAll").onclick=function(){printLabels(filtered())};
-function dl(n,t,m){var u=URL.createObjectURL(new Blob([t],{type:m})),a=document.createElement("a");a.href=u;a.download=n;a.click();setTimeout(function(){URL.revokeObjectURL(u)},500)}
-$("csv").onclick=function(){if(!ADM)return;
- var H=["code","company","type"].concat(BK,SK,["acc","accd","accOther","cond"]),rows=[H.join(",")].concat(A.map(function(a){return H.map(function(k){return'"'+String(cv(a,k)).replace(/"/g,'""')+'"'}).join(",")}));
- dl("sandeep-assets.csv","\ufeff"+rows.join("\n"),"text/csv")};
-$("bk").onclick=function(){if(!ADM)return;dl("sandeep-assets-backup-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify(A),"application/json")};
-$("rs").onclick=function(){if(ADM)$("rsf").click()};
-$("rsf").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var d=JSON.parse(r.result);if(!Array.isArray(d)||!d.every(function(x){return x&&x.code}))throw 1;if(confirm("Restore "+d.length+" assets from this backup? Assets with the same code will be overwritten."))fb.restore(d).then(function(){alert("Restore complete")}).catch(function(x){alert("Restore failed: "+x.message)})}catch(x){alert("Invalid backup file.")}};r.readAsText(f);e.target.value=""};
-/* BULK-START ---------- Bulk add / edit from Excel (.xlsx) or CSV ---------- */
-var BH=["code","company","loc","type"].concat(BK.filter(function(k){return k!=="loc"}),SK,["acc","accOther","cond"]),
-BL=Object.assign({},L,{acc:"Accessories (separate with ;)",accOther:"Other Accessory",cond:"Condition at Handover"}),
-HM={assetcode:"code",producttype:"type",brandmodel:"model",desktopbrandmodel:"model",assetlocation:"aloc",branch:"loc"},IGN={accd:1,accessorydetails:1},DK={pd:1,wt:1,mon_pd:1,mon_wt:1};
-function nz(s){return String(s==null?"":s).toLowerCase().replace(/[^a-z0-9]/g,"")}
-BH.forEach(function(k){HM[nz(k)]=k;HM[nz(BL[k])]=k});
-function ci(list,v){v=String(v).trim().toLowerCase();for(var i=0;i<list.length;i++)if(String(list[i]).toLowerCase()===v)return list[i];return null}
-function sv(x){return Array.isArray(x)?x.join("; "):String(x==null?"":x)}
-function dchk(y,m,d){if(m<1||m>12||d<1||d>31||y<1900||y>2100)return null;var dt=new Date(Date.UTC(y,m-1,d));if(dt.getUTCMonth()!==m-1)return null;return y+"-"+("0"+m).slice(-2)+"-"+("0"+d).slice(-2)}
-function nd(v,d1904){v=String(v).trim();var m;
- if((m=/^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(v)))return dchk(+m[1],+m[2],+m[3]);
- if((m=/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/.exec(v)))return dchk(+m[3],+m[2],+m[1]);
- if(/^\d+(\.\d+)?$/.test(v)){var n=parseFloat(v)+(d1904?1462:0);if(n>=20000&&n<80000)return new Date(Date.UTC(1899,11,30)+Math.floor(n)*864e5).toISOString().slice(0,10)}
- return null}
-function nextCodeB(co,t,used){var p=pre(co)+"-"+T[t][0]+"-",m=0;function f(c){if(c.indexOf(p)===0){var k=parseInt(c.slice(p.length),10);if(k>m)m=k}}
- A.forEach(function(a){f(a.code)});Object.keys(used).forEach(f);var c=p+("0000"+(m+1)).slice(-4);used[c]=1;return c}
-function rowPlan(v,n,has,seen,d1904){
- var E=[],W=[],code=(v.code||"").toUpperCase().replace(/\s+/g,""),old=code?find(code):null,co=null,ty=null;
- if(v.company){co=ci(CO.map(function(c){return c[0]}),v.company);if(!co)E.push('Unknown Company "'+v.company+'"')}else if(old)co=old.company;else E.push("Company is required");
- if(v.type){ty=ci(Object.keys(T),v.type);if(!ty)E.push('Unknown Product Type "'+v.type+'"')}else if(old)ty=old.type;else E.push("Product Type is required");
- if(old){if(!ADM)E.push("Only admin can edit existing assets");if(ty&&old.type!==ty)E.push("Product Type of an existing asset cannot be changed")}
- else if(ty&&TL.indexOf(ty)<0)E.push(ty+" cannot be added on its own (add it as part of a Desktop)");
- if(code&&!old&&!ADM)E.push("Leave Asset Code empty to add a new asset (only admin can use asset codes)");
- else if(code&&!old&&co&&ty&&T[ty]&&(!/^[A-Z]{2}-[A-Z]{2}-\d{4}$/.test(code)||code.indexOf(pre(co)+"-"+T[ty][0]+"-")!==0))E.push('Asset Code "'+code+'" does not exist. Leave it blank to add a new asset.');
- if(code){if(seen[code])E.push("Asset Code "+code+" is repeated in this file (also row "+seen[code]+")");else seen[code]=n}
- if(E.length||!co||!ty||!T[ty])return{n:n,kind:"err",code:code,msg:E.join("; ")};
- var m={},keys=BK.concat(SK),kt=keysOf(ty);
- if(old)keys.concat(["acc","accOther","cond"]).forEach(function(k){if(old[k]!==undefined)m[k]=old[k]});
- keys.forEach(function(k){
-  if(!has[k])return;var x=v[k]||"";
-  if(k==="st"){if(x){var s=ci(ST,x);if(!s)E.push('Invalid Status "'+x+'" (use: '+ST.join(", ")+")");else m.st=s}return}
-  if(DK[k]){if(!x){m[k]="";return}var d=nd(x,d1904);if(d===null)E.push('Invalid date in "'+L[k]+'": '+x+" (use YYYY-MM-DD)");else m[k]=d;return}
-  m[k]=x;if(x&&kt.indexOf(k)<0)W.push(L[k])});
- var acc=Array.isArray(m.acc)?m.acc.slice():[];
- if(has.acc){acc=[];(v.acc||"").split(/[;,|\n]+/).forEach(function(x){x=x.trim();if(!x)return;var a=ci(ACC.concat("Other"),x);if(!a)E.push('Unknown accessory "'+x+'" (allowed: '+ACC.concat("Other").join(", ")+")");else if(acc.indexOf(a)<0)acc.push(a)})}
- if(has.accOther)m.accOther=v.accOther||"";
- if(m.accOther&&acc.indexOf("Other")<0)acc.push("Other");
- if(acc.indexOf("Other")<0)m.accOther="";
- if(has.cond){var cd=v.cond?ci(CD,v.cond):"";if(cd===null)E.push('Invalid Condition "'+v.cond+'" (use: '+CD.join(", ")+")");else m.cond=cd}
- var nb="";if(String(m.loc||"").trim()){var hb=null;branchesFor(co).forEach(function(b){if(b.toLowerCase()===String(m.loc).trim().toLowerCase())hb=b});if(hb)m.loc=hb;else nb=String(m.loc).trim()}
- if(nb&&!ADM)E.push('Branch "'+nb+'" is not in the list. Only admin can add a new branch - please pick a branch from the list.');
- if(!String(m.loc||"").trim())E.push("Branch Location is required");
- if(!String(m.aloc||"").trim())E.push("Asset Location is required");
- if(E.length)return{n:n,kind:"err",code:code,msg:E.join("; ")};
- var o={company:co,type:ty,code:old?old.code:code};
- keys.forEach(function(k){if(k==="st"||kt.indexOf(k)>-1)o[k]=String(m[k]==null?"":m[k])});
- if(!o.st&&!old)o.st="In Use";
- o.acc=acc;o.accOther=String(m.accOther||"");o.cond=String(m.cond||"");
- var ad=(old&&old.accd)||{},nad={};acc.forEach(function(a){var q=ak(a);if(ad[q])nad[q]=ad[q]});o.accd=nad;
- var ch=[];
- if(old)["company"].concat(keys.filter(function(k){return k==="st"||kt.indexOf(k)>-1}),["acc","accOther","cond"]).forEach(function(k){if(sv(old[k])!==sv(o[k]))ch.push({k:k,a:sv(old[k]),b:sv(o[k])})});
- return{n:n,kind:old?(ch.length?"upd":"same"):"new",code:old?old.code:code,o:o,ch:ch,warn:W,nb:nb}}
-function bulkPlan(rows){
- var hi=-1,i;
- for(i=0;i<rows.length&&i<15&&hi<0;i++){var c=0;rows[i].forEach(function(h){if(HM[nz(h)])c++});if(c>=3)hi=i}
- if(hi<0)return{fatal:"Heading row not found. Please start from the template (Download blank template)."};
- if(rows.length-hi-1>3000)return{fatal:"Too many rows. Please import at most 3000 rows per file."};
- if(!ADM&&rows.length-hi-1>200)return{fatal:"Please add at most 200 assets per file."};
- var cm=[],has={},ign=[];
- rows[hi].forEach(function(h,j){var k=HM[nz(h)],t=String(h).trim();if(k&&!has[k]){cm[j]=k;has[k]=1}else if(t&&!IGN[nz(t)])ign.push(t)});
- var out=[],seen={},used={};
- for(i=hi+1;i<rows.length;i++){var v={},any=false,r=rows[i]||[];
-  cm.forEach(function(k,j){var x=String(r[j]==null?"":r[j]).trim();v[k]=x;if(x)any=true});
-  if(any)out.push(rowPlan(v,i+1,has,seen,rows.d1904))}
- out.forEach(function(r){if(r.kind==="new"&&r.code)used[r.code]=1});
- out.forEach(function(r){if(r.kind==="new"){r.p=pre(r.o.company)+"-"+T[r.o.type][0]+"-";if(!r.code&&ADM){r.code=nextCodeB(r.o.company,r.o.type,used);r.o.code=r.code}}});
- return{rows:out,ign:ign}}
-function bulkHelp(){
- var h=[["Topic","Details"],
- ["Add new assets","One row per asset on the 'Assets' sheet. Leave Asset Code EMPTY - the code (for example SH-DT-0007) is created automatically. Required: Company, Product Type, Branch Location, Asset Location."],
- ["Edit existing assets","Download 'all current assets' from the Bulk Add/Edit window, change the cells you want and upload the file again. Do not change Asset Code (it identifies the asset) or Product Type. An empty cell clears that value (Company, Product Type and Status are never cleared). Delete a whole column if you do not want it touched."],
- ["Dates","Write dates as YYYY-MM-DD (2025-04-30) or DD/MM/YYYY (30/04/2025)."],
- ["Accessories","Separate with ; - allowed: "+ACC.concat("Other").join(", ")+". Accessory serial / purchase / warranty details added through the form are kept as they are."],
- ["Company","Pick from the list: "+CO.map(function(c){return c[0]}).join(", ")],
- ["Branch Location",ADM?"Pick from the dropdown - it shows the branches of the selected Company (full list on the 'Branches' sheet). A branch that is not in the list is accepted after a warning and becomes a new branch.":"Pick the branch from the dropdown - it shows the branches of the selected Company (full list on the 'Branches' sheet). Only admin can add a new branch."],
- ["Status","Pick from the list: "+ST.join(", ")],
- ["Condition at Handover","Pick from the list: "+CD.join(", ")],
- ["Column headings","Do not rename the headings. Columns that do not apply to a Product Type are ignored (see below)."],
- ["Safety","Nothing is saved until you press Import on the preview screen. Rows with errors are skipped. Take a Backup (JSON) before a big import."]];
- if(!ADM)h=h.filter(function(r){return r[0]!=="Edit existing assets"});
- TL.forEach(function(t,i){h.push([i?"":"Columns used by each Product Type",t+" ("+T[t][0]+"): "+keysOf(t).filter(function(k){return BK.indexOf(k)<0}).map(function(k){return L[k]}).join(", ")])});
- return h}
-function bulkBranchSheet(){var cos=CO.map(function(c){return c[0]}),ls=cos.map(branchesFor),mx=0;ls.forEach(function(l){if(l.length>mx)mx=l.length});
- var rows=[cos.slice()];for(var i=0;i<mx;i++)rows.push(ls.map(function(l){return l[i]||""}));
- return{sheet:{name:"Branches",rows:rows,widths:cos.map(function(){return 26}),header:true},names:cos.map(function(c,j){var L=String.fromCharCode(65+j);return{name:"br_"+(j+1),ref:"Branches!$"+L+"$2:$"+L+"$"+(Math.max(ls[j].length,1)+1)}})}}
-function bulkSheets(withData){
- var rows=[BH.map(function(k){return BL[k]})];
- if(withData)A.slice().sort(function(a,b){return a.code<b.code?-1:1}).forEach(function(a){rows.push(BH.map(function(k){return sv(a[k])}))});
- var W={code:16,company:18,type:14,model:24,loc:20,aloc:26,rm:28,acc:30,accOther:18,usr:18,dept:16};
- return[{name:"Assets",rows:rows,widths:BH.map(function(k){return W[k]||15}),header:true,textCols:true,freeze:true,validationRows:Math.max(2000,rows.length+500),
-  validations:[{col:BH.indexOf("company"),list:CO.map(function(c){return c[0]})},{col:BH.indexOf("type"),list:TL},{col:BH.indexOf("st"),list:ST},{col:BH.indexOf("cond"),list:CD},{col:BH.indexOf("loc"),formula:'INDIRECT("br_"&MATCH($'+String.fromCharCode(65+BH.indexOf("company"))+'2,Branches!$A$1:$Z$1,0))',warn:true,msg:"This branch is not in the list for the selected company. Continue only if it is a NEW branch."}]},
-  {name:"Instructions",rows:bulkHelp(),widths:[28,110],header:true,wrap:true},bulkBranchSheet().sheet]}
-function xlOk(){if(typeof XL!=="undefined"&&self.fflate)return true;
- bshow("<h2>Excel module not loaded</h2><p>The files <b>xlsx.js</b> (main folder) and <b>vendor/fflate.min.js</b> are missing on the website, so Excel files cannot be created or read.</p><p>Upload both files to GitHub (same place as index.html and the vendor folder), wait for Vercel to finish deploying, then press Ctrl+F5 and try again.</p><p class='stat'>Check: opening your-site/xlsx.js in the browser should show code, not a 404 page.</p><div class='bar'><button data-b='back'>Back</button></div>");return false}
-function xlGo(f){try{f()}catch(x){bshow("<h2>Could not create the Excel file</h2><p>"+esc(x.message)+"</p><div class='bar'><button data-b='back'>Back</button></div>")}}
-var XLSX_MIME="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",BROWS=null,BNAME="";
-function bshow(h){$("bulkc").innerHTML=h;$("bulk").style.display="block"}
-function bclose(){$("bulk").style.display="none";$("bulkc").innerHTML=""}
-function bmenu(){bshow("<h2>"+(ADM?"Bulk Add / Edit from Excel":"Bulk Add from Excel")+"</h2><ol style='line-height:1.7;padding-left:20px'><li>Download the <b>blank template</b> (to add new assets)"+(ADM?" or <b>all current assets</b> (to edit existing ones)":"")+".</li><li>Fill it in Excel. For new assets leave <b>Asset Code empty</b>"+(ADM?"; for edits keep the Asset Code as it is":"")+".</li><li>Upload the file here (.xlsx or .csv). You will see a preview first - nothing is saved until you confirm.</li></ol><div class='bar'><button data-b='tpl'>Download blank template</button>"+(ADM?"<button data-b='all'>Download all current assets</button>":"")+"<button class='p' data-b='up'>Upload filled file</button><button data-b='x'>Close</button></div>"+(ADM?"":"<p class='stat'>This login can add new assets only. Editing existing assets needs the admin login.</p>"))}
-function cut(s,n){s=String(s);return s.length>n?s.slice(0,n)+"…":s}
-function bline(r){
- if(r.kind==="new")return"<b style='color:#15803d'>NEW</b> "+esc(r.code||"(code is given automatically)")+" · "+esc(r.o.type)+" · "+esc(r.o.company)+" · "+esc(cut(r.o.loc,30))+(r.nb?" <span class='stat'>(new branch)</span>":"")+(r.warn.length?" <span class='stat'>(ignored for "+esc(r.o.type)+": "+esc(r.warn.join(", "))+")</span>":"");
- return"<b style='color:var(--ac)'>EDIT</b> "+esc(r.code)+": "+r.ch.map(function(c){return esc(BL[c.k]||c.k)+" "+esc(cut(c.a||"(empty)",30))+" → "+esc(cut(c.b||"(empty)",30))}).join("; ")}
-function bpreview(p){
- if(p.fatal){bshow("<h2>Cannot import</h2><p>"+esc(p.fatal)+"</p><div class='bar'><button data-b='back'>Back</button></div>");return}
- var c={new:0,upd:0,same:0,err:0};p.rows.forEach(function(r){c[r.kind]++});
- var ok=c.new+c.upd,h="<h2>Review before import</h2><p class='stat'>"+esc(BNAME)+" · "+p.rows.length+" rows read</p>"
- +"<p><b style='color:#15803d'>"+c.new+" new</b> · <b style='color:var(--ac)'>"+c.upd+" to update</b> · "+c.same+" unchanged · <b style='color:#b91c1c'>"+c.err+" with errors</b></p>";
- if(p.ign.length)h+="<p class='stat'>Ignored columns (not recognised): "+esc(p.ign.join(", "))+"</p>";
- var E=p.rows.filter(function(r){return r.kind==="err"}),L2=p.rows.filter(function(r){return r.kind==="new"||r.kind==="upd"});
- if(E.length)h+="<div style='color:#b91c1c;max-height:170px;overflow:auto;margin:6px 0'><b>Skipped because of errors:</b><br>"+E.slice(0,40).map(function(r){return"Row "+r.n+(r.code?" ("+esc(r.code)+")":"")+": "+esc(r.msg)}).join("<br>")+(E.length>40?"<br>…and "+(E.length-40)+" more":"")+"</div>";
- if(L2.length)h+="<div style='max-height:230px;overflow:auto;border:1px solid var(--bd);border-radius:8px;padding:8px;margin:6px 0;font-size:13px;line-height:1.6'>"+L2.slice(0,80).map(bline).join("<br>")+(L2.length>80?"<br>…and "+(L2.length-80)+" more":"")+"</div>";
- h+="<div class='bar'><button class='p' data-b='go'"+(ok?"":" disabled")+">Import "+ok+" asset"+(ok===1?"":"s")+"</button><button data-b='back'>Back</button></div>"+(E.length&&ok?"<p class='stat'>Rows with errors will be skipped. Fix them in the file and upload again if needed.</p>":"");
- bshow(h)}
-var BMCO="";
-function bmRender(){var l=$("bm_list");if(!l)return;var co=$("bm_co").value;BMCO=co;var b=(CFG[co]||[]);
- l.innerHTML=b.length?b.map(function(x){return"<span class='tkc' style='display:inline-block;padding:4px 10px;border:1px solid var(--bd);border-radius:99px;margin:0 6px 6px 0'>"+esc(x)+" <button data-bm='del' data-n='"+esc(x)+"' title='Remove' style='border:0;background:none;color:#b91c1c;cursor:pointer;font-size:16px;line-height:1;padding:0 0 0 4px'>&times;</button></span>"}).join(""):"<p class='stat'>No branch yet for this company.</p>"}
-function bmOpen(){if(!ADM)return;bshow("<h2>Manage Branches</h2><p class='stat'>Branches shown here are the ones users can pick in Branch Location. Removing a branch does not change assets that already use it.</p><div class='bar'><select id='bm_co'>"+CO.map(function(c){return"<option>"+esc(c[0])+"</option>"}).join("")+"</select></div><div id='bm_list' style='margin:8px 0'></div><div class='bar'><input id='bm_new' maxlength='60' placeholder='New branch name' style='max-width:300px'><button class='p' data-bm='add'>Add branch</button></div><div class='stat' id='bm_msg' style='margin-top:6px'></div><div class='bar'><button data-b='x'>Close</button></div>");if(BMCO)$("bm_co").value=BMCO;bmRender()}
-$("brm").onclick=bmOpen;
-$("bulk").addEventListener("change",function(e){if(e.target.id==="bm_co")bmRender()});
-$("bulk").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||!b.dataset.bm||!ADM)return;var co=$("bm_co").value,m=$("bm_msg");m.textContent="";
- if(b.dataset.bm==="add"){var n=$("bm_new").value.trim().slice(0,60);if(!n){m.textContent="Please type the branch name.";return}
-  if((CFG[co]||[]).some(function(x){return x.toLowerCase()===n.toLowerCase()})){m.textContent="This branch is already in the list.";return}
-  fb.addBranch(co,n).then(function(){$("bm_new").value="";m.textContent="Added: "+n}).catch(function(x){m.textContent="Could not add: "+x.message})}
- else if(b.dataset.bm==="del"){var n2=b.dataset.n;if(confirm("Remove branch \""+n2+"\" from "+co+"?"))fb.removeBranch(co,n2).then(function(){m.textContent="Removed: "+n2}).catch(function(x){m.textContent="Could not remove: "+x.message})}});
-$("bulkb").onclick=bmenu;
-$("bulk").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||!b.dataset.b)return;var a=b.dataset.b;
- if(a==="x")bclose();else if(a==="back")bmenu();
- else if(a==="tpl"){if(xlOk())xlGo(function(){dl("asset-template.xlsx",XL.write({sheets:bulkSheets(false),names:bulkBranchSheet().names}),XLSX_MIME)})}
- else if(a==="all"){if(ADM&&xlOk())xlGo(function(){dl("sandeep-assets-edit-"+new Date().toISOString().slice(0,10)+".xlsx",XL.write({sheets:bulkSheets(true),names:bulkBranchSheet().names}),XLSX_MIME)})}
- else if(a==="up"){if(xlOk())$("bf").click()}
- else if(a==="go"){b.disabled=true;var p=bulkPlan(BROWS),W=p.rows.filter(function(r){return r.kind==="new"||r.kind==="upd"});if(!W.length){bmenu();return}
-  var nn=W.filter(function(r){return r.kind==="new"}).length,job;
-  if(ADM)job=fb.restore(W.map(function(r){return r.o})).then(function(){var q=Promise.resolve();W.forEach(function(r){if(r.nb)q=q.then(function(){return fb.addBranch(r.o.company,r.nb)})});return q.then(function(){return fb.bumpCounters(W.map(function(r){return r.code}))})});
-  else job=fb.bulkCreate(W.map(function(r){return{p:r.p,o:r.o}})).then(function(codes){rememberMine(codes)});
-  job.then(function(){bshow("<h2>Import complete</h2><p>"+nn+" asset(s) added, "+(W.length-nn)+" updated.</p><div class='bar'><button class='p' data-b='x'>Close</button></div>")})
-   .catch(function(x){bshow("<h2>Import failed</h2><p>"+esc(x.message)+"</p><div class='bar'><button data-b='back'>Back</button></div>")})}});
-$("bf").onchange=function(e){var f=e.target.files[0];e.target.value="";if(!f)return;var rd=new FileReader();
- rd.onload=function(){try{var u=new Uint8Array(rd.result),rows;
-  if(u[0]===0x50&&u[1]===0x4B)rows=XL.read(u,"Assets");
-  else if(u[0]===0xD0&&u[1]===0xCF){bshow("<h2>Cannot import</h2><p>This is an old .xls file. Open it in Excel, choose Save As → Excel Workbook (.xlsx) and upload that file.</p><div class='bar'><button data-b='back'>Back</button></div>");return}
-  else rows=XL.csv(new TextDecoder("utf-8").decode(u));
-  BROWS=rows;BNAME=f.name;bpreview(bulkPlan(rows))}
- catch(x){bshow("<h2>Cannot read this file</h2><p>"+esc(x.message)+"</p><div class='bar'><button data-b='back'>Back</button></div>")}};
- rd.readAsArrayBuffer(f)};
-/* BULK-END */
-clearForm();render();
-$("lb").onclick=function(){$("lerr").textContent="";fb.login($("le").value.trim(),$("lp").value).catch(function(e){$("lerr").textContent="Login failed: "+e.message})};
-$("lp").addEventListener("keydown",function(e){if(e.key==="Enter")$("lb").click()});
-function mineCodes(){try{return JSON.parse(sessionStorage.getItem("mine_codes")||"[]")}catch(e){return[]}}
-function rememberMine(codes){try{var l=mineCodes();codes.forEach(function(c){if(l.indexOf(c)<0)l.push(c)});sessionStorage.setItem("mine_codes",JSON.stringify(l))}catch(e){}loadMine()}
-function loadMine(){Promise.all(mineCodes().map(function(c){return fb.getOne(c).catch(function(){return null})})).then(function(r){A=r.filter(Boolean);fillBranch($("f_loc").value);render()})}
-function syncCfg(){if(seeding||(CFG.__v||0)>=BRV)return;var seed={};CO.forEach(function(c){var have=CFG[c[0]]||[];(BR[c[0]]||[]).forEach(function(b){if(have.indexOf(b)<0)(seed[c[0]]=seed[c[0]]||[]).push(b)})});
- seeding=true;fb.seedBranches(seed,BRV).catch(function(){}).then(function(){seeding=false})}
-$("lo").onclick=function(){fb.logout()};
-function publicView(c){
- $("pub").style.display="";$("pc").innerHTML="<p class='stat'>Loading...</p>";
- fb.getOne(c.toUpperCase()).then(function(a){
-  if(!a){$("pc").innerHTML="<h2>Asset not found</h2><p>"+esc(c)+"</p>";return}
-  var ks=["company","type","code"].concat(keysOf(a.type)).filter(function(k){return a[k]&&k!=="rm"}),h="<h2>"+esc(a.company)+" – Asset Detail</h2><dl>";
-  ks.forEach(function(k){h+="<dt>"+esc(lab(k,a.type))+"</dt><dd>"+esc(a[k])+"</dd>"});accLines(a).forEach(function(r){h+="<dt>Accessory – "+esc(r[0])+"</dt><dd>"+esc(r[1]||"Issued")+"</dd>"});$("pc").innerHTML=h+"</dl>";PA=a;$("tk").style.display="";$("mv").style.display="";showLatest(a)
- }).catch(function(e){$("pc").innerHTML="<h2>Could not load</h2><p>"+esc(e.message)+"</p>"})}
-var pm=location.pathname.match(/\/a\/([^\/]+)/),pq=new URLSearchParams(location.search).get("a"),pcode=pm?decodeURIComponent(pm[1]):pq;
-if(pcode){publicView(pcode)}else{
- fb.onAuth(function(u){
-  if(u){ADM=(u.email||"").toLowerCase()===ADMIN;["rs","csv","bk","brm"].forEach(function(id){$(id).style.display=ADM?"":"none"});$("bulkb").textContent=ADM?"Bulk Add/Edit (Excel)":"Bulk Add (Excel)";$("nv_a").parentNode.style.display=ADM?"":"none";$("lg").style.display="none";$("app").style.display="";$("lo").style.display="";$("mode").textContent=u.email+(ADM?" (Admin)":" (Add only)");
-   AUTHED=true;unsubs.push(fb.watchConfig(function(c){CFG=c||{};fillBranch($("f_loc").value);if(ADM){syncCfg();bmRender()}},function(){}));
-   if(ADM){unsubs.push(fb.watch(function(l){A=l;fillBranch($("f_loc").value);if(!editId)refresh();render();if(!ctrSync){ctrSync=true;fb.syncCounters(l)}},function(e){alert("Could not load assets: "+e.message)}));watchT()}
-   else{A=[];loadMine();refresh()}}
-  else{unsubs.forEach(function(f){try{f()}catch(e){}});unsubs=[];ADM=false;AUTHED=false;ctrSync=false;CFG={};window.__sync=0;try{sessionStorage.removeItem("mine_codes")}catch(e){}A=[];TK=[];$("app").style.display="none";$("lo").style.display="none";$("lg").style.display=""}})}
+const BRV = 2;
+function branchesFor(co){
+  const out = [], seen = {};
+  function add(b){ b = String(b||"").trim(); const k = b.toLowerCase(); if(b && !seen[k]){ seen[k]=1; out.push(b); } }
+  (CFG[co]||[]).forEach(add);
+  if(ADM){ A.filter(a => a.company === co).map(a => a.loc).sort().forEach(add); }
+  return out;
+}
 
-/* ---------- Support tickets ---------- */
-var TK=[],PA=null,TS=["Open","In Progress","Resolved","Closed"],seenT=null;
-function tid(){var a=new Uint8Array(12);crypto.getRandomValues(a);return Array.prototype.map.call(a,function(x){return"abcdefghijklmnopqrstuvwxyz0123456789"[x%36]}).join("")}
-function ftk(id){return String(id).toUpperCase().replace(/(.{4})(?=.)/g,"$1-")}
-function isOpen(t){return t.status!=="Resolved"&&t.status!=="Closed"}
-function fdt(n){try{return new Date(n).toLocaleString("en-GB",{dateStyle:"short",timeStyle:"short"})}catch(e){return""}}
-opt($("t_cat"),["Hardware","Software / OS","Network / Internet","Printer / Scanner","Power / UPS","Other"]);opt($("t_pri"),["Low","Medium","High"]);$("t_pri").value="Medium";
-opt($("tfs"),["Active","Open","In Progress","Resolved","Closed","All"]);
-$("t_go").onclick=function(){
- var n=$("t_name").value.trim(),is=$("t_issue").value.trim(),m=$("t_msg");m.textContent="";
- if($("t_hp").value||!PA)return;
- if(!n){m.textContent="Please enter your name.";return}
- if(is.length<5){m.textContent="Please describe the problem in at least 5 characters (you typed "+is.length+").";return}
- var last=0;try{last=+localStorage.getItem("tk_last")||0}catch(e){}
- if(Date.now()-last<60000){m.textContent="Please wait a minute before sending another ticket.";return}
- var t={id:tid(),assetCode:PA.code,assetType:PA.type||"",assetLoc:(PA.loc||"")+(PA.aloc?" / "+PA.aloc:""),company:PA.company||"",name:n,dept:$("t_dept").value.trim(),mobile:$("t_mob").value.trim(),category:$("t_cat").value,priority:$("t_pri").value,issue:is,status:"Open",notes:"",created:Date.now()};
- $("t_go").disabled=true;
- fb.createTicket(t).then(function(){try{localStorage.setItem("tk_last",String(Date.now()))}catch(e){}
-  $("tkf").style.display="none";$("tkdone").style.display="";
-  $("tkdone").innerHTML="<h2>Ticket submitted</h2><p>Your ticket number is <b class='code'>"+esc(ftk(t.id))+"</b>. The IT team will look into it.</p><p class='stat'>Scan this asset's QR again anytime to see the current stage and what action IT has taken.</p>"
- }).catch(function(e){$("t_go").disabled=false;m.textContent="Could not submit: "+e.message})};
-/*MOVE*/
-/* ---------- Asset movement (user -> IT), repair approval and gate pass ---------- */
-var CURT=null,RA_T=["Onsite Internal Repair","Offsite Internal Repair","Onsite External Vendor Repair","Offsite External Vendor Repair"];
-function fiso(s){return s?String(s).split("-").reverse().join("/"):""}
-function fyOf(iso){var p=String(iso||"").split("-"),y=+p[0],m=+p[1];if(!y||!m)return 0;return m>=4?y:y-1}
-function mvBox(t){var m=t.move,r=t.repair,k=t.track||{};if(!m&&!r)return"";
- var h="<div class='eng'><b>Asset movement &amp; repair</b>";
- if(m)h+="<div>Sent by: "+esc(t.name)+" · Sent to: "+esc(m.dest)+" · Sent with: "+esc(m.carrier)+"</div><div class='stat'>Sent on: "+esc(fdt(m.at))+"</div>";
- var st=[["Request sent",true],["IT repair approval",!!r],["Received at IT",!!k.rcv],["Returned to you",!!k.ret]];if(r&&!r.gate)st=st.slice(0,2);
- var cur=-1;st.forEach(function(s,i){if(!s[1]&&cur<0)cur=i});
- if(m)h+="<div class='stp'>"+st.map(function(s,i){return"<div class='sp"+(s[1]?" done":"")+(i===cur?" cur":"")+"'><span class='dot'>"+(s[1]?"&#10003;":i+1)+"</span><span class='sl'>"+s[0]+"</span></div>"}).join("")+"</div>";
- if(m&&!r)h+="<div style='margin-top:8px'><b>Waiting for IT repair approval.</b> The Gate Pass is issued only after IT approves the repair. Please do not take the asset out before that.</div>";
- if(r){h+="<div style='margin-top:8px'>Repair approved by IT: <b>"+esc(r.type)+"</b> · "+esc(fiso(r.date))+(r.partyName?" · Party: "+esc(r.partyName):"")+"</div>";
-  h+=r.gate?"<div class='bar' style='margin-top:8px'><button class='p' data-gp='1'>Print Gate Pass ("+esc(r.gp)+")</button></div>":"<div class='stat'>Repair is done on site - no gate pass needed.</div>"}
- return h+"</div>"}
-function printGP(t,a){
- a=a||{};var r=t.repair||{},m=t.move||{},U="__________________";
- var rows=function(l){return l.map(function(x){return"<tr><th>"+x[0]+"</th><td>"+esc(x[1]||"")+"&nbsp;</td></tr>"}).join("")};
- var sg=function(x,n){return"<div class='sg'><div class='ln'></div><b>"+x+"</b><br>Name: "+esc(n||U)+"<br>Date &amp; time: ______________</div>"};
- $("hform").innerHTML="<div class='top'><div><b style='font-size:15px'>"+esc(t.company||a.company||"")+"</b></div><svg id='hbc'></svg></div><h1>ASSET GATE PASS (RETURNABLE)</h1>"+
- "<div class='sub'>Gate Pass No: <b>"+esc(r.gp||"")+"</b> &nbsp;|&nbsp; Date: "+esc(fiso(r.date))+" &nbsp;|&nbsp; Ticket No: <b>"+esc(ftk(t.id))+"</b></div>"+
- "<h3>1. Asset Details</h3><table>"+rows([["Asset Code",t.assetCode],["Asset",(t.assetType||a.type||"")+(a.model?" - "+a.model:"")],["Serial No.",a.sn],["Company",t.company||a.company],["Branch",a.loc],["Asset Location",a.aloc||(a.loc?"":t.assetLoc)]])+"</table>"+
- "<h3>2. Movement Details</h3><table>"+rows([["Sent by",t.name+(t.dept?" ("+t.dept+")":"")],["Mobile",t.mobile],["Sent with",m.carrier],["Sent to",m.dest],["Date &amp; time sent",m.at?fdt(m.at):""],["Problem / reason",t.issue]])+"</table>"+
- "<h3>3. IT Repair Approval</h3><table>"+rows([["Repair type",r.type],["Party",(r.party||"")+(r.partyName?" - "+r.partyName:"")],["Approved on",fiso(r.date)],["Approval ref.",r.txn]])+"</table>"+
- "<p style='margin-top:8px'>This asset is being sent out for repair and is <b>returnable</b>. Security: please allow it to leave only with this gate pass and note the date and time.</p>"+
- "<div class='sgs'>"+sg("Sent by (Employee)",t.name)+sg("Approved by (IT Department)")+sg("Security (gate out)")+sg("Received by (IT / Vendor)")+"</div>"+
- "<div style='margin-top:14px;display:flex;gap:10px;align-items:center'>"+qrSvg(t.assetCode,3)+"<span style='font-size:10px'>Scan the QR to check this asset and the latest status of ticket "+esc(ftk(t.id))+".</span></div>";
- bar("#hbc",t.assetCode);document.body.className="ph";setTimeout(function(){window.print()},300)}
-/* public page: user sends the asset to IT */
-$("mv_open").onclick=function(){if(!PA)return;
- $("mv_sum").innerHTML="<b>Asset (filled automatically)</b><br>"+esc(PA.code)+" · "+esc(PA.type||"")+(PA.model?" · "+esc(PA.model):"")+(PA.sn?" · S/N "+esc(PA.sn):"")+"<br>"+esc(PA.company||"")+" · "+esc(PA.loc||"")+(PA.aloc?" / "+esc(PA.aloc):"");
- $("mv_name").value=PA.usr||"";$("mv_dept").value=PA.dept||"";$("mvf").style.display="";$("mv_open").parentNode.style.display="none";$("mv_msg").textContent=""};
-$("mv_x").onclick=function(){$("mvf").style.display="none";$("mv_open").parentNode.style.display=""};
-$("mv_go").onclick=function(){
- var n=$("mv_name").value.trim(),to=$("mv_to").value.trim(),wi=$("mv_with").value.trim(),is=$("mv_issue").value.trim(),m=$("mv_msg");m.textContent="";
- if($("mv_hp").value||!PA)return;
- if(!n){m.textContent="Please enter your name.";return}
- if(to.length<2){m.textContent="Please write where you are sending the asset.";return}
- if(wi.length<2){m.textContent="Please write the name of the person who is taking the asset.";return}
- if(is.length<5){m.textContent="Please describe the issue in at least 5 characters (you typed "+is.length+").";return}
- var last=0;try{last=+localStorage.getItem("tk_last")||0}catch(e){}
- if(Date.now()-last<60000){m.textContent="Please wait a minute before sending another request.";return}
- var now=Date.now(),t={id:tid(),assetCode:PA.code,assetType:PA.type||"",assetLoc:(PA.loc||"")+(PA.aloc?" / "+PA.aloc:""),company:PA.company||"",name:n,dept:$("mv_dept").value.trim(),mobile:$("mv_mob").value.trim(),category:"Asset Movement",priority:"Medium",issue:is,status:"Open",notes:"",created:now,move:{dest:to,carrier:wi,at:now}};
- $("mv_go").disabled=true;
- fb.createTicket(t).then(function(){try{localStorage.setItem("tk_last",String(Date.now()))}catch(e){}
-  $("mvf").style.display="none";$("mvdone").style.display="";
-  $("mvdone").innerHTML="<h2>Request sent to IT</h2><p>Your ticket number is <b class='code'>"+esc(ftk(t.id))+"</b>.</p><p>IT will check the issue and approve the repair. <b>Do not take the asset out yet.</b> After approval, a <b>Print Gate Pass</b> button appears in &quot;Status of your latest ticket&quot; on this page - scan this asset's QR again anytime to see it.</p>"
- }).catch(function(e){$("mv_go").disabled=false;m.textContent="Could not submit: "+e.message})};
-/* admin: repair approval dialog */
-function raOpen(t){
- var a=find(t.assetCode)||{},r=t.repair||{},ro=function(l,v){return"<div><label>"+l+"</label><input value=\""+esc(v||"")+"\" disabled></div>"};
- bshow("<h2>Repair Approval for Ticket #"+esc(ftk(t.id))+"</h2><div class='g'>"+ro("Asset Code",t.assetCode)+ro("Name",(t.assetType||a.type||"")+(a.model?" - "+a.model:""))+ro("Company",t.company||a.company)+ro("Branch",a.loc)+ro("Asset Location",a.aloc||t.assetLoc)+"</div>"+
- "<div style='margin-top:10px'><label>Problem Description</label><textarea rows='2' disabled>"+esc(t.issue)+"</textarea></div>"+
- (t.move?"<div class='stat' style='margin-top:6px'>Asset movement: sent by "+esc(t.name)+" to "+esc(t.move.dest)+" with "+esc(t.move.carrier)+" on "+esc(fdt(t.move.at))+"</div>":"")+
- "<div class='g' style='margin-top:10px'><div><label>Approval Date</label><input type='date' id='ra_date'></div><div><label>Transaction Category</label><input id='ra_txn' disabled></div>"+
- "<div><label>Repair Type*</label><select id='ra_type'><option value=''>-- Select Repair Type --</option>"+RA_T.map(function(x){return"<option>"+esc(x)+"</option>"}).join("")+"</select></div></div>"+
- "<div style='margin:10px 0'><label style='display:inline-flex;gap:6px;align-items:center'><input type='checkbox' id='ra_gate' disabled style='width:auto'> Create Gate Pass</label> <span class='stat' id='ra_gnote'></span></div>"+
- "<div class='g'><div><label>Party Code*</label><input id='ra_pc' maxlength='40'></div><div><label>Party Name</label><input id='ra_pn' maxlength='80'></div><div><label>Estimated Cost</label><input id='ra_cost' type='number' min='0' step='any'></div></div>"+
- "<div class='g' style='margin-top:10px'><div><label>Approval Note*</label><textarea id='ra_note' rows='2' maxlength='500'></textarea></div><div><label>Remarks</label><textarea id='ra_rem' rows='2' maxlength='500'></textarea></div></div>"+
- "<div class='stat' id='ra_msg' style='margin-top:8px'></div><div class='bar'><button class='p' id='ra_ok'>"+(r.type?"Update approval":"Approve")+"</button><button data-b='x'>Cancel</button></div>");
- $("ra_date").value=r.date||new Date().toISOString().slice(0,10);$("ra_type").value=r.type||"";$("ra_pc").value=r.party||"";$("ra_pn").value=r.partyName||"";$("ra_cost").value=r.cost||"";$("ra_note").value=r.note||"";$("ra_rem").value=r.remarks||"";
- function upd(){var ty=$("ra_type").value,off=/^Offsite/.test(ty),s=fyOf($("ra_date").value);$("ra_gate").checked=off;
-  $("ra_gnote").textContent=!ty?"":off?"A gate pass will be created (the asset leaves its place).":"Not needed - the asset is repaired on site.";$("ra_txn").value=s?"RRAP"+s+"-"+(s+1):""}
- $("ra_type").onchange=upd;$("ra_date").onchange=upd;upd();
- $("ra_ok").onclick=function(){var ty=$("ra_type").value,pc=$("ra_pc").value.trim(),note=$("ra_note").value.trim(),dt=$("ra_date").value,m=$("ra_msg"),btn=this;
-  if(!dt){m.textContent="Please choose the approval date.";return}
-  if(!ty){m.textContent="Please select the repair type.";return}
-  if(ty!==RA_T[0]&&!pc){m.textContent="Party Code is required for this repair type.";return}
-  if(!note){m.textContent="Approval Note is required.";return}
-  var gate=/^Offsite/.test(ty),s=fyOf(dt),fy=s+"-"+String(s+1).slice(2);btn.disabled=true;
-  (gate&&!r.gp?fb.nextGP(fy).then(function(n){return"GP/"+fy+"/"+String(n).padStart(4,"0")}):Promise.resolve(r.gp||""))
-  .then(function(gp){var nr={type:ty,party:pc,partyName:$("ra_pn").value.trim(),cost:$("ra_cost").value.trim(),note:note,remarks:$("ra_rem").value.trim(),date:dt,txn:$("ra_txn").value,gate:gate,gp:gp,at:r.at||Date.now()},ns=t.status==="Open"?"In Progress":t.status;
-   return fb.actTicket(t.id,{repair:nr,status:ns},{status:ns,note:"Repair approved: "+ty+(gate&&gp?" · Gate pass "+gp:""),at:Date.now()}).then(function(){return nr})})
-  .then(function(nr){bclose();if(nr.gate&&confirm("Repair approved. Gate pass "+nr.gp+" is ready.\n\nPrint the gate pass now?"))printGP(Object.assign({},t,{repair:nr}),a)})
-  .catch(function(x){btn.disabled=false;m.textContent="Could not save: "+x.message})}}
-function admBtns(t){var r=t.repair,k=t.track||{},id=esc(t.id),h="<button data-tid='"+id+"' data-ta='ra'>"+(r?"Edit Repair Approval":"Repair Approval")+"</button>";
- if(r&&r.gate){h+="<button data-tid='"+id+"' data-ta='gp'>Gate Pass</button>";if(!k.rcv)h+="<button data-tid='"+id+"' data-ta='rc'>Received at IT</button>";else if(!k.ret)h+="<button data-tid='"+id+"' data-ta='rt'>Returned to user</button>"}
- return h}
-function mvAdm(t){var m=t.move,r=t.repair,k=t.track||{},h="";
- if(m)h+="<div class='stat' style='margin-top:6px'><b>Asset movement:</b> sent to "+esc(m.dest)+" with "+esc(m.carrier)+" on "+esc(fdt(m.at))+"</div>";
- if(r)h+="<div class='stat'><b>Repair:</b> "+esc(r.type)+(r.gate&&r.gp?" · Gate pass "+esc(r.gp):"")+(r.party?" · Party "+esc(r.party)+(r.partyName?" ("+esc(r.partyName)+")":""):"")+"</div>";
- if(k.rcv)h+="<div class='stat'>Received at IT: "+esc(fdt(k.rcv))+"</div>";if(k.ret)h+="<div class='stat'>Returned to user: "+esc(fdt(k.ret))+"</div>";return h}
-var TXT={"Open":"Your ticket has been received. IT team will pick it up soon.","In Progress":"IT team is working on your issue.","Resolved":"IT team has fixed the issue. Please confirm everything works.","Closed":"This ticket is closed."};
-var unsubT=null;
-var FR=0;
-function stars(n){return"\u2605\u2605\u2605\u2605\u2605".slice(0,n)+"\u2606\u2606\u2606\u2606\u2606".slice(0,5-n)}
-function fbBox(t){
- if(t.status!=="Resolved")return"";
- if(t.feedback)return"<div class='eng' style='margin-top:14px'><b>Thank you for your feedback!</b><div style='font-size:20px;color:#f5a623'>"+stars(t.feedback.rating)+"</div>"+(t.feedback.comment?"<div class='stat'>"+esc(t.feedback.comment)+"</div>":"")+"</div>";
- var b="";for(var i=1;i<=5;i++)b+="<button class='stb"+(i<=FR?" on":"")+"' data-r='"+i+"' title='"+i+" star'>\u2605</button>";
- return"<div class='eng' style='margin-top:14px'><b>Is your issue fixed? Please rate our service</b><div style='margin:6px 0'>"+b+"</div><textarea id='fb_c' rows='2' maxlength='500' placeholder='Your feedback (optional)' style='width:100%'></textarea><div class='bar'><button class='p' id='fb_go'>Submit feedback</button></div><div class='stat' id='fb_m' style='margin-top:6px'></div></div>"}
-function tlEvents(t){var e=[{status:"Open",note:"",at:t.created,first:1}],h=Array.isArray(t.history)?t.history.slice().sort(function(a,b){return(a.at||0)-(b.at||0)}):[];
- if(!h.length&&(t.status!=="Open"||t.notes))h=[{status:t.status,note:t.notes||"",at:t.updated||t.created}];
- return e.concat(h).reverse()}
-function tlHtml(t){
- var PS=TS.slice(0,3),si=Math.max(0,PS.indexOf(t.status)),fin=t.status==="Resolved",ev=tlEvents(t),last=ev[0];
- var h="<h3 style='margin:0 0 6px;font-size:15px'>Ticket <span class='code'>"+esc(ftk(t.id))+"</span></h3>"
- +"<p style='margin:4px 0'><span class='sbig'>"+esc(t.status)+"</span> <span class='stat'>Last updated: "+esc(fdt(last.at))+"</span></p>"
- +"<p style='margin:6px 0'>"+esc(TXT[t.status]||"")+"</p>"+mvBox(t)
- +(t.eng?"<div class='eng'><b>IT engineer:</b> "+esc(t.eng)+(t.engMob?" &middot; <a href='tel:"+esc(String(t.engMob).replace(/\s/g,""))+"'>"+esc(t.engMob)+"</a>":"")+"</div>":"")
- +"<div class='stp'>"+PS.map(function(x,i){var c=i<si||(fin&&i===si)?" done":"";if(i===si)c+=" cur";return"<div class='sp"+c+"'><span class='dot'>"+(c.indexOf("done")>-1?"&#10003;":i+1)+"</span><span class='sl'>"+esc(x)+"</span></div>"}).join("")+"</div>"
- +(t.notes?"<p style='margin:12px 0 4px'><b>Latest note from IT:</b> "+esc(t.notes)+"</p>":"")
- +"<p style='margin:14px 0 0'><b>Action history</b></p><ul class='tl'>"
- +ev.map(function(x){return"<li><b>"+(x.first?"Ticket raised":"Status: "+esc(x.status))+"</b> <span class='stat'>"+esc(fdt(x.at))+"</span>"+(x.first?"<div class='stat'>"+esc(t.issue)+"</div>":(x.note?"<div>"+esc(x.note)+"</div>":""))+(x.eng?"<div class='stat'>Assigned to "+esc(x.eng)+"</div>":"")+"</li>"}).join("")+"</ul>"+fbBox(t);
- return h}
-$("tkview").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||!CUR)return;if(b.dataset.gp){if(CURT&&PA)printGP(CURT,PA);return}
- if(b.dataset.r){FR=+b.dataset.r;Array.prototype.forEach.call($("tkview").querySelectorAll(".stb"),function(x){x.className="stb"+(+x.dataset.r<=FR?" on":"")})}
- if(b.id==="fb_go"){var m=$("fb_m");if(!FR){m.textContent="Please select a star rating.";return}b.disabled=true;
-  fb.sendFeedback(CUR,{rating:FR,comment:$("fb_c").value.trim(),at:Date.now()}).catch(function(x){b.disabled=false;m.textContent="Could not send feedback: "+x.message})}});
-var CUR=null;
+const PC = ["cpu","ram","hdd","os"];
+const MK = ["mon_model","mon_sn","mon_pd","mon_wt"];
+const T = {"Desktop":["DT",PC.concat(MK)],"Laptop":["LT",PC],"All-in-One":["AO",PC],"Monitor":["MN",["size","res","ports"]],"Networking":["NW",["ntype","ports","ip","mac"]],"Server":["SV",PC.concat("ip")],"Printer":["PR",["ports","ip","mac"]],"Biometric":["BM",["ip","mac"]],"Mobile":["MB",["ram","hdd","os"]],"Tablet":["TB",["ram","hdd","os","size"]],"ISP":["IS",["sip","smask","sgw","dns1","dns2"]],"UPS":["UP",["cap","batt"]]};
+const HT = ["Monitor"], TL = Object.keys(T).filter(k => HT.indexOf(k) < 0);
+const BK = ["model","sn","loc","aloc","dept","usr","pd","wt","st","rm"];
+const SK = ["cpu","ram","hdd","os","size","res","ports","ip","mac","ntype","sip","smask","sgw","dns1","dns2","cap","batt"].concat(MK);
+const L = {company:"Company",type:"Product Type",code:"Asset Code",model:"Brand / Model",sn:"Serial No.",cpu:"Processor",ram:"RAM",hdd:"Storage",os:"Operating System",size:"Screen Size",res:"Resolution",ports:"Ports",ip:"IP Address",sip:"Static IP Address",smask:"Subnet Mask",sgw:"Default Gateway",dns1:"Preferred DNS Server",dns2:"Alternate DNS Server",mac:"MAC Address",ntype:"Device (Switch/Router/AP/Firewall)",cap:"Capacity (VA / kVA)",batt:"Battery Details (Qty / Ah)",mon_model:"Monitor Brand / Model",mon_sn:"Monitor Serial No.",mon_pd:"Monitor Purchase Date",mon_wt:"Monitor Warranty Till",loc:"Branch Location",aloc:"Asset Location (Floor / Room / Desk)",dept:"Department",usr:"Assigned User",pd:"Purchase Date",wt:"Warranty Till",st:"Status",rm:"Remarks"};
+const ST = ["In Use","In Stock","Under Repair","Scrapped"];
+let A = [], editId = null, ADM = false, ADMIN = "it@assets.local", CFG = {}, unsubs = [], AUTHED = false, ctrSync = false, seeding = false, codeTok = 0;
+const ACC = ["Charger / Adapter","Power cable","Mouse","Keyboard","Bag / Cover"], CD = ["New","Good","Fair"];
+const DL = {model:"Desktop Brand / Model",sn:"Desktop Serial No.",pd:"Desktop Purchase Date",wt:"Desktop Warranty Till"};
+
+function lab(k,t){ return t==="Desktop"&&DL[k] ? DL[k] : L[k]; }
+function ak(x){ return String(x).replace(/[^A-Za-z0-9]+/g,"_"); }
+function accLines(a){
+  const s = a.acc||[], D = a.accd||{};
+  return s.map(x => {
+    const v = D[ak(x)]||{}, n = x==="Other"&&a.accOther ? "Other: "+a.accOther : x, p = [];
+    if(v.sn) p.push("SN: "+v.sn); if(v.pd) p.push("Purchased: "+v.pd); if(v.wt) p.push("Warranty till: "+v.wt);
+    return [n, p.join("  ·  ")];
+  });
+}
+function cv(a,k){ if(k==="accd") return accLines(a).map(r => r.join(" ")).join("; "); const v=a[k]; return Array.isArray(v)?v.join("; "):(v==null?"":v); }
+const $ = i => document.getElementById(i);
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function opt(el,arr,first){ if(first) el.add(new Option(first,"")); arr.forEach(v => el.add(new Option(v,v))); }
+function pre(n){ for(let i=0;i<CO.length;i++) if(CO[i][0]===n) return CO[i][1]; return "XX"; }
+function keysOf(t){ const sp = T[t][1].filter(k => MK.indexOf(k)<0), mo = T[t][1].filter(k => MK.indexOf(k)>-1); return BK.slice(0,2).concat(sp,BK.slice(2,8),mo,BK.slice(8)); }
+
+function mk(k){
+  const d = document.createElement("div"); d.id = "w_" + k;
+  const inp = k==="st" ? "<select id='f_st'></select>" : k==="loc" ? "<select id='f_loc'></select>" : "<input id='f_"+k+"'"+(/(^|_)(pd|wt)$/.test(k)?" type='date'":"")+">";
+  d.innerHTML = "<label class='block text-xs text-[var(--tx-muted)] mb-1'>"+L[k]+"</label>"+inp;
+  return d;
+}
+
+BK.forEach(k => $("base").appendChild(mk(k)));
+(function(){ const cd = $("f_company").parentNode; cd.parentNode.insertBefore($("w_loc"), cd.nextSibling); })();
+SK.forEach(k => $(MK.indexOf(k)>-1 ? "monspecs" : "specs").appendChild(mk(k)));
+
+const AXH = "<span class='ax hidden grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2 ml-6 text-xs'><input data-f='sn' placeholder='Serial No.'><label>Purchase Date<input type='date' data-f='pd'></label><label>Warranty Till<input type='date' data-f='wt'></label></span>";
+$("accs").innerHTML = ACC.map(x => "<div class='ai'><label class='inline-flex items-center gap-2 text-xs text-[var(--tx)] cursor-pointer'><input type='checkbox' class='acc w-auto' value='"+esc(x)+"'> "+esc(x)+"</label>"+AXH+"</div>").join("") + "<div class='ai'><label class='inline-flex items-center gap-2 text-xs text-[var(--tx)] cursor-pointer'><input type='checkbox' id='acc_o' class='w-auto'> Other:</label><input id='acc_ot' placeholder='Specify accessory' style='width:200px;display:inline-block;vertical-align:middle' class='ml-2 text-xs'>"+AXH+"</div>";
+$("conds").innerHTML = CD.map(x => "<label class='inline-flex items-center gap-2 text-xs text-[var(--tx)] cursor-pointer'><input type='checkbox' class='cnd w-auto' value='"+x+"'> "+x+"</label>").join("");
+
+$("conds").addEventListener("change", e => { if(e.target.checked) document.querySelectorAll(".cnd").forEach(c => { if(c!==e.target) c.checked = false; }); });
+function axShow(c){ const b = c.closest(".ai").querySelector(".ax"); b.style.display = c.checked ? "grid" : "none"; }
+$("accs").addEventListener("change", e => { if(e.target.type==="checkbox") axShow(e.target); });
+$("acc_ot").addEventListener("input", () => { if($("acc_ot").value.trim()){ $("acc_o").checked = true; axShow($("acc_o")); } });
+
+function getAccD(){ const r = {}; document.querySelectorAll("#accs .ai").forEach(d => { const c = d.querySelector("input[type=checkbox]"); if(!c.checked) return; const o = {}; d.querySelectorAll("[data-f]").forEach(i => { const v = i.value.trim(); if(v) o[i.dataset.f] = v; }); r[ak(c.id==="acc_o"?"Other":c.value)] = o; }); return r; }
+function setAccD(a){ const D = (a&&a.accd)||{}; document.querySelectorAll("#accs .ai").forEach(d => { const c = d.querySelector("input[type=checkbox]"), v = D[ak(c.id==="acc_o"?"Other":c.value)]||{}; d.querySelectorAll("[data-f]").forEach(i => { i.value = v[i.dataset.f]||""; }); axShow(c); }); }
+function getAcc(){ const r = []; document.querySelectorAll(".acc").forEach(c => { if(c.checked) r.push(c.value); }); if($("acc_o").checked) r.push("Other"); return r; }
+function getCond(){ let r = ""; document.querySelectorAll(".cnd").forEach(c => { if(c.checked) r = c.value; }); return r; }
+function setTicks(a){ setTicks0(a); setAccD(a); }
+function setTicks0(a){ const s = (a&&a.acc)||[]; document.querySelectorAll(".acc").forEach(c => { c.checked = s.indexOf(c.value)>-1; }); $("acc_o").checked = s.indexOf("Other")>-1; $("acc_ot").value = (a&&a.accOther)||""; document.querySelectorAll(".cnd").forEach(c => { c.checked = !!a && a.cond===c.value; }); }
+
+opt($("f_st"), ST); opt($("f_company"), CO.map(c => c[0])); opt($("f_type"), TL);
+opt($("fco"), CO.map(c => c[0]), "All companies"); opt($("fty"), TL, "All types"); opt($("fst"), ST, "All statuses");
+
+function showSpecs(){ const t = $("f_type").value; if(!T[t]) return; SK.forEach(k => { $("w_"+k).style.display = T[t][1].indexOf(k)>-1 ? "" : "none"; }); $("monbox").style.display = T[t][1].indexOf("mon_sn")>-1 ? "" : "none"; Object.keys(DL).forEach(k => { $("w_"+k).querySelector("label").textContent = lab(k,t); }); }
+function nextCode(co,t){ const p = pre(co)+"-"+T[t][0]+"-"; let m = 0; A.forEach(a => { if(a.code.indexOf(p)===0){ const k = parseInt(a.code.slice(p.length),10); if(k>m) m = k; } }); return p + ("0000"+(m+1)).slice(-4); }
+function urlFor(c){ return location.origin + "/a/" + encodeURIComponent(c); }
+function qrSvg(c,cell){ try{ const q = qrcode(0, "M"); q.addData(urlFor(c)); q.make(); return q.createSvgTag(cell||3, 0); }catch(e){ return ""; } }
+function bar(el,code){ try{ JsBarcode(el, code, {format:"CODE128", height:42, width:2, fontSize:12, margin:4}); }catch(e){} }
+function showCode(){ $("pqr").innerHTML = qrSvg($("f_code").value, 3); bar("#pbc", $("f_code").value); }
+function refresh(){
+  showSpecs();
+  if(!editId){
+    const co = $("f_company").value, ty = $("f_type").value;
+    if(ADM) $("f_code").value = nextCode(co, ty);
+    else if(AUTHED && T[ty]){
+      const tk = ++codeTok; $("f_code").value = "";
+      fb.nextFree(pre(co)+"-"+T[ty][0]+"-").then(c => { if(tk===codeTok && !editId){ $("f_code").value = c; showCode(); } }).catch(()=>{});
+    }
+  }
+  showCode();
+}
+
+function fillBranch(keep){
+  const sel = $("f_loc"), l = branchesFor($("f_company").value), k = keep==="__new" ? "" : String(keep||"").trim();
+  let hit = null;
+  l.forEach(x => { if(k && x.toLowerCase()===k.toLowerCase()) hit = x; });
+  if(k && !hit){ l.push(k); hit = k; }
+  sel.innerHTML = ""; sel.add(new Option("-- Select branch --", ""));
+  l.forEach(b => sel.add(new Option(b, b)));
+  if(ADM) sel.add(new Option("+ Add new branch...", "__new"));
+  sel.value = hit || "";
+}
+
+function clearForm(){ editId = null; BK.concat(SK).forEach(k => { $("f_"+k).value = k==="st"?"In Use":""; }); $("ft").textContent = "Register New Asset"; setTicks(null); fillBranch(""); refresh(); }
+
+function put(o, isNew){
+  return (ADM ? fb.save(o, isNew) : fb.createAsset(o)).then(r => {
+    if(r && r.code){ if(ADM) fb.bumpCounters([r.code]); else rememberMine([r.code]); }
+    showToast(`Asset ${r.code} saved successfully!`, 'info');
+    return r;
+  }).catch(e => {
+    showToast("Could not save: " + e.message, 'error');
+  });
+}
+
+function del(c){ return fb.remove(c).then(() => showToast(`Asset ${c} removed`, 'info')).catch(e => showToast("Could not delete: " + e.message, 'error')); }
+
+function save(){
+  if(editId && !ADM){ showToast("Only admin can edit assets.", 'error'); return; }
+  const t = $("f_type").value, o = {company: $("f_company").value, type: t, code: $("f_code").value};
+  BK.concat(SK).forEach(k => { if(k==="st" || keysOf(t).indexOf(k)>-1) o[k] = $("f_"+k).value.trim(); });
+  o.acc = getAcc(); o.accd = getAccD(); o.accOther = $("acc_o").checked ? $("acc_ot").value.trim() : ""; o.cond = getCond();
+  if(!o.loc){ showToast("Branch Location is required.", 'error'); return; }
+  if(!o.aloc){ showToast("Asset Location is required.", 'error'); return; }
+  if(!editId) o.code = ADM ? nextCode(o.company, t) : $("f_code").value;
+  if(!o.code){ showToast("Please wait - asset code is being prepared.", 'error'); return; }
+  
+  put(o, !editId).then(r => {
+    clearForm();
+    if(r && r.code && $("hf").checked) handover(find(r.code) || r);
+  });
+}
+
+function find(c){ c = String(c).trim().toLowerCase(); return A.filter(a => a.code.toLowerCase()===c)[0]; }
+
+function filtered(){
+  const q = $("q").value.toLowerCase(), c = $("fco").value, t = $("fty").value, s = $("fst").value;
+  return A.filter(a => {
+    if(c && a.company!==c) return false;
+    if(t && a.type!==t) return false;
+    if(s && a.st!==s) return false;
+    return !q || JSON.stringify(a).toLowerCase().indexOf(q)>-1;
+  }).sort((a,b) => a.code < b.code ? -1 : 1);
+}
+
+function conf(a){
+  if(!T[a.type]) return "";
+  const p = T[a.type][1].filter(k => MK.indexOf(k)<0).map(k => a[k]).filter(Boolean);
+  if(a.mon_model || a.mon_sn) p.push("Monitor: "+[a.mon_model, a.mon_sn?"SN "+a.mon_sn:""].filter(Boolean).join(" "));
+  return p.join(" | ");
+}
+
+function updateHUDStats(){
+  $("stat_total").textContent = A.length;
+  $("stat_inuse").textContent = A.filter(a => a.st === 'In Use').length;
+  $("stat_repair").textContent = A.filter(a => a.st === 'Under Repair').length;
+  $("stat_tickets").textContent = TK.filter(isOpen).length;
+}
+
+function render(){
+  const R = filtered();
+  $("cnt").textContent = ADM ? R.length + " / " + A.length + " assets" : A.length + " asset(s) registered in session";
+  updateHUDStats();
+
+  $("tb").innerHTML = R.map(a => {
+    const i = esc(a.code);
+    let stBadge = "badge-success";
+    if(a.st === 'Under Repair') stBadge = "badge-warning";
+    if(a.st === 'In Stock') stBadge = "badge-cyan";
+    if(a.st === 'Scrapped') stBadge = "badge-danger";
+
+    return `<tr>
+      <td class="code">${i}</td>
+      <td class="font-medium">${esc(a.company)}</td>
+      <td>
+        <div class="font-semibold text-xs">${esc(a.type)}</div>
+        <div class="text-xs text-[var(--tx-muted)]">${esc(a.model)}${a.sn ? " · SN "+esc(a.sn) : ""}</div>
+      </td>
+      <td class="text-xs font-mono text-[var(--tx-muted)]">${esc(conf(a))}</td>
+      <td>
+        <div class="text-xs font-semibold">${esc(a.loc)}${a.aloc ? " – "+esc(a.aloc) : ""}</div>
+        <div class="text-xs text-[var(--tx-muted)]">${esc([a.dept, a.usr].filter(Boolean).join(" · "))}</div>
+      </td>
+      <td><span class="badge ${stBadge}"><span class="badge-dot"></span>${esc(a.st)}</span></td>
+      <td style="white-space:nowrap">
+        <div class="flex gap-1">
+          <button class="py-1 px-2 text-xs" data-a="v" data-c="${i}">Detail</button>
+          <button class="py-1 px-2 text-xs" data-a="l" data-c="${i}">Label</button>
+          <button class="py-1 px-2 text-xs" data-a="h" data-c="${i}">Form</button>
+          ${ADM ? `<button class="py-1 px-2 text-xs" data-a="e" data-c="${i}">Edit</button><button class="d py-1 px-2 text-xs" data-a="x" data-c="${i}">Del</button>` : ''}
+        </div>
+      </td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="7" class="text-center py-6 text-[var(--tx-muted)]">No matching asset records found.</td></tr>`;
+}
+
+function detail(a){
+  const ks = ["company","type","code"].concat(keysOf(a.type));
+  let h = `<div class="flex justify-between items-center mb-4 pb-2 border-b border-[var(--bd)]"><h2 class="text-base font-bold font-display uppercase tracking-wider text-[var(--ac)]">Asset Specs Profile – ${esc(a.code)}</h2><button id="dx" class="text-xs">Close</button></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><dl class="grid grid-cols-2 gap-2 text-xs">`;
+  
+  ks.forEach(k => { if(a[k]) h += `<dt class="text-[var(--tx-muted)] font-semibold">${esc(lab(k,a.type))}:</dt><dd class="font-medium">${esc(a[k])}</dd>`; });
+  accLines(a).forEach(r => { h += `<dt class="text-[var(--tx-muted)] font-semibold">Accessory (${esc(r[0])}):</dt><dd class="font-medium">${esc(r[1]||"Issued")}</dd>`; });
+  if(a.cond) h += `<dt class="text-[var(--tx-muted)] font-semibold">Handover Condition:</dt><dd class="font-medium">${esc(a.cond)}</dd>`;
+  
+  h += `</dl><div class="codes"><div class="qr">${qrSvg(a.code,4)}</div><svg id="dbc"></svg></div></div><div class="flex flex-wrap gap-2 mt-6 pt-4 border-t border-[var(--bd)]"><button class="p text-xs" data-a="l" data-c="${esc(a.code)}">Print Label</button><button class="text-xs" data-a="h" data-c="${esc(a.code)}">Handover Form</button>${ADM ? `<button class="text-xs" data-a="e" data-c="${esc(a.code)}">Edit</button>` : ''}</div>`;
+  
+  const d = $("det"); d.innerHTML = h; d.style.display = "block";
+  bar("#dbc", a.code);
+  $("dx").onclick = () => { d.style.display = "none"; };
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function printLabels(R){
+  if(!R.length){ showToast("No assets selected for printing.", 'error'); return; }
+  $("labels").innerHTML = R.map((a,i) => `<div class='lb'><b>${esc(a.company)}</b>${qrSvg(a.code,3)}<svg id='l${i}'></svg><div>${esc(a.type+" – "+a.loc+(a.aloc?" / "+a.aloc:""))}</div><div style='font-size:9px'>Scan for details / report issue</div></div>`).join("");
+  R.forEach((a,i) => bar("#l"+i, a.code));
+  document.body.className = "pl";
+  setTimeout(() => window.print(), 200);
+}
+
+function handover(a){
+  if(!a) return;
+  const rows = ["company","type","code"].concat(keysOf(a.type).filter(k => ["rm","usr","dept","st"].indexOf(k)<0)).filter(k => a[k]).map(k => `<tr><th>${esc(lab(k,a.type))}</th><td>${esc(a[k])}</td></tr>`).join("");
+  const d = new Date().toLocaleDateString("en-GB"), U = "__________________", sel = a.acc||[], bx = on => on ? "&#9745;" : "&#9744;";
+  const cd = CD.map(x => `<span>${bx(a.cond===x)} ${x}</span>`).join(" ");
+  const AD = a.accd||{}, ar = ACC.concat("Other").map(x => {
+    const on = sel.indexOf(x)>-1, v = AD[ak(x)]||{}, nm = x==="Other" ? "Other: "+(a.accOther?esc(a.accOther):"__________") : esc(x);
+    return `<tr><td>${bx(on)} ${nm}</td><td>${esc(v.sn)}&nbsp;</td><td>${esc(v.pd)}</td><td>${esc(v.wt)}</td></tr>`;
+  }).join("");
+  const at = `<table class='at' style='margin-top:4px'><tr><th>Accessory</th><th>Serial No.</th><th>Purchase Date</th><th>Warranty Till</th></tr>${ar}</table>`;
+  const sg = (t,n) => `<div class='sg'><div class='ln'></div><b>${t}</b><br>Name: ${esc(n||U)}<br>Date: ________________</div>`;
+  
+  $("hform").innerHTML = `<div class='top'><div><b style='font-size:15px'>${esc(a.company)}</b></div><svg id='hbc'></svg></div><h1>ASSET HANDOVER FORM</h1><div class='sub'>Date: ${d}</div><h3>1. Asset Details</h3><table>${rows}</table><h3>2. Handed Over To</h3><table><tr><th>Employee Name</th><td>${esc(a.usr)}&nbsp;</td></tr><tr><th>Department</th><td>${esc(a.dept)}&nbsp;</td></tr><tr><th>Branch Location</th><td>${esc(a.loc)}&nbsp;</td></tr><tr><th>Asset Location</th><td>${esc(a.aloc)}&nbsp;</td></tr><tr><th>Date of Handover</th><td>${d}</td></tr></table><h3>3. Accessories &amp; Condition</h3><b>Accessories issued:</b>${at}<div class='ck' style='margin-top:4px'><b>Condition at handover:</b> ${cd}</div><div style='margin-top:6px'>Remarks: ______________________________________________________________</div><h3>4. Terms &amp; Declaration</h3><ol><li>The asset is company property issued for official work only.</li><li>Employee is responsible for safe custody and must report any defect or damage to IT.</li><li>Asset must be returned immediately upon request, transfer or exit.</li></ol><p>I acknowledge receipt of the asset in good working condition.</p><div class='sgs'>${sg("Issued by (IT Dept)")}${sg("Received by (Employee)",a.usr)}${sg("Approved by (Manager)")}</div>`;
+  
+  bar("#hbc", a.code);
+  document.body.className = "ph";
+  setTimeout(() => window.print(), 300);
+}
+
+window.onafterprint = () => { document.body.className = ""; };
+
+function onClick(e){
+  const b = e.target.closest("button"); if(!b || !b.dataset.c) return;
+  const a = find(b.dataset.c); if(!a) return;
+  if(!ADM && (b.dataset.a==="e" || b.dataset.a==="x")) return;
+  if(b.dataset.a==="v") detail(a);
+  if(b.dataset.a==="l") printLabels([a]);
+  if(b.dataset.a==="h") handover(a);
+  if(b.dataset.a==="x"){
+    showConfirm("Delete Asset", `Permanently delete asset record ${a.code}?`, () => del(a.code));
+  }
+  if(b.dataset.a==="e"){
+    editId = a.code; $("f_company").value = a.company;
+    if(TL.indexOf(a.type)<0 && ![].some.call($("f_type").options, o => o.value===a.type)) $("f_type").add(new Option(a.type, a.type));
+    $("f_type").value = a.type; showSpecs();
+    BK.concat(SK).forEach(k => { $("f_"+k).value = a[k]||""; });
+    fillBranch(a.loc); setTicks(a); $("f_code").value = a.code;
+    $("pqr").innerHTML = qrSvg(a.code, 3); bar("#pbc", a.code);
+    $("ft").textContent = "Edit Asset Record: " + a.code;
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+}
+
+$("tb").addEventListener("click", onClick);
+$("det").addEventListener("click", onClick);
+$("save").onclick = save;
+$("clear").onclick = clearForm;
+
+$("f_loc").onchange = function(){
+  if(this.value !== "__new" || !ADM) return;
+  const n = prompt("Enter new branch name for " + $("f_company").value + ":");
+  if(n && n.trim()){
+    const trimmed = n.trim().slice(0,60);
+    fb.addBranch($("f_company").value, trimmed).then(() => showToast("Added branch: " + trimmed, 'info')).catch(x => showToast("Could not save branch: " + x.message, 'error'));
+    fillBranch(trimmed);
+  }
+};
+$("f_company").onchange = () => { fillBranch(""); refresh(); };
+$("f_type").onchange = refresh;
+
+["q","fco","fty","fst"].forEach(i => $(i).oninput = render);
+$("q").addEventListener("keydown", e => {
+  if(e.key !== "Enter") return;
+  const m = $("q").value.match(/[A-Za-z]{2}-[A-Za-z]{2}-\d{4}/), a = m && find(m[0]);
+  if(a){ detail(a); $("q").value = ""; render(); }
+});
+
+$("plAll").onclick = () => printLabels(filtered());
+
+function dl(n, t, m){
+  const u = URL.createObjectURL(new Blob([t], {type: m})), a = document.createElement("a");
+  a.href = u; a.download = n; a.click();
+  setTimeout(() => URL.revokeObjectURL(u), 500);
+}
+
+$("csv").onclick = () => {
+  if(!ADM) return;
+  const H = ["code","company","type"].concat(BK, SK, ["acc","accd","accOther","cond"]),
+        rows = [H.join(",")].concat(A.map(a => H.map(k => '"' + String(cv(a,k)).replace(/"/g,'""') + '"').join(",")));
+  dl("sandeep-assets.csv", "\ufeff" + rows.join("\n"), "text/csv");
+};
+
+$("bk").onclick = () => { if(!ADM) return; dl("sandeep-assets-backup-" + new Date().toISOString().slice(0,10) + ".json", JSON.stringify(A), "application/json"); };
+$("rs").onclick = () => { if(ADM) $("rsf").click(); };
+$("rsf").onchange = e => {
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if(!Array.isArray(d) || !d.every(x => x && x.code)) throw 1;
+      showConfirm("Restore Backup", `Restore ${d.length} assets from backup? Matching codes will be overwritten.`, () => {
+        fb.restore(d).then(() => showToast("Restore complete!", 'info')).catch(x => showToast("Restore failed: " + x.message, 'error'));
+      });
+    } catch(x){ showToast("Invalid backup file.", 'error'); }
+  };
+  r.readAsText(f); e.target.value = "";
+};
+
+/* Bulk Excel Management */
+const BH = ["code","company","loc","type"].concat(BK.filter(k => k!=="loc"), SK, ["acc","accOther","cond"]),
+      BL = Object.assign({}, L, {acc:"Accessories (separate with ;)", accOther:"Other Accessory", cond:"Condition at Handover"}),
+      HM = {assetcode:"code", producttype:"type", brandmodel:"model", desktopbrandmodel:"model", assetlocation:"aloc", branch:"loc"},
+      IGN = {accd:1, accessorydetails:1}, DK = {pd:1, wt:1, mon_pd:1, mon_wt:1};
+
+function nz(s){ return String(s==null?"":s).toLowerCase().replace(/[^a-z0-9]/g,""); }
+BH.forEach(k => { HM[nz(k)] = k; HM[nz(BL[k])] = k; });
+function ci(list, v){ v = String(v).trim().toLowerCase(); for(let i=0; i<list.length; i++) if(String(list[i]).toLowerCase()===v) return list[i]; return null; }
+function sv(x){ return Array.isArray(x) ? x.join("; ") : String(x==null?"":x); }
+function dchk(y,m,d){ if(m<1||m>12||d<1||d>31||y<1900||y>2100) return null; const dt = new Date(Date.UTC(y,m-1,d)); if(dt.getUTCMonth()!==m-1) return null; return y+"-"+("0"+m).slice(-2)+"-"+("0"+d).slice(-2); }
+function nd(v, d1904){
+  v = String(v).trim(); let m;
+  if((m=/^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(v))) return dchk(+m[1],+m[2],+m[3]);
+  if((m=/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/.exec(v))) return dchk(+m[3],+m[2],+m[1]);
+  if(/^\d+(\.\d+)?$/.test(v)){ const n = parseFloat(v)+(d1904?1462:0); if(n>=20000 && n<80000) return new Date(Date.UTC(1899,11,30)+Math.floor(n)*864e5).toISOString().slice(0,10); }
+  return null;
+}
+
+function nextCodeB(co, t, used){
+  const p = pre(co)+"-"+T[t][0]+"-"; let m = 0;
+  function f(c){ if(c.indexOf(p)===0){ const k = parseInt(c.slice(p.length),10); if(k>m) m = k; } }
+  A.forEach(a => f(a.code)); Object.keys(used).forEach(f);
+  const c = p + ("0000"+(m+1)).slice(-4); used[c] = 1; return c;
+}
+
+function rowPlan(v, n, has, seen, d1904){
+  const E = [], W = [], code = (v.code||"").toUpperCase().replace(/\s+/g,""), old = code ? find(code) : null;
+  let co = null, ty = null;
+  if(v.company){ co = ci(CO.map(c=>c[0]), v.company); if(!co) E.push('Unknown Company "'+v.company+'"'); } else if(old) co = old.company; else E.push("Company is required");
+  if(v.type){ ty = ci(Object.keys(T), v.type); if(!ty) E.push('Unknown Product Type "'+v.type+'"'); } else if(old) ty = old.type; else E.push("Product Type is required");
+  
+  if(old){ if(!ADM) E.push("Only admin can edit existing assets"); if(ty && old.type!==ty) E.push("Product Type cannot be changed"); }
+  else if(ty && TL.indexOf(ty)<0) E.push(ty + " cannot be added on its own");
+  
+  if(code && !old && !ADM) E.push("Leave Asset Code empty to add a new asset");
+  else if(code && !old && co && ty && T[ty] && (!/^[A-Z]{2}-[A-Z]{2}-\d{4}$/.test(code) || code.indexOf(pre(co)+"-"+T[ty][0]+"-")!==0)) E.push('Asset Code "'+code+'" does not exist.');
+  if(code){ if(seen[code]) E.push("Asset Code "+code+" is repeated in this file"); else seen[code] = n; }
+  if(E.length || !co || !ty || !T[ty]) return {n:n, kind:"err", code:code, msg:E.join("; ")};
+
+  const m = {}, keys = BK.concat(SK), kt = keysOf(ty);
+  if(old) keys.concat(["acc","accOther","cond"]).forEach(k => { if(old[k]!==undefined) m[k] = old[k]; });
+  
+  keys.forEach(k => {
+    if(!has[k]) return; const x = v[k]||"";
+    if(k==="st"){ if(x){ const s = ci(ST, x); if(!s) E.push('Invalid Status "'+x+'"'); else m.st = s; } return; }
+    if(DK[k]){ if(!x){ m[k]=""; return; } const d = nd(x, d1904); if(d===null) E.push('Invalid date in "'+L[k]+'": '+x); else m[k] = d; return; }
+    m[k] = x; if(x && kt.indexOf(k)<0) W.push(L[k]);
+  });
+
+  const acc = Array.isArray(m.acc) ? m.acc.slice() : [];
+  if(has.acc){
+    acc.length = 0;
+    (v.acc||"").split(/[;,|\n]+/).forEach(x => { x = x.trim(); if(!x) return; const a = ci(ACC.concat("Other"), x); if(!a) E.push('Unknown accessory "'+x+'"'); else if(acc.indexOf(a)<0) acc.push(a); });
+  }
+  if(has.accOther) m.accOther = v.accOther||"";
+  if(m.accOther && acc.indexOf("Other")<0) acc.push("Other");
+  if(acc.indexOf("Other")<0) m.accOther = "";
+  if(has.cond){ const cd = v.cond ? ci(CD, v.cond) : ""; if(cd===null) E.push('Invalid Condition "'+v.cond+'"'); else m.cond = cd; }
+  
+  let nb = "";
+  if(String(m.loc||"").trim()){
+    let hb = null; branchesFor(co).forEach(b => { if(b.toLowerCase()===String(m.loc).trim().toLowerCase()) hb = b; });
+    if(hb) m.loc = hb; else nb = String(m.loc).trim();
+  }
+  if(nb && !ADM) E.push('Branch "'+nb+'" is not in the system list.');
+  if(!String(m.loc||"").trim()) E.push("Branch Location is required");
+  if(!String(m.aloc||"").trim()) E.push("Asset Location is required");
+  if(E.length) return {n:n, kind:"err", code:code, msg:E.join("; ")};
+
+  const o = {company:co, type:ty, code:old?old.code:code};
+  keys.forEach(k => { if(k==="st" || kt.indexOf(k)>-1) o[k] = String(m[k]==null?"":m[k]); });
+  if(!o.st && !old) o.st = "In Use";
+  o.acc = acc; o.accOther = String(m.accOther||""); o.cond = String(m.cond||"");
+  
+  const ad = (old&&old.accd)||{}, nad = {};
+  acc.forEach(a => { const q = ak(a); if(ad[q]) nad[q] = ad[q]; });
+  o.accd = nad;
+
+  const ch = [];
+  if(old) ["company"].concat(keys.filter(k => k==="st" || kt.indexOf(k)>-1), ["acc","accOther","cond"]).forEach(k => { if(sv(old[k]) !== sv(o[k])) ch.push({k:k, a:sv(old[k]), b:sv(o[k])}); });
+  
+  return {n:n, kind:old?(ch.length?"upd":"same"):"new", code:old?old.code:code, o:o, ch:ch, warn:W, nb:nb};
+}
+
+function bulkPlan(rows){
+  let hi = -1, i;
+  for(i=0; i<rows.length && i<15 && hi<0; i++){ let c=0; rows[i].forEach(h => { if(HM[nz(h)]) c++; }); if(c>=3) hi=i; }
+  if(hi<0) return {fatal: "Heading row not found in uploaded file."};
+  if(rows.length-hi-1 > 3000) return {fatal: "Too many rows. Maximum 3000 allowed."};
+  
+  const cm = [], has = {}, ign = [];
+  rows[hi].forEach((h,j) => { const k = HM[nz(h)], t = String(h).trim(); if(k && !has[k]){ cm[j] = k; has[k] = 1; } else if(t && !IGN[nz(t)]) ign.push(t); });
+  
+  const out = [], seen = {}, used = {};
+  for(i=hi+1; i<rows.length; i++){
+    const v = {}; let any = false; const r = rows[i]||[];
+    cm.forEach((k,j) => { const x = String(r[j]==null?"":r[j]).trim(); v[k] = x; if(x) any = true; });
+    if(any) out.push(rowPlan(v, i+1, has, seen, rows.d1904));
+  }
+  out.forEach(r => { if(r.kind==="new" && r.code) used[r.code] = 1; });
+  out.forEach(r => { if(r.kind==="new"){ r.p = pre(r.o.company)+"-"+T[r.o.type][0]+"-"; if(!r.code && ADM){ r.code = nextCodeB(r.o.company, r.o.type, used); r.o.code = r.code; } } });
+  return {rows: out, ign: ign};
+}
+
+function bulkHelp(){
+  return [
+    ["Topic", "Details"],
+    ["Add New Assets", "One row per asset. Leave Asset Code EMPTY for automatic code generation."],
+    ["Edit Assets", "Keep Asset Code unchanged. Update cell values as required."],
+    ["Allowed Companies", CO.map(c=>c[0]).join(", ")],
+    ["Allowed Statuses", ST.join(", ")]
+  ];
+}
+
+function bulkBranchSheet(){
+  const cos = CO.map(c=>c[0]), ls = cos.map(branchesFor);
+  let mx = 0; ls.forEach(l => { if(l.length>mx) mx = l.length; });
+  const rows = [cos.slice()]; for(let i=0; i<mx; i++) rows.push(ls.map(l => l[i]||""));
+  return {sheet:{name:"Branches", rows:rows, widths:cos.map(()=>26), header:true}, names:cos.map((c,j) => ({name:"br_"+(j+1), ref:"Branches!$"+String.fromCharCode(65+j)+"$2:$"+String.fromCharCode(65+j)+"$"+(Math.max(ls[j].length,1)+1)}))};
+}
+
+function bulkSheets(withData){
+  const rows = [BH.map(k => BL[k])];
+  if(withData) A.slice().sort((a,b)=>a.code<b.code?-1:1).forEach(a => rows.push(BH.map(k => sv(a[k]))));
+  return [{name:"Assets", rows:rows, widths:BH.map(()=>18), header:true}, {name:"Instructions", rows:bulkHelp(), widths:[24,80]}, bulkBranchSheet().sheet];
+}
+
+let BROWS = null, BNAME = "";
+function bshow(h){ $("bulkc").innerHTML = h; $("bulk").style.display = "block"; }
+function bclose(){ $("bulk").style.display = "none"; $("bulkc").innerHTML = ""; }
+function bmenu(){
+  bshow(`
+    <div class="flex items-center justify-between pb-3 mb-4 border-b border-[var(--bd)]">
+      <h2 class="text-base font-bold font-display uppercase tracking-wider text-[var(--ac)]">Bulk Excel Import / Export</h2>
+      <button data-b="x" class="text-xs">Close</button>
+    </div>
+    <div class="space-y-4 text-xs text-[var(--tx-muted)]">
+      <p>1. Download the blank template or existing assets excel spreadsheet.</p>
+      <p>2. Fill or edit details in Excel and re-upload the file below.</p>
+      <div class="flex flex-wrap gap-2 pt-2">
+        <button data-b="tpl" class="text-xs">Download Blank Template</button>
+        ${ADM ? `<button data-b="all" class="text-xs">Export All Assets (.xlsx)</button>` : ''}
+        <button data-b="up" class="p text-xs">Upload File (.xlsx / .csv)</button>
+      </div>
+    </div>
+  `);
+}
+
+function bpreview(p){
+  if(p.fatal){ bshow(`<h2 class="text-base font-bold text-rose-400 mb-2">Import Error</h2><p class="text-xs text-[var(--tx-muted)] mb-4">${esc(p.fatal)}</p><button data-b="back" class="text-xs">Back</button>`); return; }
+  const c = {new:0, upd:0, same:0, err:0};
+  p.rows.forEach(r => c[r.kind]++);
+  const ok = c.new + c.upd;
+  
+  let h = `<h2 class="text-base font-bold font-display uppercase tracking-wider text-[var(--ac)] mb-1">Import Data Preview</h2><p class="text-xs text-[var(--tx-muted)] mb-4">${esc(BNAME)} · ${p.rows.length} rows read</p><div class="flex gap-4 text-xs mb-4"><span class="text-emerald-400 font-bold">${c.new} New</span><span class="text-indigo-400 font-bold">${c.upd} Updates</span><span class="text-rose-400 font-bold">${c.err} Errors</span></div>`;
+  
+  const E = p.rows.filter(r => r.kind==="err"), L2 = p.rows.filter(r => r.kind==="new" || r.kind==="upd");
+  if(E.length) h += `<div class="p-3 rounded bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300 max-h-32 overflow-y-auto mb-4"><b>Rows with errors (will be skipped):</b><br>${E.map(r => "Row "+r.n+": "+esc(r.msg)).join("<br>")}</div>`;
+  if(L2.length) h += `<div class="p-3 rounded bg-[var(--code-bg)] border border-[var(--bd)] text-xs max-h-48 overflow-y-auto font-mono mb-4 space-y-1">${L2.map(r => `<div>[${r.kind.toUpperCase()}] ${esc(r.code||'AUTO')} - ${esc(r.o.type)} - ${esc(r.o.company)}</div>`).join("")}</div>`;
+  
+  h += `<div class="flex gap-2"><button data-b="go" class="p text-xs" ${ok?'':'disabled'}>Execute Import (${ok} Assets)</button><button data-b="back" class="text-xs">Back</button></div>`;
+  bshow(h);
+}
+
+// Branch Management Modal
+function bmRender(){
+  const l = $("bm_list"); if(!l) return;
+  const co = $("bm_co").value; const b = (CFG[co]||[]);
+  l.innerHTML = b.length ? b.map(x => `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-[var(--bd)] text-xs font-medium mr-2 mb-2 bg-[var(--code-bg)]">${esc(x)} <button data-bm="del" data-n="${esc(x)}" class="text-rose-400 hover:text-rose-300 ml-1 font-bold">&times;</button></span>`).join("") : `<p class="text-xs text-[var(--tx-muted)]">No branches defined for this company.</p>`;
+}
+
+function bmOpen(){
+  if(!ADM) return;
+  bshow(`
+    <div class="flex items-center justify-between pb-3 mb-4 border-b border-[var(--bd)]">
+      <h2 class="text-base font-bold font-display uppercase tracking-wider text-[var(--ac)]">Manage Company Branches</h2>
+      <button data-b="x" class="text-xs">Close</button>
+    </div>
+    <div class="space-y-4">
+      <div><label class="block text-xs text-[var(--tx-muted)] mb-1">Company</label><select id="bm_co">${CO.map(c=>`<option>${esc(c[0])}</option>`).join("")}</select></div>
+      <div id="bm_list"></div>
+      <div class="flex gap-2">
+        <input id="bm_new" placeholder="New branch name" maxlength="60" class="text-xs">
+        <button class="p text-xs" data-bm="add">Add Branch</button>
+      </div>
+      <div id="bm_msg" class="text-xs font-mono text-emerald-400"></div>
+    </div>
+  `);
+  bmRender();
+}
+
+$("brm").onclick = bmOpen;
+$("bulk").addEventListener("change", e => { if(e.target.id==="bm_co") bmRender(); });
+$("bulk").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b || !b.dataset.bm || !ADM) return;
+  const co = $("bm_co").value, m = $("bm_msg"); m.textContent = "";
+  if(b.dataset.bm === "add"){
+    const n = $("bm_new").value.trim().slice(0,60);
+    if(!n){ m.textContent = "Please enter branch name."; return; }
+    fb.addBranch(co, n).then(() => { $("bm_new").value = ""; m.textContent = "Added branch: " + n; bmRender(); }).catch(x => { m.textContent = x.message; });
+  } else if(b.dataset.bm === "del"){
+    const n2 = b.dataset.n;
+    showConfirm("Remove Branch", `Remove branch "${n2}" from ${co}?`, () => {
+      fb.removeBranch(co, n2).then(() => { m.textContent = "Removed branch: " + n2; bmRender(); }).catch(x => { m.textContent = x.message; });
+    });
+  }
+});
+
+$("bulkb").onclick = bmenu;
+$("bulk").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b || !b.dataset.b) return;
+  const a = b.dataset.b;
+  if(a === "x") bclose();
+  else if(a === "back") bmenu();
+  else if(a === "tpl") dl("asset-template.xlsx", XL.write({sheets: bulkSheets(false)}), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+  else if(a === "all" && ADM) dl("sandeep-assets-edit-"+new Date().toISOString().slice(0,10)+".xlsx", XL.write({sheets: bulkSheets(true)}), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+  else if(a === "up") $("bf").click();
+  else if(a === "go"){
+    b.disabled = true;
+    const p = bulkPlan(BROWS), W = p.rows.filter(r => r.kind==="new" || r.kind==="upd");
+    if(!W.length){ bmenu(); return; }
+    
+    const nn = W.filter(r => r.kind==="new").length;
+    const job = ADM ? fb.restore(W.map(r => r.o)).then(() => fb.bumpCounters(W.map(r => r.code))) : fb.bulkCreate(W.map(r => ({p:r.p, o:r.o}))).then(codes => rememberMine(codes));
+    
+    job.then(() => {
+      showToast(`Bulk Import complete: ${nn} added, ${W.length - nn} updated.`, 'info');
+      bclose();
+    }).catch(x => showToast("Bulk Import failed: " + x.message, 'error'));
+  }
+});
+
+$("bf").onchange = e => {
+  const f = e.target.files[0]; e.target.value = ""; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const u = new Uint8Array(rd.result);
+      const rows = XL.read(u, "Assets");
+      BROWS = rows; BNAME = f.name;
+      bpreview(bulkPlan(rows));
+    } catch(x){ showToast("Could not read spreadsheet file: " + x.message, 'error'); }
+  };
+  rd.readAsArrayBuffer(f);
+};
+
+// Login Logic
+$("lb").onclick = () => {
+  $("lerr").textContent = "";
+  fb.login($("le").value.trim(), $("lp").value).catch(e => { $("lerr").textContent = "Login failed: " + e.message; });
+};
+$("lp").addEventListener("keydown", e => { if(e.key==="Enter") $("lb").click(); });
+
+function mineCodes(){ try{ return JSON.parse(sessionStorage.getItem("mine_codes")||"[]"); }catch(e){ return []; } }
+function rememberMine(codes){
+  try {
+    const l = mineCodes();
+    codes.forEach(c => { if(l.indexOf(c)<0) l.push(c); });
+    sessionStorage.setItem("mine_codes", JSON.stringify(l));
+  }catch(e){}
+  loadMine();
+}
+function loadMine(){
+  Promise.all(mineCodes().map(c => fb.getOne(c).catch(() => null))).then(r => {
+    A = r.filter(Boolean); fillBranch($("f_loc").value); render();
+  });
+}
+
+function syncCfg(){
+  if(seeding || (CFG.__v||0) >= BRV) return;
+  const seed = {};
+  CO.forEach(c => {
+    const have = CFG[c[0]]||[];
+    (BR[c[0]]||[]).forEach(b => { if(have.indexOf(b)<0)(seed[c[0]] = seed[c[0]]||[]).push(b); });
+  });
+  seeding = true;
+  fb.seedBranches(seed, BRV).catch(()=>{}).then(() => seeding = false);
+}
+
+$("lo").onclick = () => fb.logout();
+
+// Support Ticket Logic
+let TK = [], PA = null;
+const TS = ["Open","In Progress","Resolved","Closed"];
+function tid(){ const a = new Uint8Array(12); crypto.getRandomValues(a); return Array.prototype.map.call(a, x => "abcdefghijklmnopqrstuvwxyz0123456789"[x%36]).join(""); }
+function ftk(id){ return String(id).toUpperCase().replace(/(.{4})(?=.)/g, "$1-"); }
+function isOpen(t){ return t.status !== "Resolved" && t.status !== "Closed"; }
+function fdt(n){ try{ return new Date(n).toLocaleString("en-GB", {dateStyle:"short", timeStyle:"short"}); }catch(e){ return ""; } }
+
+opt($("t_cat"), ["Hardware","Software / OS","Network / Internet","Printer / Scanner","Power / UPS","Other"]);
+opt($("t_pri"), ["Low","Medium","High"]); $("t_pri").value = "Medium";
+opt($("tfs"), ["Active","Open","In Progress","Resolved","Closed","All"]);
+
+$("t_go").onclick = () => {
+  const n = $("t_name").value.trim(), is = $("t_issue").value.trim(), m = $("t_msg"); m.textContent = "";
+  if($("t_hp").value || !PA) return;
+  if(!n){ m.textContent = "Please enter your name."; return; }
+  if(is.length < 5){ m.textContent = "Describe issue in at least 5 characters."; return; }
+  
+  const t = {id: tid(), assetCode: PA.code, assetType: PA.type||"", assetLoc: (PA.loc||"")+(PA.aloc?" / "+PA.aloc:""), company: PA.company||"", name: n, dept: $("t_dept").value.trim(), mobile: $("t_mob").value.trim(), category: $("t_cat").value, priority: $("t_pri").value, issue: is, status: "Open", notes: "", created: Date.now()};
+  $("t_go").disabled = true;
+  
+  fb.createTicket(t).then(() => {
+    $("tkf").style.display = "none"; $("tkdone").style.display = "block";
+    $("tkdone").innerHTML = `<div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 space-y-2"><h3 class="font-bold text-sm">Ticket Submitted Successfully</h3><p class="text-xs">Ticket ID: <b class="code">${esc(ftk(t.id))}</b>. The IT team is reviewing your report.</p></div>`;
+  }).catch(e => { $("t_go").disabled = false; m.textContent = e.message; });
+};
+
+// Asset Movement Logic
+$("mv_open").onclick = () => {
+  $("mv_sum").innerHTML = `<b>Asset:</b> ${esc(PA.code)} (${esc(PA.type)}) · <b>Location:</b> ${esc(PA.loc)}`;
+  $("mvf").style.display = "block"; $("mv_open").style.display = "none";
+};
+$("mv_x").onclick = () => { $("mvf").style.display = "none"; $("mv_open").style.display = "inline-flex"; };
+
+$("mv_go").onclick = () => {
+  const n = $("mv_name").value.trim(), to = $("mv_to").value.trim(), w = $("mv_with").value.trim(), is = $("mv_issue").value.trim(), m = $("mv_msg"); m.textContent = "";
+  if(!n || !to || !w || is.length < 5){ m.textContent = "Please complete all required movement fields."; return; }
+  
+  const t = {id: tid(), assetCode: PA.code, assetType: PA.type||"", assetLoc: (PA.loc||"")+(PA.aloc?" / "+PA.aloc:""), company: PA.company||"", name: n, dept: $("mv_dept").value.trim(), mobile: $("mv_mob").value.trim(), category: "Hardware", priority: "High", issue: "ASSET MOVEMENT: " + is, status: "Open", notes: "", created: Date.now(), move: {dest: to, carrier: w, at: Date.now()}};
+  $("mv_go").disabled = true;
+  
+  fb.createTicket(t).then(() => {
+    $("mvf").style.display = "none"; $("mvdone").style.display = "block";
+    $("mvdone").innerHTML = `<div class="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 space-y-2"><h3 class="font-bold text-sm">Movement Request Recorded</h3><p class="text-xs">Ticket & Pass Request ID: <b class="code">${esc(ftk(t.id))}</b>. Gate Pass will be issued upon IT approval.</p></div>`;
+  }).catch(e => { $("mv_go").disabled = false; m.textContent = e.message; });
+};
+
+function renderT(){
+  const s = $("tfs").value, q = $("tq").value.toLowerCase();
+  const list = TK.filter(t => {
+    if(s === "Active" && !isOpen(t)) return false;
+    if(s !== "Active" && s !== "All" && t.status !== s) return false;
+    return !q || JSON.stringify(t).toLowerCase().indexOf(q) > -1;
+  }).sort((a,b) => (b.created||0) - (a.created||0));
+
+  $("tcnt").textContent = list.length + " ticket(s)";
+  $("tbadge").textContent = TK.filter(isOpen).length;
+
+  $("ttb").innerHTML = list.map(t => `
+    <tr>
+      <td class="code">${esc(ftk(t.id))}</td>
+      <td class="text-xs font-semibold">${esc(t.assetCode)}</td>
+      <td class="text-xs">${esc(t.name)}<br><span class="text-[var(--tx-muted)]">${esc(t.dept)}</span></td>
+      <td class="text-xs max-w-xs truncate">${esc(t.issue)}</td>
+      <td class="text-xs">
+        <span class="badge ${t.status==='Resolved'?'badge-success':t.status==='In Progress'?'badge-warning':'badge-cyan'}">${esc(t.status)}</span>
+      </td>
+    </tr>
+  `).join("") || `<tr><td colspan="5" class="text-center py-6 text-[var(--tx-muted)]">No support tickets found.</td></tr>`;
+}
+
+function watchT(){
+  unsubs.push(fb.watchTickets(list => { TK = list; renderT(); updateHUDStats(); }, err => showToast("Tickets error: " + err.message, 'error')));
+}
+
+function publicView(c){
+  $("pub").style.display = "block"; $("pc").innerHTML = "<p class='text-xs text-[var(--tx-muted)] font-mono'>Loading digital asset card...</p>";
+  fb.getOne(c.toUpperCase()).then(a => {
+    if(!a){ $("pc").innerHTML = `<h2 class="text-base font-bold text-rose-400">Asset Record Not Found</h2><p class="text-xs font-mono">${esc(c)}</p>`; return; }
+    PA = a;
+    const ks = ["company","type","code"].concat(keysOf(a.type)).filter(k => a[k] && k!=="rm");
+    let h = `<div class="flex justify-between items-center mb-4 pb-2 border-b border-[var(--bd)]"><h2 class="text-base font-bold font-display uppercase tracking-wider text-[var(--ac)]">${esc(a.company)} – Digital Asset Spec</h2><span class="badge badge-success"><span class="badge-dot"></span>VERIFIED</span></div><dl class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">`;
+    ks.forEach(k => { h += `<dt class="text-[var(--tx-muted)] font-semibold">${esc(lab(k,a.type))}:</dt><dd class="font-medium">${esc(a[k])}</dd>`; });
+    $("pc").innerHTML = h + `</dl>`;
+    $("tk").style.display = "block"; $("mv").style.display = "block";
+    showLatest(a);
+  }).catch(e => { $("pc").innerHTML = `<h2 class="text-base font-bold text-rose-400">Error Loading Asset</h2><p class="text-xs">${esc(e.message)}</p>`; });
+}
+
 function showLatest(a){
- if(unsubT){unsubT();unsubT=null}
- unsubT=fb.watchLatest(a.code,function(t){
-  if(!t||t.assetCode!==a.code||t.status==="Closed"){CUR=null;CURT=null;$("tkst").style.display="none";$("tkview").innerHTML="";return}
-  CUR=t.id;CURT=t;$("tkst").style.display="";$("tkview").innerHTML=tlHtml(t)},function(){})}
-function beep(){try{var c=new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator();o.connect(c.destination);o.frequency.value=880;o.start();setTimeout(function(){o.stop();c.close()},350)}catch(e){}}
-var ENG=[{n:"Bhanwar Vaishnav",m:"7300257678"},{n:"Chandraprakash Khatik",m:"9116044500"}];
-function engOpts(cur){return"<option value=''>-- Assign IT engineer --</option>"+ENG.map(function(e,i){return"<option value='"+i+"'"+(e.n===cur?" selected":"")+">"+esc(e.n)+" ("+esc(e.m)+")</option>"}).join("")}
-function fbHtml(t){return t.feedback?"<div class='stat' style='margin-top:6px'><b>User feedback:</b> <span style='color:#f5a623'>"+stars(t.feedback.rating)+"</span> "+esc(t.feedback.comment||"")+"</div>":""}
-function rtk(){
- var f=$("tfs").value,q=$("tq").value.toLowerCase(),R=TK.filter(function(t){
-  if(f==="Active"&&!isOpen(t))return false;if(f!=="Active"&&f!=="All"&&t.status!==f)return false;
-  return !q||(ftk(t.id)+" "+JSON.stringify(t)).toLowerCase().indexOf(q)>-1}).sort(function(a,b){return(b.created||0)-(a.created||0)});
- $("tcnt").textContent=R.length+" shown / "+TK.length+" total tickets";
- $("ttb").innerHTML=R.map(function(t){return"<tr><td class='code'>"+esc(ftk(t.id))+"<br><span class='stat'>"+esc(fdt(t.created))+"</span></td><td><b>"+esc(t.assetCode)+"</b><br><span class='stat'>"+esc((t.assetType||"")+" · "+(t.assetLoc||""))+"</span></td><td>"+esc(t.name)+"<br><span class='stat'>"+esc(t.dept)+"</span>"+(t.mobile?"<br><a href='tel:"+esc(t.mobile)+"'>"+esc(t.mobile)+"</a>":"")+"</td><td><b>"+esc(t.category)+" · "+esc(t.priority)+"</b><br>"+esc(t.issue)+mvAdm(t)+"</td><td><select data-k='status'>"+TS.map(function(x){return"<option"+(x===t.status?" selected":"")+">"+x+"</option>"}).join("")+"</select><select data-k='eng' style='margin-top:6px'>"+engOpts(t.eng)+"</select><input data-k='notes' value=\""+esc(t.notes)+"\" placeholder='IT note (visible to user)' style='margin-top:6px'>"+fbHtml(t)+"<div class='bar' style='margin-top:6px'><button class='p' data-tid='"+esc(t.id)+"' data-ta='s'>Save</button>"+admBtns(t)+(ADM?"<button class='d' data-tid='"+esc(t.id)+"' data-ta='x'>Delete</button>":"")+"</div></td></tr>"}).join("")||"<tr><td colspan=5 class='stat'>No tickets.</td></tr>"}
-$("ttb").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||!b.dataset.tid)return;var id=b.dataset.tid;
- if(b.dataset.ta==="s"){var tr=b.closest("tr");var ns=tr.querySelector("[data-k=status]").value,nn=tr.querySelector("[data-k=notes]").value.trim(),ei=tr.querySelector("[data-k=eng]").value,en=ei===""?null:ENG[+ei],old=TK.filter(function(x){return x.id===id})[0]||{};
-  if(ns===old.status&&nn===(old.notes||"")&&(en?en.n:"")===(old.eng||"")){b.textContent="No change";setTimeout(function(){b.textContent="Save"},1200);return}
-  var en2={status:ns,note:nn!==(old.notes||"")?nn:"",at:Date.now()};if(en&&en.n!==(old.eng||""))en2.eng=en.n;
-  fb.actTicket(id,{status:ns,notes:nn,eng:en?en.n:"",engMob:en?en.m:""},en2).then(function(){b.textContent="Saved";setTimeout(function(){b.textContent="Save"},1200)}).catch(function(x){alert("Could not update: "+x.message)})}
- var tk=TK.filter(function(x){return x.id===id})[0];
- if(b.dataset.ta==="ra"&&tk)raOpen(tk);
- if(b.dataset.ta==="gp"&&tk)printGP(tk,find(tk.assetCode)||{});
- if(b.dataset.ta==="rc"&&tk&&confirm("Mark this asset as RECEIVED at IT?\nThe asset status will change to Under Repair."))
-  fb.actTicket(id,{track:Object.assign({},tk.track||{},{rcv:Date.now()})},{status:tk.status,note:"Asset received at IT",at:Date.now()}).then(function(){if(find(tk.assetCode))return fb.setAssetStatus(tk.assetCode,"Under Repair")}).catch(function(x){alert("Could not update: "+x.message)});
- if(b.dataset.ta==="rt"&&tk&&confirm("Mark this asset as RETURNED to the user?\nThe asset status will change back to In Use."))
-  fb.actTicket(id,{track:Object.assign({},tk.track||{},{ret:Date.now()})},{status:tk.status,note:"Asset returned to user",at:Date.now()}).then(function(){if(find(tk.assetCode))return fb.setAssetStatus(tk.assetCode,"In Use")}).catch(function(x){alert("Could not update: "+x.message)});
- if(b.dataset.ta==="x"&&ADM&&confirm("Delete this ticket?"))fb.removeTicket(id).catch(function(x){alert("Could not delete: "+x.message)})});
-["tfs","tq"].forEach(function(i){$(i).oninput=rtk});
-/* ---------- Tickets: export / backup / restore (all statuses, not only the filtered list) ---------- */
-function cq(v){v=v==null?"":String(v);if(/^[=+\-@\t\r]/.test(v))v="'"+v;return'"'+v.replace(/"/g,'""')+'"'}
-$("tcsv").onclick=function(){
- if(!TK.length){alert("No tickets to export.");return}
- var H=["Ticket No","Created","Last Updated","Status","Priority","Category","Asset Code","Asset Type","Company","Asset Location","Reported By","Department","Mobile","Issue","IT Engineer","Engineer Mobile","IT Note","Feedback Rating","Feedback Comment","Movement To","Sent With","Sent On","Repair Type","Party Code","Party Name","Estimated Cost","Approval Date","Gate Pass No","Received At IT","Returned To User","Action History","Ticket ID"],
- L=TK.slice().sort(function(a,b){return(a.created||0)-(b.created||0)}),
- rows=[H.map(cq).join(",")].concat(L.map(function(t){var f=t.feedback||{};return[ftk(t.id),fdt(t.created),t.updated?fdt(t.updated):"",t.status,t.priority,t.category,t.assetCode,t.assetType,t.company,t.assetLoc,t.name,t.dept,t.mobile,t.issue,t.eng,t.engMob,t.notes,f.rating,f.comment,(t.move||{}).dest,(t.move||{}).carrier,(t.move?fdt(t.move.at):""),(t.repair||{}).type,(t.repair||{}).party,(t.repair||{}).partyName,(t.repair||{}).cost,(t.repair||{}).date,(t.repair||{}).gp,((t.track||{}).rcv?fdt(t.track.rcv):""),((t.track||{}).ret?fdt(t.track.ret):""),
-  (t.history||[]).map(function(h){return fdt(h.at)+" "+h.status+(h.eng?" ["+h.eng+"]":"")+(h.note?" - "+h.note:"")}).join(" | "),t.id].map(cq).join(",")}));
- dl("sandeep-tickets-"+new Date().toISOString().slice(0,10)+".csv","\ufeff"+rows.join("\n"),"text/csv")};
-$("tbk").onclick=function(){if(!TK.length){alert("No tickets to back up.");return}dl("sandeep-tickets-backup-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify(TK),"application/json")};
-$("trs").onclick=function(){if(ADM)$("trf").click()};
-$("trf").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){
- try{var d=JSON.parse(r.result);if(!Array.isArray(d)||!d.length)throw 1;
-  d.forEach(function(x){if(!x||typeof x.id!=="string"||x.id.length<10||typeof x.assetCode!=="string"||typeof x.issue!=="string"||TS.indexOf(x.status)<0)throw 1});
-  var c={};d.forEach(function(x){c[x.status]=(c[x.status]||0)+1});
-  if(confirm("Restore "+d.length+" tickets ("+TS.map(function(k){return k+": "+(c[k]||0)}).join(", ")+")?\nEach ticket goes back with the same status, notes, engineer and history. Tickets with the same number will be overwritten."))
-   fb.restoreTickets(d,TK).then(function(){alert("Tickets restored")}).catch(function(x){alert("Restore failed: "+x.message)})
- }catch(x){alert("Invalid tickets backup file.")}};r.readAsText(f);e.target.value=""};
-function tab(t){$("tab_assets").style.display=t==="a"?"":"none";$("tab_tickets").style.display=t==="t"?"":"none";$("nv_a").className=t==="a"?"p":"";$("nv_t").className=t==="t"?"p":""}
-$("nv_a").onclick=function(){tab("a")};$("nv_t").onclick=function(){tab("t")};
-function watchT(){unsubs.push(fb.watchTickets(function(l){TK=l;var o=l.filter(isOpen).length;$("tbadge").textContent=o;document.title=(o?"("+o+") ":"")+"Sandeep Group – Asset Tracker";
- if(seenT){l.forEach(function(t){if(!seenT[t.id]&&isOpen(t))beep()})}seenT={};l.forEach(function(t){seenT[t.id]=1});rtk();if(!window.__sync){window.__sync=1;fb.syncLatest(l)}},function(){}))}
+  fb.watchLatest(a.code, t => {
+    const box = $("tkst");
+    if(!t){ box.style.display = "none"; return; }
+    box.style.display = "block";
+    $("tkview").innerHTML = `<div class="space-y-2 text-xs"><div class="flex justify-between"><span>Ticket ID: <b class="code">${esc(ftk(t.id))}</b></span><span class="badge badge-warning">${esc(t.status)}</span></div><p class="text-[var(--tx-muted)]">${esc(t.issue)}</p></div>`;
+  }, ()=>{});
+}
+
+// Global Auth State Observer
+fb.onAuth(u => {
+  if(u){
+    ADM = (u.email||"").toLowerCase() === ADMIN;
+    ["rs","csv","bk","brm"].forEach(id => { const el = $(id); if(el) el.style.display = ADM ? "" : "none"; });
+    $("bulkb").textContent = ADM ? "Bulk Add/Edit (Excel)" : "Bulk Add (Excel)";
+    $("nv_a").parentNode.style.display = "flex";
+    $("lg").style.display = "none"; $("app").style.display = "block"; $("lo").style.display = "inline-flex";
+    $("mode").textContent = ADM ? "ADMIN NOC MODE" : "OPERATOR MODE";
+    $("mode").className = ADM ? "badge badge-success" : "badge badge-cyan";
+    AUTHED = true;
+    
+    unsubs.push(fb.watchConfig(c => { CFG = c||{}; fillBranch($("f_loc").value); if(ADM){ syncCfg(); bmRender(); } }, ()=>{}));
+    if(ADM){
+      unsubs.push(fb.watch(l => { A = l; fillBranch($("f_loc").value); if(!editId) refresh(); render(); if(!ctrSync){ ctrSync = true; fb.syncCounters(l); } }, e => showToast("Could not load assets: "+e.message, 'error')));
+      watchT();
+    } else { A = []; loadMine(); refresh(); }
+  } else {
+    unsubs.forEach(f => { try{f()}catch(e){} }); unsubs = [];
+    ADM = false; AUTHED = false; ctrSync = false; CFG = {}; A = []; TK = [];
+    $("app").style.display = "none"; $("lo").style.display = "none"; $("lg").style.display = "block";
+  }
+});
+
+// Tab Switcher
+$("nv_a").onclick = () => {
+  $("tab_assets").style.display = "block"; $("tab_tickets").style.display = "none";
+  $("nv_a").className = "p font-semibold rounded-b-none border-b-2";
+  $("nv_t").className = "rounded-b-none border-b-2 border-transparent";
+};
+$("nv_t").onclick = () => {
+  $("tab_assets").style.display = "none"; $("tab_tickets").style.display = "block";
+  $("nv_t").className = "p font-semibold rounded-b-none border-b-2";
+  $("nv_a").className = "rounded-b-none border-b-2 border-transparent";
+};
+
+// URL Query / Path Evaluation
+const pm = location.pathname.match(/\/a\/([^\/]+)/), pq = new URLSearchParams(location.search).get("a"), pcode = pm ? decodeURIComponent(pm[1]) : pq;
+if(pcode){ $("app").style.display="none"; $("lg").style.display="none"; publicView(pcode); }
+
+clearForm(); render();
 </script>
 </body>
 </html>
