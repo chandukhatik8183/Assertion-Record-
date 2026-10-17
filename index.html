@@ -170,7 +170,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);outline-offs
 <div class="g"><div><label>Full name</label><input id="uf_name" maxlength="80" placeholder="e.g. Ramesh Kumar"></div><div><label>Username (used to login)</label><input id="uf_user" maxlength="30" autocapitalize="none" placeholder="e.g. ramesh.kumar"></div><div><label>Password (min 8)</label><input id="uf_pw" type="text" autocomplete="off" maxlength="128"></div><div><label>Role</label><select id="uf_role"><option value="user">User - add assets only</option></select></div></div>
 <div class="bar"><button class="p" id="uf_go">Create user</button><button id="uf_gen">Generate password</button><span class="stat" id="uf_msg"></span></div></section>
 <section><h2>Users</h2><div class="tw"><table style="min-width:620px"><thead><tr><th>Username / name</th><th>Role</th><th>Status</th><th>Last login</th><th></th></tr></thead><tbody id="utb"></tbody></table></div></section>
-<section><h2>Daily backups</h2><p class="stat">A full backup (assets, tickets, audit log, settings) is taken automatically every night at 2:00 AM and the last 30 are kept. Download <b>Assets</b> / <b>Tickets</b> and use the Restore buttons if you ever need to bring data back.</p><div class="bar"><button class="p" id="bkn">Backup now</button><span class="stat" id="bkm"></span></div><div class="tw" style="margin-top:8px"><table style="min-width:560px"><thead><tr><th>Date</th><th>Contains</th><th>Size</th><th>Download</th></tr></thead><tbody id="bktb"></tbody></table></div></section></div>
+<section><h2>Daily backups</h2><p class="stat">A full backup (assets, tickets, audit log, settings) is taken automatically every night at 2:00 AM and the last 30 are kept. Each backup downloads as <b>one single file</b>; use <b>Restore full backup (file)</b> to bring everything back. Backups are stored safely in your Firebase database (collection <b>backups</b>).</p><div class="bar"><button class="p" id="bkn">Backup now</button><button id="bkrs">Restore full backup (file)</button><input type="file" id="bkrf" accept=".json" style="display:none"><span class="stat" id="bkm"></span></div><div class="tw" style="margin-top:8px"><table style="min-width:560px"><thead><tr><th>Date</th><th>Contains</th><th>Size</th><th>Download</th></tr></thead><tbody id="bktb"></tbody></table></div></section></div>
 </main>
 <main id="lg" style="display:none"><section style="max-width:380px;margin:30px auto"><h2>Login</h2><label>Username or e-mail</label><input id="le" autocomplete="username" autocapitalize="none" spellcheck="false"><label style="margin-top:8px">Password</label><input id="lp" type="password" autocomplete="current-password"><div class="bar"><button class="p" id="lb">Login</button></div><div class="stat" id="lerr" style="margin-top:8px"></div><div class="stat" style="margin-top:10px"><a href="#" id="forgot">Forgot password?</a></div></section></main>
 <main id="pub" style="display:none"><section id="pc"></section>
@@ -339,7 +339,7 @@ $("csv").onclick=function(){if(!ADM)return;
  dl("sandeep-assets.csv","\ufeff"+rows.join("\n"),"text/csv")};
 $("bk").onclick=function(){if(!ADM)return;dl("sandeep-assets-backup-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify(A),"application/json")};
 $("rs").onclick=function(){if(ADM)$("rsf").click()};
-$("rsf").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var d=JSON.parse(r.result);if(!Array.isArray(d)||!d.every(function(x){return x&&x.code}))throw 1;if(confirm("Restore "+d.length+" assets from this backup? Assets with the same code will be overwritten."))fb.restore(d).then(function(){alert("Restore complete")}).catch(function(x){alert("Restore failed: "+x.message)})}catch(x){alert("Invalid backup file.")}};r.readAsText(f);e.target.value=""};
+$("rsf").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var d=JSON.parse(r.result);if(d&&!Array.isArray(d)&&d.assets)d=d.assets;if(!Array.isArray(d)||!d.every(function(x){return x&&x.code}))throw 1;if(confirm("Restore "+d.length+" assets from this backup? Assets with the same code will be overwritten."))fb.restore(d).then(function(){alert("Restore complete")}).catch(function(x){alert("Restore failed: "+x.message)})}catch(x){alert("Invalid backup file.")}};r.readAsText(f);e.target.value=""};
 /* BULK-START ---------- Bulk add / edit from Excel (.xlsx) or CSV ---------- */
 var BH=["code","company","loc","type"].concat(BK.filter(function(k){return k!=="loc"}),SK,["acc","accOther","cond"]),
 BL=Object.assign({},L,{acc:"Accessories (separate with ;)",accOther:"Other Accessory",cond:"Condition at Handover"}),
@@ -695,7 +695,7 @@ $("tcsv").onclick=function(){
 $("tbk").onclick=function(){if(!TK.length){alert("No tickets to back up.");return}dl("sandeep-tickets-backup-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify(TK),"application/json")};
 $("trs").onclick=function(){if(ADM)$("trf").click()};
 $("trf").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){
- try{var d=JSON.parse(r.result);if(!Array.isArray(d)||!d.length)throw 1;
+ try{var d=JSON.parse(r.result);if(d&&!Array.isArray(d)&&d.tickets)d=d.tickets;if(!Array.isArray(d)||!d.length)throw 1;
   d.forEach(function(x){if(!x||typeof x.id!=="string"||x.id.length<10||typeof x.assetCode!=="string"||typeof x.issue!=="string"||TS.indexOf(x.status)<0)throw 1});
   var c={};d.forEach(function(x){c[x.status]=(c[x.status]||0)+1});
   if(confirm("Restore "+d.length+" tickets ("+TS.map(function(k){return k+": "+(c[k]||0)}).join(", ")+")?\nEach ticket goes back with the same status, notes, engineer and history. Tickets with the same number will be overwritten."))
@@ -953,9 +953,20 @@ $("rp_xl").onclick=function(){var d=repData();if(!d||!xlOk())return;xlGo(functio
 
 /* ================= v4: backups (admin) ================= */
 function loadBackups(){if(!ADM)return;$("bktb").innerHTML="<tr><td colspan='4' class='stat'>Loading...</td></tr>";
- fb.backupApi("list").then(function(r){$("bktb").innerHTML=(r.backups||[]).map(function(b){var d=esc(b.date);return"<tr><td><b>"+d+"</b><br><span class='stat'>"+esc(fdt(b.at))+" · "+esc(uname(b.by))+"</span></td><td>"+b.assets+" assets · "+b.tickets+" tickets · "+b.audit+" log lines</td><td>"+Math.round(b.bytes/1024)+" KB</td><td style='white-space:nowrap'><button data-bk='"+d+"' data-w='assets'>Assets</button> <button data-bk='"+d+"' data-w='tickets'>Tickets</button> <button data-bk='"+d+"' data-w='audit'>Audit log</button></td></tr>"}).join("")||"<tr><td colspan='4' class='stat'>No backup yet. Click <b>Backup now</b>.</td></tr>"}).catch(function(e){$("bktb").innerHTML="<tr><td colspan='4' class='stat'>"+esc(e.message)+"</td></tr>"})}
+ fb.backupApi("list").then(function(r){$("bktb").innerHTML=(r.backups||[]).map(function(b){var d=esc(b.date);return"<tr><td><b>"+d+"</b><br><span class='stat'>"+esc(fdt(b.at))+" · "+esc(uname(b.by))+"</span></td><td>"+b.assets+" assets · "+b.tickets+" tickets · "+b.audit+" log lines</td><td>"+Math.round(b.bytes/1024)+" KB</td><td style='white-space:nowrap'><button class='p' data-bk='"+d+"'>Download full backup</button></td></tr>"}).join("")||"<tr><td colspan='4' class='stat'>No backup yet. Click <b>Backup now</b>.</td></tr>"}).catch(function(e){$("bktb").innerHTML="<tr><td colspan='4' class='stat'>"+esc(e.message)+"</td></tr>"})}
 $("bkn").onclick=function(){var b=this,m=$("bkm");b.disabled=true;m.textContent="Taking backup...";fb.backupApi("run").then(function(r){b.disabled=false;m.textContent="Backup done: "+r.assets+" assets, "+r.tickets+" tickets.";loadBackups()}).catch(function(e){b.disabled=false;m.textContent=e.message})};
-$("bktb").addEventListener("click",function(e){var b=e.target.closest("button[data-bk]");if(!b)return;var w=b.dataset.w,dt=b.dataset.bk;b.disabled=true;fb.backupApi("get",{date:dt,what:w}).then(function(r){b.disabled=false;dl("sandeep-"+w+"-backup-"+dt+".json",JSON.stringify(r.list),"application/json")}).catch(function(x){b.disabled=false;alert(x.message)})});
+$("bktb").addEventListener("click",function(e){var b=e.target.closest("button[data-bk]");if(!b)return;var dt=b.dataset.bk;b.disabled=true;b.textContent="Preparing...";
+ fb.backupApi("getAll",{date:dt}).then(function(r){var raw=atob(r.b64),u=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)u[i]=raw.charCodeAt(i);
+  if(self.fflate){var txt=fflate.strFromU8(fflate.gunzipSync(u)),o=JSON.parse(txt);o.app="asset-tracker";o.version=2;o.date=dt;dl("sandeep-FULL-backup-"+dt+".json",JSON.stringify(o),"application/json")}
+  else dl("sandeep-FULL-backup-"+dt+".json.gz",u,"application/gzip");
+  b.disabled=false;b.textContent="Download full backup"}).catch(function(x){b.disabled=false;b.textContent="Download full backup";alert(x.message)})});
+/* restore ONE full backup file (assets + tickets) */
+$("bkrs").onclick=function(){$("bkrf").click()};
+$("bkrf").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var d=JSON.parse(r.result);if(!d||d.app!=="asset-tracker")throw 1;var as=d.assets||[],tk=d.tickets||[];
+  as.forEach(function(x){if(!x||!x.code)throw 1});tk.forEach(function(x){if(!x||typeof x.id!=="string"||x.id.length<10||typeof x.assetCode!=="string")throw 1});
+  if(confirm("Restore this FULL backup ("+(d.date||"")+")?\n\nAssets: "+as.length+"\nTickets: "+tk.length+"\n\nItems with the same code / ticket number will be overwritten. Nothing is deleted."))
+   fb.restore(as).then(function(){return tk.length?fb.restoreTickets(tk,TK):0}).then(function(){alert("Full backup restored.")}).catch(function(x){alert("Restore failed: "+x.message)})
+ }catch(x){alert("This is not a full backup file made by this app.")}};r.readAsText(f);e.target.value=""};
 
 /* ================= v4: photos on tickets ================= */
 var PH=[];

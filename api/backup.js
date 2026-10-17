@@ -60,6 +60,13 @@ module.exports = async (req, res) => {
       return res.json({ backups: s.docs.map(d => d.data()) });
     }
     if (b.action === "run") return res.json({ ok: true, ...(await runBackup(dec.email)) });
+    if (b.action === "getAll") {   // whole backup as ONE gzip(base64) - the browser unpacks it into a single .json file
+      const date = String(b.date || "");
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: "Bad request." });
+      const parts = await db.collection("backups").doc(date).collection("parts").orderBy("i").get();
+      if (parts.empty) return res.status(404).json({ error: "Backup not found." });
+      return res.json({ b64: parts.docs.map(d => d.data().d).join("") });
+    }
     if (b.action === "get") {
       const date = String(b.date || ""), what = String(b.what || "assets");
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !["assets", "tickets", "audit", "stockaudits"].includes(what)) return res.status(400).json({ error: "Bad request." });

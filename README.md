@@ -65,3 +65,8 @@ Dashboard (totals, assets by company/type, latest tickets), digital gate passes 
 1. **Publish the new `firestore.rules`** (audit log, stock audits, ticket photos).
 2. Vercel -> Environment Variables: add `CRON_SECRET` = any long random text (Vercel sends it to the nightly backup). `FIREBASE_SERVICE_ACCOUNT` must already be set. Redeploy.
 3. Camera scanning needs the site to be opened with https (Vercel is) and camera permission allowed. Chrome on Android scans QR + barcode directly; other browsers load a small QR library from cdnjs.
+
+## Backup: one file + where it is stored
+* Every night at 2:00 AM (India time) and on **Backup now**, the whole data (assets, tickets, audit log, stock audits, settings) is saved inside **your Firebase database**: Firebase console -> Firestore Database -> collection **backups** (one document per date, last 30 kept). It is not stored on your PC.
+* Users & Backup tab -> **Download full backup** gives ONE file `sandeep-FULL-backup-DATE.json`. Keep a copy on your PC / Google Drive now and then (a backup inside the same Firebase project cannot help if the project itself is deleted).
+* **Restore full backup (file)** puts assets and tickets back from that one file (nothing is deleted, same codes are overwritten).
