@@ -74,7 +74,7 @@ service cloud.firestore {
     match /tickets/{id} {
       // Anyone who scans the QR can raise a ticket for a REAL asset (strict checks).
       // Admin can also create any ticket (needed for Restore).
-      allow create: if isAdmin() || (request.resource.data.keys().hasOnly(['id','assetCode','assetType','assetLoc','company','name','dept','mobile','category','priority','issue','status','notes','created','move'])
+      allow create: if isAdmin() || (request.resource.data.keys().hasOnly(['id','assetCode','assetType','assetLoc','company','name','dept','mobile','category','priority','issue','status','notes','created','move','photos'])
         && request.resource.data.id == id
         && id.size() >= 10 && id.size() <= 40
         && request.resource.data.assetCode is string
@@ -93,6 +93,12 @@ service cloud.firestore {
         && request.resource.data.issue is string
         && request.resource.data.issue.size() >= 5 && request.resource.data.issue.size() <= 1000
         && request.resource.data.status == 'Open'
+        // optional photos (small compressed JPEG data-URLs, max 3)
+        && (!('photos' in request.resource.data) || (request.resource.data.photos is list
+          && request.resource.data.photos.size() >= 1 && request.resource.data.photos.size() <= 3
+          && request.resource.data.photos[0] is string && request.resource.data.photos[0].size() <= 160000
+          && (request.resource.data.photos.size() < 2 || (request.resource.data.photos[1] is string && request.resource.data.photos[1].size() <= 160000))
+          && (request.resource.data.photos.size() < 3 || (request.resource.data.photos[2] is string && request.resource.data.photos[2].size() <= 160000))))
         // optional asset-movement request (where the asset is sent, with whom, when)
         && (!('move' in request.resource.data) || (request.resource.data.move is map
           && request.resource.data.move.keys().hasOnly(['dest','carrier','at'])
@@ -127,6 +133,26 @@ service cloud.firestore {
         && getAfter(/databases/$(database)/documents/tickets/$(request.resource.data.ticketId)).data.created == request.resource.data.at);
       allow delete: if isAdmin();
     }
+
+    // ---------- AUDIT LOG: every logged-in user can only ADD a line about himself; only admin can read; nobody can change or delete ----------
+    match /audit/{id} {
+      allow create: if (isAdmin() || isAddOnly())
+        && request.resource.data.keys().hasOnly(['at','by','action','code','detail'])
+        && request.resource.data.by == request.auth.token.email
+        && request.resource.data.at is number
+        && request.resource.data.action is string && request.resource.data.action.size() <= 40
+        && request.resource.data.code is string && request.resource.data.code.size() <= 40
+        && request.resource.data.detail is string && request.resource.data.detail.size() <= 600;
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // ---------- STOCK AUDITS (admin only) ----------
+    match /stockaudits/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    // Daily backups are written/read only by the server (api/backup.js) - closed to the browser.
 
     // everything else is closed
   }

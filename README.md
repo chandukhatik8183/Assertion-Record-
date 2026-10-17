@@ -48,3 +48,20 @@ Add a user with Full name + Username + Password (or *Generate password*). Role: 
 
 ## Digital
 Dashboard (totals, assets by company/type, latest tickets), digital gate passes / return gate passes / handover forms that open on screen (Print / Save as PDF only if needed), installable as an app on phone (Add to Home screen).
+
+## v4 - new features (admin unless written otherwise)
+* **Audit log** (tab *Audit Log*): every asset add / edit (old -> new values) / delete / status change / assign / return / Excel upload is recorded with user and time. Nobody can edit or delete these lines (see rules).
+* **Daily automatic backup** (tab *Users & Backup*): every night 2:00 AM (cron in `vercel.json`), last 30 kept, download Assets / Tickets / Audit log as JSON (Assets and Tickets files work with the Restore buttons). *Backup now* button for a manual backup.
+* **Asset history** (button *History* on an asset): audit lines + tickets + movement + repair + return in one timeline.
+* **Warranty alerts**: uses the existing *Warranty Till* (and Monitor warranty) date. Dashboard shows assets ending within 30 days or expired; the asset list shows a badge.
+* **Asset assignment**: *Assign* / *Receive back* on an asset -> digital handover / return receipt (employee acceptance recorded on screen). Tab *Employees* lists every employee with their assets and a printable list.
+* **Camera QR scan**: header button *Scan QR* (every logged-in user). Admin: opens the asset detail. Add-only user: opens the asset page.
+* **Stock audit** (tab *Stock Audit*): choose branch, scan assets (camera or code + Enter), finish -> report of assets NOT found and extra assets; saved in history.
+* **Photos on tickets**: the user can attach up to 3 photos (compressed in the browser) when raising a ticket; shown to IT and in the ticket status page.
+* **Monthly report** (tab *Reports*): tickets, assets with problems, repairs, repair cost (final cost is asked when you *Return to user*; else the cost from Repair Approval), tickets by branch / issue type. Print / PDF and Excel.
+* **Auto logout**: add-only users are logged out after 15 minutes without use (warning at 14 minutes).
+
+### One-time setup for v4
+1. **Publish the new `firestore.rules`** (audit log, stock audits, ticket photos).
+2. Vercel -> Environment Variables: add `CRON_SECRET` = any long random text (Vercel sends it to the nightly backup). `FIREBASE_SERVICE_ACCOUNT` must already be set. Redeploy.
+3. Camera scanning needs the site to be opened with https (Vercel is) and camera permission allowed. Chrome on Android scans QR + barcode directly; other browsers load a small QR library from cdnjs.

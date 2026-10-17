@@ -108,13 +108,17 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);outline-offs
 .g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}.bars .br{display:grid;grid-template-columns:minmax(90px,150px) 1fr 34px;gap:8px;align-items:center;margin:6px 0;font-size:13px}.bars .bt{height:10px;border-radius:99px;background:var(--bg);border:1px solid var(--bd);overflow:hidden}.bars .bt i{display:block;height:100%;background:linear-gradient(90deg,#1d4ed8,#0ea5e9)}
 .gpv .ck span{display:inline-block;margin-right:14px}.gpv ol{margin:4px 0;padding-left:18px}.gpv .at th{width:auto}
 #nv_d,#nv_a,#nv_t,#nv_u{border-radius:99px;padding:8px 16px}
+
+#scan{position:fixed;inset:0;background:#000;z-index:100;display:none;flex-direction:column}#scan video{flex:1;min-height:0;width:100%;object-fit:cover}.scb{padding:12px 12px calc(12px + env(safe-area-inset-bottom,0px));background:#111}
+#idlew{display:none;position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:120;background:#b45309;color:#fff;padding:12px 14px;border-radius:12px;font-size:14px;box-shadow:0 6px 24px rgba(0,0,0,.3)}
+.thm{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--bd);margin:0 6px 6px 0;cursor:pointer;vertical-align:top}.phw{display:inline-block;position:relative}.phw button{position:absolute;right:6px;top:-4px;padding:0 6px;border-radius:99px;line-height:18px}
 </style>
 </head>
 <body>
-<header><h1>Sandeep Group – Digital Asset Tracker</h1><p>Desktop, Laptop, Networking, Server, Printer, Biometric, Mobile, Tablet, ISP, UPS – asset code, configuration, location, QR + barcode <span class="badge" id="mode">…</span> <button id="lo" style="display:none;padding:2px 8px;margin-left:6px">Logout</button><button id="cpw" style="display:none;padding:2px 8px;margin-left:6px">Password</button></p></header>
+<header><h1>Sandeep Group – Digital Asset Tracker</h1><p>Desktop, Laptop, Networking, Server, Printer, Biometric, Mobile, Tablet, ISP, UPS – asset code, configuration, location, QR + barcode <span class="badge" id="mode">…</span> <button id="lo" style="display:none;padding:2px 8px;margin-left:6px">Logout</button><button id="scanb" style="display:none;padding:2px 8px;margin-left:6px">Scan QR</button><button id="cpw" style="display:none;padding:2px 8px;margin-left:6px">Password</button></p></header>
 <main id="app" style="display:none">
 <section id="det"></section>
-<div class="bar" style="margin:0 0 12px"><button id="nv_d">Dashboard</button><button class="p" id="nv_a">Assets</button><button id="nv_t">Tickets <span class="badge" id="tbadge">0</span></button><button id="nv_u">Users</button></div>
+<div class="bar" style="margin:0 0 12px"><button id="nv_d">Dashboard</button><button class="p" id="nv_a">Assets</button><button id="nv_t">Tickets <span class="badge" id="tbadge">0</span></button><button id="nv_e">Employees</button><button id="nv_s">Stock Audit</button><button id="nv_r">Reports</button><button id="nv_l">Audit Log</button><button id="nv_u">Users &amp; Backup</button></div>
 <div id="tab_assets">
 
 <section>
@@ -152,11 +156,21 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);outline-offs
 <div class="tw"><table><thead><tr><th>Ticket</th><th>Asset</th><th>Reported by</th><th>Issue</th><th>Status / IT note</th></tr></thead><tbody id="ttb"></tbody></table></div></section></div>
 <div id="tab_dashboard" style="display:none"><section><h2>Dashboard</h2><div class="kp" id="kp"></div></section>
 <div class="g2"><section><h2>Assets by company</h2><div class="bars" id="bco"></div></section><section><h2>Assets by type</h2><div class="bars" id="bty"></div></section></div>
-<section><h2>Latest tickets &amp; movements</h2><div class="tw"><table style="min-width:520px"><thead><tr><th>Ticket</th><th>Asset</th><th>Stage</th><th>When</th></tr></thead><tbody id="dtb"></tbody></table></div></section></div>
+<section><h2>Latest tickets &amp; movements</h2><div class="tw"><table style="min-width:520px"><thead><tr><th>Ticket</th><th>Asset</th><th>Stage</th><th>When</th></tr></thead><tbody id="dtb"></tbody></table></div></section>
+<section><h2>Warranty alerts (ending within 30 days, or expired)</h2><div class="tw"><table style="min-width:620px"><thead><tr><th>Asset</th><th>Item</th><th>Branch / user</th><th>Warranty till</th><th>Status</th></tr></thead><tbody id="wtb"></tbody></table></div></section></div>
+<div id="tab_employees" style="display:none"><section><h2>Employees &amp; their assets</h2><div class="g"><div><label>Search employee / department / asset</label><input id="em_q" placeholder="employee name, department, asset code..."></div></div><div class="stat" id="em_cnt" style="margin:8px 0"></div><div class="tw"><table style="min-width:640px"><thead><tr><th>Employee</th><th>Assets issued</th><th></th></tr></thead><tbody id="em_tb"></tbody></table></div></section></div>
+<div id="tab_stock" style="display:none"><section id="sa_setup"><h2>Stock Audit</h2><p class="stat">Choose the branch, then scan every asset with the camera (or type / scan the code and press Enter). At the end you get the list of assets that were <b>not found</b>.</p><div class="g"><div><label>Company</label><select id="sa_co"></select></div><div><label>Branch</label><select id="sa_loc"></select></div></div><div class="bar"><button class="p" id="sa_go">Start audit</button></div></section>
+<section id="sa_run" style="display:none"><h2 id="sa_t"></h2><div class="kp" id="sa_kp"></div><div class="bar"><button class="p" id="sa_scan">Scan with camera</button><input id="sa_in" placeholder="Type / scan code, press Enter" style="max-width:260px"><button id="sa_fin">Finish &amp; save</button><button class="d" id="sa_can">Cancel</button></div><div class="stat" id="sa_msg" style="margin:8px 0"></div><div class="tw"><table style="min-width:560px"><thead><tr><th>Found</th><th>Asset</th><th>Location / user</th></tr></thead><tbody id="sa_tb"></tbody></table></div><div id="sa_ex"></div></section>
+<section><h2>Previous stock audits</h2><div class="tw"><table style="min-width:560px"><thead><tr><th>Date</th><th>Branch</th><th>Found / Total</th><th>By</th><th></th></tr></thead><tbody id="sa_hist"></tbody></table></div></section></div>
+<div id="tab_reports" style="display:none"><section><h2>Monthly Report</h2><div class="g"><div><label>Month</label><input type="month" id="rp_m"></div></div><div class="bar"><button class="p" id="rp_pdf">Print / Save as PDF</button><button id="rp_xl">Download Excel</button></div><div class="kp" id="rp_kp" style="margin-top:12px"></div></section>
+<div class="g2"><section><h2>Tickets by branch</h2><div class="bars" id="rp_br"></div></section><section><h2>Tickets by issue type</h2><div class="bars" id="rp_cat"></div></section></div>
+<section><h2>Tickets &amp; repair cost of the month</h2><div class="tw"><table style="min-width:720px"><thead><tr><th>Ticket</th><th>Asset / branch</th><th>Issue</th><th>Stage</th><th>Cost (Rs)</th></tr></thead><tbody id="rp_tb"></tbody></table></div></section></div>
+<div id="tab_audit" style="display:none"><section><h2>Audit Log</h2><p class="stat">Latest 300 actions. Nobody can edit or delete these lines.</p><div class="g"><div><label>Search</label><input id="au_q" placeholder="user, asset code, text..."></div><div><label>Action</label><select id="au_a"></select></div></div><div class="stat" id="au_cnt" style="margin:8px 0"></div><div class="tw"><table style="min-width:720px"><thead><tr><th>When</th><th>User</th><th>Action</th><th>Asset</th><th>Details</th></tr></thead><tbody id="au_tb"></tbody></table></div></section></div>
 <div id="tab_users" style="display:none"><section><h2>Add User</h2><p class="stat">The user logs in with this <b>username</b> and password (no e-mail needed). Role: add assets only - cannot edit, delete, export or see tickets.</p>
 <div class="g"><div><label>Full name</label><input id="uf_name" maxlength="80" placeholder="e.g. Ramesh Kumar"></div><div><label>Username (used to login)</label><input id="uf_user" maxlength="30" autocapitalize="none" placeholder="e.g. ramesh.kumar"></div><div><label>Password (min 8)</label><input id="uf_pw" type="text" autocomplete="off" maxlength="128"></div><div><label>Role</label><select id="uf_role"><option value="user">User - add assets only</option></select></div></div>
 <div class="bar"><button class="p" id="uf_go">Create user</button><button id="uf_gen">Generate password</button><span class="stat" id="uf_msg"></span></div></section>
-<section><h2>Users</h2><div class="tw"><table style="min-width:620px"><thead><tr><th>Username / name</th><th>Role</th><th>Status</th><th>Last login</th><th></th></tr></thead><tbody id="utb"></tbody></table></div></section></div>
+<section><h2>Users</h2><div class="tw"><table style="min-width:620px"><thead><tr><th>Username / name</th><th>Role</th><th>Status</th><th>Last login</th><th></th></tr></thead><tbody id="utb"></tbody></table></div></section>
+<section><h2>Daily backups</h2><p class="stat">A full backup (assets, tickets, audit log, settings) is taken automatically every night at 2:00 AM and the last 30 are kept. Download <b>Assets</b> / <b>Tickets</b> and use the Restore buttons if you ever need to bring data back.</p><div class="bar"><button class="p" id="bkn">Backup now</button><span class="stat" id="bkm"></span></div><div class="tw" style="margin-top:8px"><table style="min-width:560px"><thead><tr><th>Date</th><th>Contains</th><th>Size</th><th>Download</th></tr></thead><tbody id="bktb"></tbody></table></div></section></div>
 </main>
 <main id="lg" style="display:none"><section style="max-width:380px;margin:30px auto"><h2>Login</h2><label>Username or e-mail</label><input id="le" autocomplete="username" autocapitalize="none" spellcheck="false"><label style="margin-top:8px">Password</label><input id="lp" type="password" autocomplete="current-password"><div class="bar"><button class="p" id="lb">Login</button></div><div class="stat" id="lerr" style="margin-top:8px"></div><div class="stat" style="margin-top:10px"><a href="#" id="forgot">Forgot password?</a></div></section></main>
 <main id="pub" style="display:none"><section id="pc"></section>
@@ -168,6 +182,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);outline-offs
 <div><label>Issue type</label><select id="t_cat"></select></div>
 <div><label>Priority</label><select id="t_pri"></select></div></div>
 <div style="margin-top:10px"><label>Describe the problem *</label><textarea id="t_issue" rows="4" maxlength="1000" placeholder="Describe the problem (at least 5 characters)"></textarea></div>
+<div style="margin-top:10px"><label>Photos of the problem (optional, up to 3)</label><input id="t_ph" type="file" accept="image/*" multiple><div id="t_phv" style="margin-top:6px"></div></div>
 <input id="t_hp" style="display:none" tabindex="-1" autocomplete="off">
 <div class="bar"><button class="p" id="t_go">Submit ticket</button></div><div class="stat" id="t_msg" style="margin-top:8px"></div></div>
 <div id="tkdone" style="display:none"></div></section>
@@ -184,6 +199,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);outline-offs
 <input id="mv_hp" style="display:none" tabindex="-1" autocomplete="off">
 <div class="bar"><button class="p" id="mv_go">Submit request</button><button id="mv_x">Cancel</button></div><div class="stat" id="mv_msg" style="margin-top:8px"></div></div>
 <div id="mvdone" style="display:none"></div></section></main>
+<div id="scan"><video id="sc_v" muted playsinline></video><canvas id="sc_c" style="display:none"></canvas><div class="scb"><div id="sc_msg" class="stat" style="color:#fff;min-height:20px"></div><div class="bar" style="margin-top:6px"><input id="sc_in" placeholder="or type the asset code" autocapitalize="characters" style="max-width:240px"><button class="p" id="sc_ok">Go</button><button id="sc_x">Close</button></div></div></div>
+<div id="idlew">You will be logged out in 1 minute because you are not using the page. Touch the screen to stay logged in.</div>
 <div id="labels"></div><div id="hform"></div>
 <div id="bulk" style="display:none;position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:60;overflow:auto"><div id="bulkc" style="max-width:780px;margin:24px auto;padding:18px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:12px"></div></div>
 <script type="module">
@@ -275,14 +292,14 @@ function filtered(){
  var q=$("q").value.toLowerCase(),c=$("fco").value,t=$("fty").value,s=$("fst").value;
  return A.filter(function(a){if(c&&a.company!==c)return false;if(t&&a.type!==t)return false;if(s&&a.st!==s)return false;return !q||JSON.stringify(a).toLowerCase().indexOf(q)>-1}).sort(function(a,b){return a.code<b.code?-1:1})}
 function conf(a){if(!T[a.type])return"";var p=T[a.type][1].filter(function(k){return MK.indexOf(k)<0}).map(function(k){return a[k]}).filter(Boolean);if(a.mon_model||a.mon_sn)p.push("Monitor: "+[a.mon_model,a.mon_sn?"SN "+a.mon_sn:""].filter(Boolean).join(" "));return p.join(" | ")}
-function render(){rdash();
+function render(){rdash();remp();
  var R=filtered();$("cnt").textContent=ADM?R.length+" / "+A.length+" assets":A.length+" asset(s) added in this session";
- $("tb").innerHTML=R.map(function(a){var i=esc(a.code);return"<tr><td class='code'>"+i+"</td><td>"+esc(a.company)+"</td><td>"+esc(a.type)+"<br><span class='stat'>"+esc(a.model)+(a.sn?" · SN "+esc(a.sn):"")+"</span></td><td>"+esc(conf(a))+"</td><td>"+esc(a.loc)+(a.aloc?" – "+esc(a.aloc):"")+"<br><span class='stat'>"+esc([a.dept,a.usr].filter(Boolean).join(" · "))+"</span></td><td>"+esc(a.st)+"</td><td style='white-space:nowrap'><button data-a='v' data-c='"+i+"'>Detail</button> <button data-a='l' data-c='"+i+"'>Label</button> <button data-a='h' data-c='"+i+"'>Handover</button> "+(ADM?"<button data-a='e' data-c='"+i+"'>Edit</button> <button class='d' data-a='x' data-c='"+i+"'>Del</button>":"")+"</td></tr>"}).join("")||"<tr><td colspan=7 class='stat'>No assets found.</td></tr>"}
+ $("tb").innerHTML=R.map(function(a){var i=esc(a.code);return"<tr><td class='code'>"+i+"</td><td>"+esc(a.company)+"</td><td>"+esc(a.type)+"<br><span class='stat'>"+esc(a.model)+(a.sn?" · SN "+esc(a.sn):"")+"</span></td><td>"+esc(conf(a))+"</td><td>"+esc(a.loc)+(a.aloc?" – "+esc(a.aloc):"")+"<br><span class='stat'>"+esc([a.dept,a.usr].filter(Boolean).join(" · "))+"</span></td><td>"+esc(a.st)+warnBadge(a)+"</td><td style='white-space:nowrap'><button data-a='v' data-c='"+i+"'>Detail</button> <button data-a='l' data-c='"+i+"'>Label</button> <button data-a='h' data-c='"+i+"'>Handover</button> "+(ADM?"<button data-a='hi' data-c='"+i+"'>History</button> <button data-a='as' data-c='"+i+"'>Assign</button> "+(a.usr?"<button data-a='rb' data-c='"+i+"'>Receive back</button> ":"")+"<button data-a='e' data-c='"+i+"'>Edit</button> <button class='d' data-a='x' data-c='"+i+"'>Del</button>":"")+"</td></tr>"}).join("")||"<tr><td colspan=7 class='stat'>No assets found.</td></tr>"}
 function detail(a){
  var ks=["company","type","code"].concat(keysOf(a.type)),h="<h2>Asset Detail – "+esc(a.code)+"</h2><div class='g'><dl>";
  ks.forEach(function(k){if(a[k])h+="<dt>"+esc(lab(k,a.type))+"</dt><dd>"+esc(a[k])+"</dd>"});
  accLines(a).forEach(function(r){h+="<dt>Accessory – "+esc(r[0])+"</dt><dd>"+esc(r[1]||"Issued")+"</dd>"});if(a.cond)h+="<dt>Condition at Handover</dt><dd>"+esc(a.cond)+"</dd>";
- h+="</dl><div class='codes' style='margin:0'><div class='qr'>"+qrSvg(a.code,4)+"</div><svg id='dbc'></svg></div></div><div class='bar'><button class='p' data-a='l' data-c='"+esc(a.code)+"'>Label Print</button><button data-a='h' data-c='"+esc(a.code)+"'>Handover Form</button>"+(ADM?"<button data-a='e' data-c='"+esc(a.code)+"'>Edit</button>":"")+"<button id='dx'>Close</button></div>";
+ h+="</dl><div class='codes' style='margin:0'><div class='qr'>"+qrSvg(a.code,4)+"</div><svg id='dbc'></svg></div></div><div class='bar'><button class='p' data-a='l' data-c='"+esc(a.code)+"'>Label Print</button><button data-a='h' data-c='"+esc(a.code)+"'>Handover Form</button>"+(ADM?"<button data-a='hi' data-c='"+esc(a.code)+"'>History</button><button data-a='as' data-c='"+esc(a.code)+"'>Assign</button>"+(a.usr?"<button data-a='rb' data-c='"+esc(a.code)+"'>Receive back</button>":"")+"<button data-a='e' data-c='"+esc(a.code)+"'>Edit</button>":"")+"<button id='dx'>Close</button></div>";
  var d=$("det");d.innerHTML=h;d.style.display="block";bar("#dbc",a.code);$("dx").onclick=function(){d.style.display="none"};window.scrollTo(0,0)}
 function printLabels(R){
  if(!R.length){alert("No assets to print.");return}
@@ -488,11 +505,11 @@ function publicView(c){
 var pm=location.pathname.match(/\/a\/([^\/]+)/),pq=new URLSearchParams(location.search).get("a"),pcode=pm?decodeURIComponent(pm[1]):pq;
 if(pcode){publicView(pcode)}else{
  fb.onAuth(function(u){
-  if(u){ADM=(u.email||"").toLowerCase()===ADMIN;["rs","csv","bk","brm"].forEach(function(id){$(id).style.display=ADM?"":"none"});$("bulkb").textContent=ADM?"Bulk Add/Edit (Excel)":"Bulk Add (Excel)";$("nv_a").parentNode.style.display=ADM?"":"none";$("lg").style.display="none";$("app").style.display="";$("lo").style.display="";$("cpw").style.display="";$("cpw").textContent=ADM?"Reset password (e-mail)":"Change password";$("mode").textContent=uname(u.email)+(ADM?" (Admin)":" (User · add only)");
-   AUTHED=true;ME=u.email||"";tab(ADM?"d":"a");unsubs.push(fb.watchConfig(function(c){CFG=c||{};fillBranch($("f_loc").value);if(ADM){syncCfg();bmRender()}},function(){}));
+  if(u){ADM=(u.email||"").toLowerCase()===ADMIN;["rs","csv","bk","brm"].forEach(function(id){$(id).style.display=ADM?"":"none"});$("bulkb").textContent=ADM?"Bulk Add/Edit (Excel)":"Bulk Add (Excel)";$("nv_a").parentNode.style.display=ADM?"":"none";$("lg").style.display="none";$("app").style.display="";$("lo").style.display="";$("scanb").style.display="";$("cpw").style.display="";$("cpw").textContent=ADM?"Reset password (e-mail)":"Change password";$("mode").textContent=uname(u.email)+(ADM?" (Admin)":" (User · add only)");
+   AUTHED=true;ME=u.email||"";tab(ADM?"d":"a");idleReset(true);unsubs.push(fb.watchConfig(function(c){CFG=c||{};fillBranch($("f_loc").value);if(ADM){syncCfg();bmRender()}},function(){}));
    if(ADM){unsubs.push(fb.watch(function(l){A=l;fillBranch($("f_loc").value);if(!editId)refresh();render();if(!ctrSync){ctrSync=true;fb.syncCounters(l)}},function(e){alert("Could not load assets: "+e.message)}));watchT()}
    else{A=[];loadMine();refresh()}}
-  else{unsubs.forEach(function(f){try{f()}catch(e){}});unsubs=[];ADM=false;AUTHED=false;ctrSync=false;CFG={};window.__sync=0;try{sessionStorage.removeItem("mine_codes")}catch(e){}A=[];TK=[];$("app").style.display="none";$("lo").style.display="none";$("cpw").style.display="none";ME="";$("lg").style.display=""}})}
+  else{unsubs.forEach(function(f){try{f()}catch(e){}});unsubs=[];ADM=false;AUTHED=false;ctrSync=false;CFG={};window.__sync=0;try{sessionStorage.removeItem("mine_codes")}catch(e){}A=[];TK=[];$("app").style.display="none";$("lo").style.display="none";$("cpw").style.display="none";$("scanb").style.display="none";ME="";saW=false;auW=false;idleReset(true);$("lg").style.display=""}})}
 
 /* ---------- Support tickets ---------- */
 var TK=[],PA=null,TS=["Open","In Progress","Resolved","Closed"],seenT=null;
@@ -509,10 +526,10 @@ $("t_go").onclick=function(){
  if(is.length<5){m.textContent="Please describe the problem in at least 5 characters (you typed "+is.length+").";return}
  var last=0;try{last=+localStorage.getItem("tk_last")||0}catch(e){}
  if(Date.now()-last<60000){m.textContent="Please wait a minute before sending another ticket.";return}
- var t={id:tid(),assetCode:PA.code,assetType:PA.type||"",assetLoc:(PA.loc||"")+(PA.aloc?" / "+PA.aloc:""),company:PA.company||"",name:n,dept:$("t_dept").value.trim(),mobile:$("t_mob").value.trim(),category:$("t_cat").value,priority:$("t_pri").value,issue:is,status:"Open",notes:"",created:Date.now()};
+ var t={id:tid(),assetCode:PA.code,assetType:PA.type||"",assetLoc:(PA.loc||"")+(PA.aloc?" / "+PA.aloc:""),company:PA.company||"",name:n,dept:$("t_dept").value.trim(),mobile:$("t_mob").value.trim(),category:$("t_cat").value,priority:$("t_pri").value,issue:is,status:"Open",notes:"",created:Date.now()};if(PH.length)t.photos=PH.slice();
  $("t_go").disabled=true;
  fb.createTicket(t).then(function(){try{localStorage.setItem("tk_last",String(Date.now()))}catch(e){}
-  $("tkf").style.display="none";$("tkdone").style.display="";
+  PH=[];$("t_phv").innerHTML="";$("tkf").style.display="none";$("tkdone").style.display="";
   $("tkdone").innerHTML="<h2>Ticket submitted</h2><p>Your ticket number is <b class='code'>"+esc(ftk(t.id))+"</b>. The IT team will look into it.</p><p class='stat'>Scan this asset's QR again anytime to see the current stage and what action IT has taken.</p>"
  }).catch(function(e){$("t_go").disabled=false;m.textContent="Could not submit: "+e.message})};
 /*MOVE*/
@@ -546,7 +563,7 @@ function gpOutHtml(t,a,bc){a=a||{};var r=t.repair||{},m=t.move||{};
 function gpRetHtml(t,a,bc){a=a||{};var r=t.repair||{},x=t.ret||{},k=t.track||{},when=x.at||k.ret;
  return gpBase(t.company||a.company,"RETURN GATE PASS (ASSET RETURNED FROM IT)","Return Gate Pass No: <b>"+esc(x.rgp||"")+"</b> &nbsp;|&nbsp; Date: "+esc(fdt(when))+" &nbsp;|&nbsp; Ticket No: <b>"+esc(ftk(t.id))+"</b>",bc)+
  "<h3>1. Asset Details</h3><table>"+gpRows([["Asset Code",t.assetCode],["Asset",(t.assetType||a.type||"")+(a.model?" - "+a.model:"")],["Serial No.",a.sn],["Company",t.company||a.company],["Branch",a.loc],["Asset Location",a.aloc||(a.loc?"":t.assetLoc)]])+"</table>"+
- "<h3>2. Return Details (IT Department to destination)</h3><table>"+gpRows([["Returned from","IT Department"],["Returned to",x.to],["Return location",x.loc],["Sent with (person carrying)",x.carrier],["Date &amp; time",when?fdt(when):""],["Remarks / work done",x.note]])+"</table>"+
+ "<h3>2. Return Details (IT Department to destination)</h3><table>"+gpRows([["Returned from","IT Department"],["Returned to",x.to],["Return location",x.loc],["Sent with (person carrying)",x.carrier],["Date &amp; time",when?fdt(when):""],["Repair cost (Rs)",x.cost],["Remarks / work done",x.note]])+"</table>"+
  "<h3>3. Original Request &amp; Repair</h3><table>"+gpRows([["Originally sent by",t.name+(t.dept?" ("+t.dept+")":"")],["Problem reported",t.issue],["Received at IT",k.rcv?fdt(k.rcv):""],["Repair type",r.type],["Party",(r.party||"")+(r.partyName?" - "+r.partyName:"")],["Outgoing Gate Pass",r.gp]])+"</table>"+
  "<p style='margin-top:8px'>This asset is being <b>returned after repair</b>. Security: please allow it only with this pass and note the date and time. <i>IT department copy.</i></p>"+
  "<div class='sgs'>"+gpSg("Issued by (IT Department)","IT Department",when||Date.now())+gpSg("Carried by",x.carrier)+gpSg("Security (gate)")+gpSg("Received by",x.to)+"</div>"+
@@ -630,7 +647,7 @@ function tlHtml(t){
  +"<div class='stp'>"+PS.map(function(x,i){var c=i<si||(fin&&i===si)?" done":"";if(i===si)c+=" cur";return"<div class='sp"+c+"'><span class='dot'>"+(c.indexOf("done")>-1?"&#10003;":i+1)+"</span><span class='sl'>"+esc(x)+"</span></div>"}).join("")+"</div>"
  +(t.notes?"<p style='margin:12px 0 4px'><b>Latest note from IT:</b> "+esc(t.notes)+"</p>":"")
  +"<p style='margin:14px 0 0'><b>Action history</b></p><ul class='tl'>"
- +ev.map(function(x){return"<li><b>"+(x.first?"Ticket raised":"Status: "+esc(x.status))+"</b> <span class='stat'>"+esc(fdt(x.at))+"</span>"+(x.first?"<div class='stat'>"+esc(t.issue)+"</div>":(x.note?"<div>"+esc(x.note)+"</div>":""))+(x.eng?"<div class='stat'>Assigned to "+esc(x.eng)+"</div>":"")+"</li>"}).join("")+"</ul>"+fbBox(t);
+ +ev.map(function(x){return"<li><b>"+(x.first?"Ticket raised":"Status: "+esc(x.status))+"</b> <span class='stat'>"+esc(fdt(x.at))+"</span>"+(x.first?"<div class='stat'>"+esc(t.issue)+"</div>"+phHtml(t):(x.note?"<div>"+esc(x.note)+"</div>":""))+(x.eng?"<div class='stat'>Assigned to "+esc(x.eng)+"</div>":"")+"</li>"}).join("")+"</ul>"+fbBox(t);
  return h}
 $("tkview").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||!CUR)return;if(b.dataset.gp){if(CURT&&PA)printGP(CURT,PA);return}
  if(b.dataset.r){FR=+b.dataset.r;Array.prototype.forEach.call($("tkview").querySelectorAll(".stb"),function(x){x.className="stb"+(+x.dataset.r<=FR?" on":"")})}
@@ -651,7 +668,7 @@ function rtk(){rdash();
   if(f==="Active"&&!isOpen(t))return false;if(f!=="Active"&&f!=="All"&&t.status!==f)return false;
   return !q||(ftk(t.id)+" "+JSON.stringify(t)).toLowerCase().indexOf(q)>-1}).sort(function(a,b){return(b.created||0)-(a.created||0)});
  $("tcnt").textContent=R.length+" shown / "+TK.length+" total tickets";
- $("ttb").innerHTML=R.map(function(t){return"<tr><td class='code'>"+esc(ftk(t.id))+"<br><span class='stat'>"+esc(fdt(t.created))+"</span></td><td><b>"+esc(t.assetCode)+"</b><br><span class='stat'>"+esc((t.assetType||"")+" · "+(t.assetLoc||""))+"</span></td><td>"+esc(t.name)+"<br><span class='stat'>"+esc(t.dept)+"</span>"+(t.mobile?"<br><a href='tel:"+esc(t.mobile)+"'>"+esc(t.mobile)+"</a>":"")+"</td><td><b>"+esc(t.category)+" · "+esc(t.priority)+"</b><br>"+esc(t.issue)+mvAdm(t)+"</td><td><select data-k='status'>"+TS.map(function(x){return"<option"+(x===t.status?" selected":"")+">"+x+"</option>"}).join("")+"</select><select data-k='eng' style='margin-top:6px'>"+engOpts(t.eng)+"</select><input data-k='notes' value=\""+esc(t.notes)+"\" placeholder='IT note (visible to user)' style='margin-top:6px'>"+fbHtml(t)+"<div class='bar' style='margin-top:6px'><button class='p' data-tid='"+esc(t.id)+"' data-ta='s'>Save</button>"+admBtns(t)+(ADM?"<button class='d' data-tid='"+esc(t.id)+"' data-ta='x'>Delete</button>":"")+"</div></td></tr>"}).join("")||"<tr><td colspan=5 class='stat'>No tickets.</td></tr>"}
+ $("ttb").innerHTML=R.map(function(t){return"<tr><td class='code'>"+esc(ftk(t.id))+"<br><span class='stat'>"+esc(fdt(t.created))+"</span></td><td><b>"+esc(t.assetCode)+"</b><br><span class='stat'>"+esc((t.assetType||"")+" · "+(t.assetLoc||""))+"</span></td><td>"+esc(t.name)+"<br><span class='stat'>"+esc(t.dept)+"</span>"+(t.mobile?"<br><a href='tel:"+esc(t.mobile)+"'>"+esc(t.mobile)+"</a>":"")+"</td><td><b>"+esc(t.category)+" · "+esc(t.priority)+"</b><br>"+esc(t.issue)+phHtml(t)+mvAdm(t)+"</td><td><select data-k='status'>"+TS.map(function(x){return"<option"+(x===t.status?" selected":"")+">"+x+"</option>"}).join("")+"</select><select data-k='eng' style='margin-top:6px'>"+engOpts(t.eng)+"</select><input data-k='notes' value=\""+esc(t.notes)+"\" placeholder='IT note (visible to user)' style='margin-top:6px'>"+fbHtml(t)+"<div class='bar' style='margin-top:6px'><button class='p' data-tid='"+esc(t.id)+"' data-ta='s'>Save</button>"+admBtns(t)+(ADM?"<button class='d' data-tid='"+esc(t.id)+"' data-ta='x'>Delete</button>":"")+"</div></td></tr>"}).join("")||"<tr><td colspan=5 class='stat'>No tickets.</td></tr>"}
 $("ttb").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||!b.dataset.tid)return;var id=b.dataset.tid;
  if(b.dataset.ta==="s"){var tr=b.closest("tr");var ns=tr.querySelector("[data-k=status]").value,nn=tr.querySelector("[data-k=notes]").value.trim(),ei=tr.querySelector("[data-k=eng]").value,en=ei===""?null:ENG[+ei],old=TK.filter(function(x){return x.id===id})[0]||{};
   if(ns===old.status&&nn===(old.notes||"")&&(en?en.n:"")===(old.eng||"")){b.textContent="No change";setTimeout(function(){b.textContent="Save"},1200);return}
@@ -684,8 +701,8 @@ $("trf").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new Fil
   if(confirm("Restore "+d.length+" tickets ("+TS.map(function(k){return k+": "+(c[k]||0)}).join(", ")+")?\nEach ticket goes back with the same status, notes, engineer and history. Tickets with the same number will be overwritten."))
    fb.restoreTickets(d,TK).then(function(){alert("Tickets restored")}).catch(function(x){alert("Restore failed: "+x.message)})
  }catch(x){alert("Invalid tickets backup file.")}};r.readAsText(f);e.target.value=""};
-function tab(t){var M={d:"dashboard",a:"assets",t:"tickets",u:"users"};Object.keys(M).forEach(function(k){$("tab_"+M[k]).style.display=k===t?"":"none";$("nv_"+k).className=k===t?"p":""});if(t==="u")loadUsers();if(t==="d")rdash()}
-$("nv_a").onclick=function(){tab("a")};$("nv_t").onclick=function(){tab("t")};$("nv_d").onclick=function(){tab("d")};$("nv_u").onclick=function(){tab("u")};
+function tab(t){var M={d:"dashboard",a:"assets",t:"tickets",e:"employees",s:"stock",r:"reports",l:"audit",u:"users"};Object.keys(M).forEach(function(k){$("tab_"+M[k]).style.display=k===t?"":"none";$("nv_"+k).className=k===t?"p":""});if(!ADM)return;if(t==="u"){loadUsers();loadBackups()}if(t==="d")rdash();if(t==="e")remp();if(t==="s")saInit();if(t==="r"){if(!$("rp_m").value)$("rp_m").value=new Date().toISOString().slice(0,7);rrep()}if(t==="l")startAudit()}
+$("nv_a").onclick=function(){tab("a")};$("nv_t").onclick=function(){tab("t")};$("nv_d").onclick=function(){tab("d")};$("nv_u").onclick=function(){tab("u")};$("nv_e").onclick=function(){tab("e")};$("nv_s").onclick=function(){tab("s")};$("nv_r").onclick=function(){tab("r")};$("nv_l").onclick=function(){tab("l")};
 function watchT(){unsubs.push(fb.watchTickets(function(l){TK=l;var o=l.filter(isOpen).length;$("tbadge").textContent=o;document.title=(o?"("+o+") ":"")+"Sandeep Group – Asset Tracker";
  if(seenT){l.forEach(function(t){if(!seenT[t.id]&&isOpen(t))beep()})}seenT={};l.forEach(function(t){seenT[t.id]=1});rtk();if(!window.__sync){window.__sync=1;fb.syncLatest(l)}},function(){}))}
 
@@ -693,11 +710,11 @@ function watchT(){unsubs.push(fb.watchTickets(function(l){TK=l;var o=l.filter(is
 function retOpen(t){
  var a=find(t.assetCode)||{},ro=function(l,v){return"<div><label>"+l+"</label><input value=\""+esc(v||"")+"\" disabled></div>"};
  bshow("<h2>Return Asset – Ticket #"+esc(ftk(t.id))+"</h2><div class='g'>"+ro("Asset Code",t.assetCode)+ro("Asset",(t.assetType||a.type||"")+(a.model?" - "+a.model:""))+ro("Originally sent by",t.name)+"</div>"+
- "<div class='g' style='margin-top:10px'><div><label>Returning to (person name) *</label><input id='rt_to' maxlength='80'></div><div><label>Return location (branch / dept / desk) *</label><input id='rt_loc' maxlength='150'></div><div><label>Sent with (person carrying it) *</label><input id='rt_with' maxlength='80' placeholder='Name of the person taking the asset'></div></div>"+
+ "<div class='g' style='margin-top:10px'><div><label>Returning to (person name) *</label><input id='rt_to' maxlength='80'></div><div><label>Return location (branch / dept / desk) *</label><input id='rt_loc' maxlength='150'></div><div><label>Sent with (person carrying it) *</label><input id='rt_with' maxlength='80' placeholder='Name of the person taking the asset'></div><div><label>Final repair cost (Rs)</label><input id='rt_cost' inputmode='decimal' maxlength='12' placeholder='0 if no charge'></div></div>"+
  "<div style='margin-top:10px'><label>Remarks / work done</label><textarea id='rt_note' rows='2' maxlength='500'></textarea></div>"+
  "<p class='stat'>A separate <b>Return Gate Pass</b> (RGP) number is created now. It is visible only here in the admin panel - not on the user's QR page.</p><div class='stat' id='rt_msg'></div>"+
  "<div class='bar'><button class='p' id='rt_ok'>Confirm return &amp; create Return Gate Pass</button><button data-b='x'>Cancel</button></div>");
- $("rt_to").value=t.name||"";$("rt_loc").value=a.loc?a.loc+(a.aloc?" / "+a.aloc:""):(t.assetLoc||"");
+ $("rt_to").value=t.name||"";$("rt_cost").value=(t.repair&&t.repair.cost)||"";$("rt_loc").value=a.loc?a.loc+(a.aloc?" / "+a.aloc:""):(t.assetLoc||"");
  $("rt_ok").onclick=function(){
   var to=$("rt_to").value.trim(),loc=$("rt_loc").value.trim(),wi=$("rt_with").value.trim(),m=$("rt_msg"),btn=this;
   if(to.length<2){m.textContent="Please write who the asset is returned to.";return}
@@ -705,7 +722,7 @@ function retOpen(t){
   if(wi.length<2){m.textContent="Please write who is carrying the asset.";return}
   var now=Date.now(),sy=fyOf(new Date(now).toISOString().slice(0,10)),fy=sy+"-"+String(sy+1).slice(2),note=$("rt_note").value.trim();btn.disabled=true;
   fb.nextGP(fy,"RGP").then(function(n){
-   var rgp="RGP/"+fy+"/"+String(n).padStart(4,"0"),ret={to:to,loc:loc,carrier:wi,note:note,rgp:rgp,at:now,by:ME},trk=Object.assign({},t.track||{},{ret:now});
+   var rgp="RGP/"+fy+"/"+String(n).padStart(4,"0"),ret={to:to,loc:loc,carrier:wi,note:note,rgp:rgp,at:now,by:ME,cost:$("rt_cost").value.trim()},trk=Object.assign({},t.track||{},{ret:now});
    return fb.actTicket(t.id,{track:trk,ret:ret},{status:t.status,note:"Asset returned to "+to+" with "+wi,at:now})
     .then(function(){return find(t.assetCode)?fb.setAssetStatus(t.assetCode,"In Use"):0})
     .then(function(){return{ret:ret,trk:trk}})})
@@ -720,9 +737,9 @@ function genPw(){var c="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789
 /* ---------- Dashboard (admin) ---------- */
 function bars(el,map){var k=Object.keys(map).sort(function(a,b){return map[b]-map[a]}),mx=k.length?map[k[0]]:1;$(el).innerHTML=k.map(function(n){return"<div class='br'><span>"+esc(n)+"</span><div class='bt'><i style='width:"+Math.max(3,Math.round(map[n]/mx*100))+"%'></i></div><b>"+map[n]+"</b></div>"}).join("")||"<p class='stat'>No data yet.</p>"}
 function stage(t){var k=t.track||{};if(k.ret)return"Returned";if(k.rcv)return"At IT (repair)";if(t.repair)return t.repair.gate?"Approved - gate pass issued":"Repair approved";if(t.move)return"Waiting for approval";return t.status}
-function rdash(){if(!ADM||!$("kp"))return;var T=(typeof TK!=="undefined"&&TK)||[],c={};ST.forEach(function(x){c[x]=0});A.forEach(function(a){c[a.st]=(c[a.st]||0)+1});
+function rdash(){if(!ADM||!$("kp"))return;var wl=warnList(),wsoon=wl.filter(function(x){return x.days>=0}).length,wexp=wl.length-wsoon;rwarn(wl);var T=(typeof TK!=="undefined"&&TK)||[],c={};ST.forEach(function(x){c[x]=0});A.forEach(function(a){c[a.st]=(c[a.st]||0)+1});
  var open=T.filter(isOpen).length,atIT=T.filter(function(t){return t.track&&t.track.rcv&&!t.track.ret}).length,wait=T.filter(function(t){return t.move&&!t.repair&&isOpen(t)}).length;
- var K=[[A.length,"Total assets",""],[c["In Use"],"In use","ok"],[c["In Stock"],"In stock",""],[c["Under Repair"],"Under repair","w"],[open,"Open tickets",open?"w":""],[wait,"Waiting for approval",wait?"r":""],[atIT,"At IT now",atIT?"w":""]];
+ var K=[[A.length,"Total assets",""],[c["In Use"],"In use","ok"],[c["In Stock"],"In stock",""],[c["Under Repair"],"Under repair","w"],[open,"Open tickets",open?"w":""],[wait,"Waiting for approval",wait?"r":""],[atIT,"At IT now",atIT?"w":""],[wsoon,"Warranty ends in 30 days",wsoon?"w":""],[wexp,"Warranty expired",wexp?"r":""]];
  $("kp").innerHTML=K.map(function(x){return"<div class='kc "+x[2]+"'><b>"+x[0]+"</b><span>"+x[1]+"</span></div>"}).join("");
  var co={},ty={};A.forEach(function(a){co[a.company]=(co[a.company]||0)+1;ty[a.type]=(ty[a.type]||0)+1});bars("bco",co);bars("bty",ty);
  $("dtb").innerHTML=T.slice().sort(function(a,b){return(b.updated||b.created||0)-(a.updated||a.created||0)}).slice(0,8).map(function(t){return"<tr><td class='code'>"+esc(ftk(t.id))+"</td><td><b>"+esc(t.assetCode)+"</b><br><span class='stat'>"+esc(t.name)+"</span></td><td>"+esc(stage(t))+"</td><td class='stat'>"+esc(fdt(t.updated||t.created))+"</td></tr>"}).join("")||"<tr><td colspan='4' class='stat'>No tickets yet.</td></tr>"}
@@ -766,6 +783,198 @@ $("bulkc").addEventListener("click",function(e){var b=e.target.closest("button")
 $("forgot").onclick=function(e){e.preventDefault();var v=$("le").value.trim(),m=$("lerr");
  if(v.indexOf("@")<0){m.textContent="Admin: type your e-mail above and click again to get the reset link. Other users: ask the admin to set a new password.";return}
  fb.sendReset(v).then(function(){m.textContent="If this e-mail is registered, a password reset link has been sent. Check the inbox (and Spam)."}).catch(function(x){m.textContent=pwErr(x)})};
+
+/* ================= v4: warranty, history, assignment, employees ================= */
+function today0(){var d=new Date();d.setHours(0,0,0,0);return d}
+function dleft(iso){if(!/^\d{4}-\d{2}-\d{2}$/.test(String(iso||"")))return null;return Math.round((new Date(iso+"T00:00:00")-today0())/864e5)}
+function warnItems(a){var o=[];[["wt","Warranty"],["mon_wt","Monitor warranty"]].forEach(function(p){var n=dleft(a[p[0]]);if(n!==null&&n<=30)o.push({lab:p[1],date:a[p[0]],days:n})});return o}
+function warnBadge(a){if(a.st==="Scrapped")return"";var w=warnItems(a)[0];if(!w)return"";return"<br><span class='badge' style='color:"+(w.days<0?"var(--dg)":"#d97706")+"'>"+(w.days<0?"Warranty expired":"Warranty ends in "+w.days+" d")+"</span>"}
+function warnList(){var l=[];A.forEach(function(a){if(a.st==="Scrapped")return;warnItems(a).forEach(function(w){l.push({a:a,lab:w.lab,date:w.date,days:w.days})})});return l.sort(function(x,y){return x.days-y.days})}
+function rwarn(l){if(!$("wtb"))return;$("wtb").innerHTML=l.slice(0,100).map(function(w){var a=w.a;return"<tr><td class='code'>"+esc(a.code)+"</td><td>"+esc(w.lab)+"<br><span class='stat'>"+esc(a.type+(a.model?" - "+a.model:""))+"</span></td><td>"+esc(a.loc||"")+"<br><span class='stat'>"+esc([a.dept,a.usr].filter(Boolean).join(" · "))+"</span></td><td>"+esc(fiso(w.date))+"</td><td><span class='badge' style='color:"+(w.days<0?"var(--dg)":"#d97706")+"'>"+(w.days<0?"Expired "+(-w.days)+" d ago":w.days===0?"Ends today":"Ends in "+w.days+" d")+"</span></td></tr>"}).join("")||"<tr><td colspan='5' class='stat'>No warranty ending in the next 30 days.</td></tr>"}
+
+/* ---- asset history (admin) ---- */
+var HK={"asset.add":"Added","asset.edit":"Edited","asset.delete":"Deleted","asset.status":"Status","asset.assign":"Assigned","asset.return":"Received back","asset.bulk":"Excel / restore"};
+function histOpen(code){
+ bshow("<h2>History - "+esc(code)+"</h2><p class='stat'>Loading...</p><div class='bar'><button data-b='x'>Close</button></div>");
+ fb.getAudit(code).catch(function(){return[]}).then(function(L){
+  var ev=[],a=find(code)||{};
+  L.forEach(function(x){if(x.action==="ticket")return;ev.push({at:x.at,k:HK[x.action]||x.action,t:x.detail,by:x.by})});
+  TK.filter(function(t){return t.assetCode===code}).forEach(function(t){var id=ftk(t.id).slice(0,9),k=t.track||{};
+   ev.push({at:t.created,k:"Ticket",t:"Ticket "+id+" raised by "+t.name+": "+t.issue});
+   if(t.move)ev.push({at:t.move.at,k:"Moved",t:"Sent to "+t.move.dest+" with "+t.move.carrier});
+   if(t.repair)ev.push({at:t.repair.at,k:"Repair",t:"Repair approved: "+t.repair.type+(t.repair.gp?" - Gate pass "+t.repair.gp:"")+(t.repair.cost?" - Cost Rs "+t.repair.cost:"")});
+   if(k.rcv)ev.push({at:k.rcv,k:"At IT",t:"Received at IT"});
+   if(k.ret)ev.push({at:k.ret,k:"Returned",t:"Returned to "+(t.ret?t.ret.to+" ("+t.ret.loc+") with "+t.ret.carrier:"user")+(t.ret&&t.ret.cost?" - Final cost Rs "+t.ret.cost:"")});
+   (t.history||[]).forEach(function(h){if(h.note&&h.at&&h.at!==t.created&&!/^(Asset returned|Asset received|Repair approved)/.test(h.note))ev.push({at:h.at,k:"Ticket",t:"Ticket "+id+" ["+h.status+"]: "+h.note})})});
+  ev.sort(function(x,y){return y.at-x.at});
+  var cur=a.usr?"<p><b>Now with:</b> "+esc(a.usr)+(a.dept?" ("+esc(a.dept)+")":"")+(a.assigned&&a.assigned.at?" since "+esc(fdt(a.assigned.at)):"")+" &middot; "+esc(a.loc||"")+(a.aloc?" / "+esc(a.aloc):"")+" &middot; "+esc(a.st||"")+"</p>":"<p><b>Now:</b> "+esc(a.st||"")+" &middot; "+esc(a.loc||"")+(a.aloc?" / "+esc(a.aloc):"")+" (not assigned)</p>";
+  bshow("<h2>History - "+esc(code)+"</h2><p class='stat'>"+esc((a.type||"")+(a.model?" - "+a.model:""))+"</p>"+cur+"<ul class='tl'>"+(ev.map(function(x){return"<li><b>"+esc(x.k)+"</b> <span class='stat'>"+esc(fdt(x.at))+(x.by?" &middot; "+esc(uname(x.by)):"")+"</span><div>"+esc(x.t)+"</div></li>"}).join("")||"<li class='stat'>No history recorded yet. New actions will appear here.</li>")+"</ul><div class='bar'><button data-b='x'>Close</button></div>")})}
+
+/* ---- digital assignment / return receipt ---- */
+function asgHtml(a,e,bc){e=e||{};var ac=accLines(a);
+ return gpBase(a.company,"ASSET ASSIGNMENT / HANDOVER","Asset Code: <b>"+esc(a.code)+"</b> &nbsp;|&nbsp; Date: "+esc(fdt(e.at||Date.now())),bc)+
+ "<h3>1. Asset Details</h3><table>"+gpRows([["Asset Code",a.code],["Asset",(a.type||"")+(a.model?" - "+a.model:"")],["Serial No.",a.sn],["Company",a.company],["Branch",a.loc],["Asset Location",a.aloc],["Warranty till",a.wt?fiso(a.wt):""]])+"</table>"+
+ "<h3>2. Issued To</h3><table>"+gpRows([["Employee",e.name],["Department",e.dept],["Mobile",e.mobile],["Condition at handover",e.cond],["Remarks",e.rm]])+"</table>"+
+ (ac.length?"<h3>3. Accessories issued</h3><table>"+gpRows(ac.map(function(r){return[esc(r[0]),r[1]||"Issued"]}))+"</table>":"")+
+ "<p style='margin-top:8px'>The employee is responsible for this asset and must return it to the IT department when asked, on resignation or on transfer. Loss or damage must be reported to IT immediately.</p>"+
+ "<div class='sgs'>"+gpSg("Issued by (IT Department)","IT Department",e.at||Date.now())+gpSg("Received by (Employee)",e.name,e.ack?e.ackAt:0)+"</div>"+gpQr({assetCode:a.code},"Scan the QR to see this asset and report any issue.")}
+function rcvHtml(a,e,bc){e=e||{};
+ return gpBase(a.company,"ASSET RETURN RECEIPT (EMPLOYEE TO IT)","Asset Code: <b>"+esc(a.code)+"</b> &nbsp;|&nbsp; Date: "+esc(fdt(e.at||Date.now())),bc)+
+ "<h3>1. Asset Details</h3><table>"+gpRows([["Asset Code",a.code],["Asset",(a.type||"")+(a.model?" - "+a.model:"")],["Serial No.",a.sn],["Company",a.company],["Branch",a.loc]])+"</table>"+
+ "<h3>2. Return Details</h3><table>"+gpRows([["Received from",e.from],["Date &amp; time",fdt(e.at||Date.now())],["Condition on return",e.cond],["Status after return",e.st],["Remarks",e.rm]])+"</table>"+
+ "<div class='sgs'>"+gpSg("Received by (IT Department)","IT Department",e.at||Date.now())+gpSg("Returned by (Employee)",e.from)+"</div>"+gpQr({assetCode:a.code},"Asset return receipt - keep for records.")}
+function printAsg(a,e){openPass(asgHtml(a,e,"vbc"),asgHtml(a,e,"hbc"),a.code)}
+function printRcv(a,e){openPass(rcvHtml(a,e,"vbc"),rcvHtml(a,e,"hbc"),a.code)}
+function asOpen(code){var a=find(code);if(!a)return;
+ bshow("<h2>Assign Asset - "+esc(a.code)+"</h2><p class='stat'>"+esc((a.type||"")+(a.model?" - "+a.model:""))+" &middot; "+esc(a.loc||"")+(a.usr?"<br><b>Currently with "+esc(a.usr)+"</b> - saving will transfer it to the new employee.":"")+"</p><div class='g'><div><label>Employee name *</label><input id='as_n' maxlength='80'></div><div><label>Department</label><input id='as_d' maxlength='60'></div><div><label>Mobile</label><input id='as_m' maxlength='15' type='tel'></div><div><label>Condition at handover</label><select id='as_c'>"+CD.map(function(c){return"<option>"+c+"</option>"}).join("")+"</select></div></div><div style='margin-top:10px'><label>Remarks</label><textarea id='as_r' rows='2' maxlength='300'></textarea></div><label style='display:flex;gap:8px;align-items:center;margin-top:10px;color:var(--tx)'><input type='checkbox' id='as_k' style='width:auto'> Employee has accepted this asset (confirmed on screen)</label><div class='stat' id='as_msg' style='margin-top:8px'></div><div class='bar'><button class='p' id='as_ok'>Assign &amp; create digital handover</button><button data-b='x'>Cancel</button></div>");
+ $("as_d").value=a.dept||"";
+ $("as_ok").onclick=function(){var n=$("as_n").value.trim(),m=$("as_msg"),btn=this;if(n.length<2){m.textContent="Please enter the employee name.";return}
+  var now=Date.now(),ack=$("as_k").checked,e={name:n,dept:$("as_d").value.trim(),mobile:$("as_m").value.trim(),cond:$("as_c").value,rm:$("as_r").value.trim(),at:now,by:ME,ack:ack,ackAt:ack?now:0},patch={usr:n,dept:e.dept,st:"In Use",assigned:e};btn.disabled=true;
+  fb.updateAsset(a.code,patch,"asset.assign","Assigned to "+n+(e.dept?" ("+e.dept+")":"")+(a.usr&&a.usr!==n?" - was with "+a.usr:"")+" - condition "+e.cond+(ack?" - accepted on screen":"")).then(function(){bclose();if(confirm("Asset assigned to "+n+".\n\nView the digital handover now?"))printAsg(Object.assign({},a,patch),e)}).catch(function(x){btn.disabled=false;m.textContent="Could not save: "+x.message})}}
+function rbOpen(code){var a=find(code);if(!a)return;
+ bshow("<h2>Receive Back - "+esc(a.code)+"</h2><p class='stat'>"+esc((a.type||"")+(a.model?" - "+a.model:""))+"</p><div class='g'><div><label>Received from</label><input id='rb_f' maxlength='80'></div><div><label>Condition on return</label><select id='rb_c'><option>Good</option><option>Fair</option><option>Damaged</option></select></div><div><label>Status after return</label><select id='rb_s'><option>In Stock</option><option>Under Repair</option><option>Scrapped</option></select></div></div><div style='margin-top:10px'><label>Remarks</label><textarea id='rb_r' rows='2' maxlength='300'></textarea></div><div class='stat' id='rb_msg' style='margin-top:8px'></div><div class='bar'><button class='p' id='rb_ok'>Receive back &amp; create receipt</button><button data-b='x'>Cancel</button></div>");
+ $("rb_f").value=a.usr||"";
+ $("rb_ok").onclick=function(){var f=$("rb_f").value.trim(),btn=this,now=Date.now(),e={from:f||a.usr||"",cond:$("rb_c").value,st:$("rb_s").value,rm:$("rb_r").value.trim(),at:now,by:ME};btn.disabled=true;
+  fb.updateAsset(a.code,{usr:"",dept:"",st:e.st,assigned:null},"asset.return","Received back from "+e.from+" - condition "+e.cond+" - status "+e.st+(e.rm?" - "+e.rm:"")).then(function(){bclose();if(confirm("Asset received back.\n\nView the return receipt now?"))printRcv(a,e)}).catch(function(x){btn.disabled=false;$("rb_msg").textContent="Could not save: "+x.message})}}
+document.addEventListener("click",function(e){var b=e.target.closest("button");if(!b||!ADM)return;var a=b.dataset.a,c=b.dataset.c;if(a==="hi")histOpen(c);else if(a==="as")asOpen(c);else if(a==="rb")rbOpen(c)});
+
+/* ---- Employees tab ---- */
+function empMap(){var m={};A.forEach(function(a){var n=String(a.usr||"").trim();if(!n)return;var k=n.toLowerCase();(m[k]=m[k]||{key:k,name:n,list:[]}).list.push(a)});return m}
+function empHtml(e,bc){var rows=e.list.slice().sort(function(x,y){return x.code<y.code?-1:1}).map(function(a){var w=a.wt?fiso(a.wt):"";return[a.code,(a.type||"")+(a.model?" - "+a.model:""),a.sn||"",a.assigned&&a.assigned.at?fdt(a.assigned.at):"",w]});
+ return gpBase(e.list[0].company,"ASSETS HELD BY EMPLOYEE","Employee: <b>"+esc(e.name)+"</b>"+(e.list[0].dept?" &nbsp;|&nbsp; Department: "+esc(e.list[0].dept):"")+" &nbsp;|&nbsp; Date: "+esc(fdt(Date.now())),bc)+
+ "<table><tr><th>Asset code</th><th>Asset</th><th>Serial no.</th><th>Issued on</th><th>Warranty till</th></tr>"+rows.map(function(r){return"<tr>"+r.map(function(x){return"<td>"+esc(x)+"&nbsp;</td>"}).join("")+"</tr>"}).join("")+"</table><p style='margin-top:8px'>Total assets: <b>"+rows.length+"</b></p><div class='sgs'>"+gpSg("Issued / verified by (IT Department)","IT Department",Date.now())+gpSg("Employee",e.name)+"</div>"}
+function remp(){if(!ADM||!$("em_tb"))return;var q=$("em_q").value.toLowerCase(),M=empMap(),R=Object.keys(M).map(function(k){return M[k]}).filter(function(e){return!q||(e.name+" "+e.list.map(function(a){return[a.code,a.dept,a.type,a.model].join(" ")}).join(" ")).toLowerCase().indexOf(q)>-1}).sort(function(x,y){return x.name.toLowerCase()<y.name.toLowerCase()?-1:1});
+ $("em_cnt").textContent=R.length+" employee(s) hold assets";
+ $("em_tb").innerHTML=R.map(function(e){return"<tr><td><b>"+esc(e.name)+"</b><br><span class='stat'>"+esc(e.list[0].dept||"")+"</span></td><td>"+e.list.map(function(a){return"<div style='margin-bottom:4px'><a href='#' data-eo='"+esc(a.code)+"'><b>"+esc(a.code)+"</b></a> "+esc((a.type||"")+(a.model?" - "+a.model:""))+(a.assigned&&a.assigned.at?" <span class='stat'>since "+esc(fdt(a.assigned.at))+"</span>":"")+" <button data-a='rb' data-c='"+esc(a.code)+"' style='padding:1px 6px;font-size:11px'>Receive back</button></div>"}).join("")+"</td><td><button data-ep='"+esc(e.key)+"'>Print / PDF list</button></td></tr>"}).join("")||"<tr><td colspan='3' class='stat'>No assets are assigned to any employee yet. Use <b>Assign</b> on an asset.</td></tr>"}
+$("em_q").oninput=remp;
+$("em_tb").addEventListener("click",function(e){var l=e.target.closest("a[data-eo]");if(l){e.preventDefault();var a=find(l.dataset.eo);if(a){tab("a");detail(a)}return}var b=e.target.closest("button[data-ep]");if(b){var em=empMap()[b.dataset.ep];if(em)openPass(empHtml(em,"vbc"),empHtml(em,"hbc"),"")}});
+
+/* ================= v4: QR / barcode camera scanner ================= */
+var SC={on:false,stream:null,tm:0,cb:null,cont:false,last:"",lt:0,det:null};
+function codeFrom(t){t=String(t||"").trim();var m=t.match(/\/a\/([^\/?#\s]+)/i)||t.match(/[?&]a=([^&#\s]+)/i);if(m)return decodeURIComponent(m[1]).toUpperCase();m=t.match(/[A-Za-z]{2}-[A-Za-z]{2}-\d{4}/);return m?m[0].toUpperCase():""}
+function loadJs(src){return new Promise(function(ok,no){var s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
+function prepDet(){if(window.BarcodeDetector){try{SC.det=new BarcodeDetector({formats:["qr_code","code_128"]});return Promise.resolve()}catch(e){}}
+ if(window.jsQR)return Promise.resolve();return loadJs("https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js").catch(function(){$("sc_msg").textContent="Scanner library could not load (internet?). Type the code below."})}
+function scanOpen(cb,cont){SC.cb=cb;SC.cont=!!cont;SC.last="";$("scan").style.display="flex";$("sc_in").value="";$("sc_msg").textContent="Starting camera...";
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$("sc_msg").textContent="Camera is not available in this browser. Type the code below.";return}
+ navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false}).then(function(st){
+  if(!SC.cb){st.getTracks().forEach(function(t){t.stop()});return}
+  SC.stream=st;var v=$("sc_v");v.srcObject=st;return v.play().then(function(){SC.on=true;$("sc_msg").textContent=cont?"Point the camera at each asset QR / barcode":"Point the camera at the asset QR";return prepDet()}).then(scanLoop)})
+ .catch(function(e){$("sc_msg").textContent="Could not open the camera ("+(e.name==="NotAllowedError"?"permission denied - allow camera access for this site":e.message)+"). Type the code below."})}
+function scanLoop(){if(!SC.on)return;var v=$("sc_v"),done=function(t){if(t)scanHit(t);SC.tm=setTimeout(scanLoop,t?400:180)};
+ if(v.readyState<2){SC.tm=setTimeout(scanLoop,150);return}
+ if(SC.det)SC.det.detect(v).then(function(r){done(r.length?r[0].rawValue:"")}).catch(function(){done("")});
+ else if(window.jsQR){var c=$("sc_c"),k=Math.min(1,640/v.videoWidth);c.width=Math.round(v.videoWidth*k);c.height=Math.round(v.videoHeight*k);var x=c.getContext("2d",{willReadFrequently:true});x.drawImage(v,0,0,c.width,c.height);var im=x.getImageData(0,0,c.width,c.height),q=jsQR(im.data,c.width,c.height);done(q?q.data:"")}
+ else SC.tm=setTimeout(scanLoop,500)}
+function scanHit(txt){var c=codeFrom(txt)||String(txt).trim().toUpperCase();if(!c)return;var n=Date.now();if(c===SC.last&&n-SC.lt<2500)return;SC.last=c;SC.lt=n;if(navigator.vibrate)navigator.vibrate(80);
+ if(SC.cont){var m=SC.cb?SC.cb(c):"";$("sc_msg").textContent=m||c}else{var cb=SC.cb;scanClose();if(cb)cb(c)}}
+function scanClose(){SC.on=false;clearTimeout(SC.tm);if(SC.stream){SC.stream.getTracks().forEach(function(t){t.stop()});SC.stream=null}$("sc_v").srcObject=null;$("scan").style.display="none";SC.cb=null}
+function scanGo(c){if(ADM){var a=find(c);if(a){tab("a");detail(a)}else alert("Asset "+c+" was not found.")}else location.href="/a/"+encodeURIComponent(c)}
+$("scanb").onclick=function(){scanOpen(scanGo,false)};$("sc_x").onclick=scanClose;$("sc_ok").onclick=function(){scanHit($("sc_in").value);$("sc_in").value=""};
+$("sc_in").addEventListener("keydown",function(e){if(e.key==="Enter"){scanHit(this.value);this.value=""}});
+
+/* ================= v4: stock audit (admin) ================= */
+var SA=null,SAH=[],saW=false;
+function saInit(){if(!ADM)return;var cos={};A.forEach(function(a){cos[a.company]=1});var sel=$("sa_co"),cur=sel.value;sel.innerHTML=Object.keys(cos).sort().map(function(c){return"<option>"+esc(c)+"</option>"}).join("");if(cur)sel.value=cur;saLocs();
+ if(!saW){saW=true;unsubs.push(fb.watchStockAudits(function(l){SAH=l;saHist()},function(){}))}}
+function saLocs(){var co=$("sa_co").value,l={};A.forEach(function(a){if(a.company===co&&a.loc&&a.st!=="Scrapped")l[a.loc]=(l[a.loc]||0)+1});$("sa_loc").innerHTML=Object.keys(l).sort().map(function(k){return"<option value=\""+esc(k)+"\">"+esc(k)+" ("+l[k]+")</option>"}).join("")}
+$("sa_co").onchange=saLocs;
+$("sa_go").onclick=function(){var co=$("sa_co").value,loc=$("sa_loc").value;if(!co||!loc){alert("Choose company and branch.");return}
+ var list=A.filter(function(a){return a.company===co&&a.loc===loc&&a.st!=="Scrapped"}).sort(function(x,y){return((x.aloc||"")+x.code)<((y.aloc||"")+y.code)?-1:1});
+ if(!list.length){alert("No assets found in this branch.");return}
+ SA={co:co,loc:loc,list:list,found:{},extra:{},start:Date.now()};$("sa_setup").style.display="none";$("sa_run").style.display="";$("sa_t").textContent="Auditing: "+co+" - "+loc;$("sa_msg").textContent="";saRender()};
+function saMark(code){if(!SA)return"";var a=find(code);if(!a)return"Unknown code: "+code;
+ if(SA.list.some(function(x){return x.code===a.code})){if(SA.found[a.code])return"Already marked: "+a.code;SA.found[a.code]=Date.now();saRender();return"FOUND: "+a.code+" - "+a.type+(a.model?" "+a.model:"")}
+ SA.extra[a.code]={at:Date.now(),loc:a.loc,aloc:a.aloc,co:a.company};saRender();return"EXTRA (belongs to "+a.loc+"): "+a.code}
+function saRender(){if(!SA)return;var n=Object.keys(SA.found).length,t=SA.list.length;
+ $("sa_kp").innerHTML="<div class='kc ok'><b>"+n+"</b><span>Found</span></div><div class='kc "+(t-n?"r":"")+"'><b>"+(t-n)+"</b><span>Not found yet</span></div><div class='kc'><b>"+t+"</b><span>Total in system</span></div><div class='kc w'><b>"+Object.keys(SA.extra).length+"</b><span>Extra (other branch)</span></div>";
+ $("sa_tb").innerHTML=SA.list.slice().sort(function(x,y){return(SA.found[x.code]?1:0)-(SA.found[y.code]?1:0)}).map(function(a){return"<tr><td><input type='checkbox' data-sa='"+esc(a.code)+"' style='width:auto'"+(SA.found[a.code]?" checked":"")+"></td><td class='code'>"+esc(a.code)+"<br><span class='stat'>"+esc((a.type||"")+(a.model?" - "+a.model:""))+"</span></td><td>"+esc(a.aloc||"")+"<br><span class='stat'>"+esc([a.dept,a.usr].filter(Boolean).join(" · "))+"</span></td></tr>"}).join("");
+ var ex=Object.keys(SA.extra);$("sa_ex").innerHTML=ex.length?"<h3 style='margin:14px 0 4px;font-size:15px'>Extra assets scanned (belong to another branch)</h3>"+ex.map(function(c){return"<div class='stat'>"+esc(c)+" - belongs to "+esc(SA.extra[c].loc||"")+"</div>"}).join(""):""}
+$("sa_tb").addEventListener("change",function(e){var c=e.target.dataset.sa;if(!c||!SA)return;if(e.target.checked)SA.found[c]=Date.now();else delete SA.found[c];saRender()});
+$("sa_in").addEventListener("keydown",function(e){if(e.key!=="Enter")return;var v=this.value.trim();this.value="";if(v)$("sa_msg").textContent=saMark(codeFrom(v)||v.toUpperCase())});
+$("sa_scan").onclick=function(){scanOpen(function(c){return saMark(c)},true)};
+$("sa_can").onclick=function(){if(SA&&confirm("Cancel this audit? Nothing will be saved."))saEnd()};
+function saEnd(){SA=null;$("sa_run").style.display="none";$("sa_setup").style.display="";scanClose()}
+function saHtml(d,bc){var miss=d.missing||[],ex=d.extra||[];
+ return gpBase(d.company,"STOCK AUDIT REPORT","Branch: <b>"+esc(d.loc)+"</b> &nbsp;|&nbsp; Date: "+esc(fdt(d.at))+" &nbsp;|&nbsp; By: "+esc(uname(d.by)),bc)+
+ "<h3>Summary</h3><table>"+gpRows([["Assets in system",d.total],["Found",d.found],["NOT found",miss.length],["Extra scanned (other branch)",ex.length]])+"</table>"+
+ "<h3>Assets NOT found ("+miss.length+")</h3>"+(miss.length?"<table><tr><th>Asset code</th><th>Asset</th><th>Location</th><th>User</th></tr>"+miss.map(function(m){return"<tr><td>"+esc(m.code)+"</td><td>"+esc((m.type||"")+(m.model?" - "+m.model:""))+"</td><td>"+esc(m.aloc||"")+"&nbsp;</td><td>"+esc(m.usr||"")+"&nbsp;</td></tr>"}).join("")+"</table>":"<p>All assets were found.</p>")+
+ (ex.length?"<h3>Extra assets (belong to another branch)</h3><table><tr><th>Asset code</th><th>Belongs to</th></tr>"+ex.map(function(m){return"<tr><td>"+esc(m.code)+"</td><td>"+esc(m.loc||"")+"</td></tr>"}).join("")+"</table>":"")+
+ "<div class='sgs'>"+gpSg("Audited by",uname(d.by),d.at)+gpSg("Branch in-charge")+"</div>"}
+function saShow(d){openPass(saHtml(d,"vbc"),saHtml(d,"hbc"),"")}
+$("sa_fin").onclick=function(){if(!SA)return;var n=Object.keys(SA.found).length,miss=SA.list.filter(function(a){return!SA.found[a.code]});
+ if(!confirm("Finish the audit?\n\nFound: "+n+"\nNot found: "+miss.length))return;
+ var d={at:Date.now(),by:ME,company:SA.co,loc:SA.loc,total:SA.list.length,found:n,missing:miss.map(function(a){return{code:a.code,type:a.type||"",model:a.model||"",aloc:a.aloc||"",usr:a.usr||""}}),extra:Object.keys(SA.extra).map(function(c){return{code:c,loc:SA.extra[c].loc||""}})};
+ fb.saveStockAudit(d).then(function(){fb.audit("stock.audit","",SA.loc+": found "+d.found+" of "+d.total+", not found "+d.missing.length);saEnd();saShow(d)}).catch(function(x){alert("Could not save: "+x.message)})};
+function saHist(){if(!$("sa_hist"))return;$("sa_hist").innerHTML=SAH.map(function(d){return"<tr><td>"+esc(fdt(d.at))+"</td><td>"+esc(d.company)+"<br><span class='stat'>"+esc(d.loc)+"</span></td><td>"+d.found+" / "+d.total+(d.missing&&d.missing.length?" <span class='badge' style='color:var(--dg)'>"+d.missing.length+" missing</span>":"")+"</td><td class='stat'>"+esc(uname(d.by))+"</td><td><button data-sh='"+esc(d.id)+"'>View / PDF</button></td></tr>"}).join("")||"<tr><td colspan='5' class='stat'>No audit done yet.</td></tr>"}
+$("sa_hist").addEventListener("click",function(e){var b=e.target.closest("button[data-sh]");if(!b)return;var d=SAH.filter(function(x){return x.id===b.dataset.sh})[0];if(d)saShow(d)});
+
+/* ================= v4: audit log tab ================= */
+var AU=[],auW=false;
+function startAudit(){if(!ADM||auW)return;auW=true;unsubs.push(fb.watchAudit(function(l){AU=l;raud()},function(e){$("au_cnt").textContent="Could not load: "+e.message},300))}
+function raud(){if(!$("au_tb"))return;var sel=$("au_a"),cur=sel.value,acts={};AU.forEach(function(x){acts[x.action]=1});
+ var h="<option value=''>All actions</option>"+Object.keys(acts).sort().map(function(k){return"<option value=\""+esc(k)+"\">"+esc(HK[k]||k)+"</option>"}).join("");if(sel.innerHTML!==h){sel.innerHTML=h;sel.value=cur}
+ var q=$("au_q").value.toLowerCase(),f=sel.value,R=AU.filter(function(x){return(!f||x.action===f)&&(!q||(x.by+" "+x.code+" "+x.detail+" "+x.action).toLowerCase().indexOf(q)>-1)});
+ $("au_cnt").textContent=R.length+" line(s)";
+ $("au_tb").innerHTML=R.map(function(x){return"<tr><td class='stat' style='white-space:nowrap'>"+esc(fdt(x.at))+"</td><td>"+esc(uname(x.by))+"</td><td><span class='badge'>"+esc(HK[x.action]||x.action)+"</span></td><td class='code'>"+esc(x.code)+"</td><td>"+esc(x.detail)+"</td></tr>"}).join("")||"<tr><td colspan='5' class='stat'>Nothing to show.</td></tr>"}
+$("au_q").oninput=raud;$("au_a").onchange=raud;
+
+/* ================= v4: monthly report ================= */
+function money(v){var n=parseFloat(String(v==null?"":v).replace(/[^0-9.]/g,""));return isFinite(n)?n:0}
+function tCost(t){return t.ret&&t.ret.cost!=null&&String(t.ret.cost).trim()!==""?money(t.ret.cost):(t.repair?money(t.repair.cost):0)}
+function tCostAt(t){return(t.ret&&t.ret.at)||(t.track&&t.track.ret)||(t.repair&&t.repair.at)||t.created}
+function brOf(t){return String(t.assetLoc||"").split(" / ")[0]||"-"}
+function inr(n){return"Rs "+Math.round(n).toLocaleString("en-IN")}
+function repData(){var m=$("rp_m").value;if(!m)return null;var y=+m.slice(0,4),mo=+m.slice(5,7)-1,s0=new Date(y,mo,1).getTime(),e0=new Date(y,mo+1,1).getTime(),inM=function(x){return x>=s0&&x<e0};
+ var raised=TK.filter(function(t){return inM(t.created)}),res=TK.filter(function(t){return(t.status==="Resolved"||t.status==="Closed")&&inM(t.updated||t.created)}),
+ costT=TK.filter(function(t){return tCost(t)>0&&inM(tCostAt(t))}),apr=TK.filter(function(t){return t.repair&&inM(t.repair.at||0)}).length,ret=TK.filter(function(t){return t.track&&t.track.ret&&inM(t.track.ret)}).length,
+ as={},br={},cat={},cost=0;raised.forEach(function(t){as[t.assetCode]=1;var b=brOf(t);br[b]=(br[b]||0)+1;cat[t.category||"-"]=(cat[t.category||"-"]||0)+1});costT.forEach(function(t){cost+=tCost(t)});
+ var rows=[],seen={};raised.concat(costT).forEach(function(t){if(!seen[t.id]){seen[t.id]=1;rows.push(t)}});rows.sort(function(a,b){return a.created-b.created});
+ return{m:m,label:new Date(y,mo,1).toLocaleString("en-GB",{month:"long",year:"numeric"}),raised:raised,res:res,costT:costT,cost:cost,nA:Object.keys(as).length,apr:apr,ret:ret,br:br,cat:cat,rows:rows,inM:inM}}
+function stageOf(t){return stage(t)}
+function rrep(){if(!ADM||!$("rp_kp"))return;var d=repData();if(!d)return;
+ var K=[[d.raised.length,"Tickets raised",""],[d.res.length,"Resolved / closed","ok"],[d.nA,"Assets with problems",d.nA?"w":""],[d.apr,"Repairs approved",""],[d.ret,"Returned from IT",""],[inr(d.cost),"Repair cost",d.cost?"r":""]];
+ $("rp_kp").innerHTML=K.map(function(x){return"<div class='kc "+x[2]+"'><b style='font-size:"+(String(x[0]).length>6?20:28)+"px'>"+x[0]+"</b><span>"+x[1]+"</span></div>"}).join("");bars("rp_br",d.br);bars("rp_cat",d.cat);
+ $("rp_tb").innerHTML=d.rows.map(function(t){return"<tr><td class='code'>"+esc(ftk(t.id).slice(0,9))+"<br><span class='stat'>"+esc(fdt(t.created))+"</span></td><td><b>"+esc(t.assetCode)+"</b><br><span class='stat'>"+esc(brOf(t))+"</span></td><td>"+esc(t.category||"")+"<br><span class='stat'>"+esc(t.issue)+"</span></td><td>"+esc(stageOf(t))+"</td><td>"+(tCost(t)?esc(String(Math.round(tCost(t)))):"-")+"</td></tr>"}).join("")||"<tr><td colspan='5' class='stat'>No tickets in this month.</td></tr>"}
+$("rp_m").onchange=rrep;
+function repHtml(d,bc){var top=Object.keys(d.br).sort(function(a,b){return d.br[b]-d.br[a]});
+ return gpBase("Sandeep Group - IT Assets","MONTHLY IT ASSET REPORT - "+esc(d.label).toUpperCase(),"Generated "+esc(fdt(Date.now())),bc)+
+ "<h3>Summary</h3><table>"+gpRows([["Tickets raised",d.raised.length],["Resolved / closed",d.res.length],["Assets with problems",d.nA],["Repairs approved",d.apr],["Returned from IT",d.ret],["Repair cost",inr(d.cost)]])+"</table>"+
+ "<h3>Tickets by branch"+(top.length?" (most problems: "+esc(top[0])+")":"")+"</h3><table><tr><th>Branch</th><th>Tickets</th></tr>"+top.map(function(k){return"<tr><td>"+esc(k)+"</td><td>"+d.br[k]+"</td></tr>"}).join("")+"</table>"+
+ "<h3>Tickets by issue type</h3><table><tr><th>Issue type</th><th>Tickets</th></tr>"+Object.keys(d.cat).sort(function(a,b){return d.cat[b]-d.cat[a]}).map(function(k){return"<tr><td>"+esc(k)+"</td><td>"+d.cat[k]+"</td></tr>"}).join("")+"</table>"+
+ "<h3>Tickets &amp; repair cost</h3><table><tr><th>Ticket</th><th>Asset</th><th>Branch</th><th>Issue</th><th>Stage</th><th>Cost</th></tr>"+d.rows.map(function(t){return"<tr><td>"+esc(ftk(t.id).slice(0,9))+"</td><td>"+esc(t.assetCode)+"</td><td>"+esc(brOf(t))+"</td><td>"+esc(t.issue)+"</td><td>"+esc(stageOf(t))+"</td><td>"+(tCost(t)?Math.round(tCost(t)):"")+"&nbsp;</td></tr>"}).join("")+"</table>"}
+$("rp_pdf").onclick=function(){var d=repData();if(d)openPass(repHtml(d,"vbc"),repHtml(d,"hbc"),"")};
+$("rp_xl").onclick=function(){var d=repData();if(!d||!xlOk())return;xlGo(function(){
+ var sum=[["Metric","Value"],["Month",d.label],["Tickets raised",d.raised.length],["Resolved / closed",d.res.length],["Assets with problems",d.nA],["Repairs approved",d.apr],["Returned from IT",d.ret],["Repair cost (Rs)",Math.round(d.cost)]],
+ tk=[["Ticket","Date","Asset code","Asset type","Branch / location","Company","Reported by","Issue type","Priority","Issue","Stage","Repair type","Cost (Rs)"]].concat(d.rows.map(function(t){return[ftk(t.id),fdt(t.created),t.assetCode,t.assetType||"",t.assetLoc||"",t.company||"",t.name||"",t.category||"",t.priority||"",t.issue||"",stageOf(t),t.repair?t.repair.type:"",tCost(t)?String(Math.round(tCost(t))):""]})),
+ cs={};d.rows.forEach(function(t){var b=brOf(t);cs[b]=(cs[b]||0)+(d.inM(tCostAt(t))?tCost(t):0)});
+ var bs=[["Branch","Tickets raised","Repair cost (Rs)"]].concat(Object.keys(d.br).sort(function(a,b){return d.br[b]-d.br[a]}).map(function(k){return[k,String(d.br[k]),String(Math.round(cs[k]||0))]}));
+ dl("it-report-"+d.m+".xlsx",XL.write({sheets:[{name:"Summary",rows:sum.map(function(r){return r.map(String)}),widths:[26,26],header:true},{name:"Tickets",rows:tk,widths:[16,18,16,14,28,18,18,16,10,40,22,24,12],header:true,freeze:true},{name:"By branch",rows:bs,widths:[28,16,18],header:true}]}),XLSX_MIME)})};
+
+/* ================= v4: backups (admin) ================= */
+function loadBackups(){if(!ADM)return;$("bktb").innerHTML="<tr><td colspan='4' class='stat'>Loading...</td></tr>";
+ fb.backupApi("list").then(function(r){$("bktb").innerHTML=(r.backups||[]).map(function(b){var d=esc(b.date);return"<tr><td><b>"+d+"</b><br><span class='stat'>"+esc(fdt(b.at))+" · "+esc(uname(b.by))+"</span></td><td>"+b.assets+" assets · "+b.tickets+" tickets · "+b.audit+" log lines</td><td>"+Math.round(b.bytes/1024)+" KB</td><td style='white-space:nowrap'><button data-bk='"+d+"' data-w='assets'>Assets</button> <button data-bk='"+d+"' data-w='tickets'>Tickets</button> <button data-bk='"+d+"' data-w='audit'>Audit log</button></td></tr>"}).join("")||"<tr><td colspan='4' class='stat'>No backup yet. Click <b>Backup now</b>.</td></tr>"}).catch(function(e){$("bktb").innerHTML="<tr><td colspan='4' class='stat'>"+esc(e.message)+"</td></tr>"})}
+$("bkn").onclick=function(){var b=this,m=$("bkm");b.disabled=true;m.textContent="Taking backup...";fb.backupApi("run").then(function(r){b.disabled=false;m.textContent="Backup done: "+r.assets+" assets, "+r.tickets+" tickets.";loadBackups()}).catch(function(e){b.disabled=false;m.textContent=e.message})};
+$("bktb").addEventListener("click",function(e){var b=e.target.closest("button[data-bk]");if(!b)return;var w=b.dataset.w,dt=b.dataset.bk;b.disabled=true;fb.backupApi("get",{date:dt,what:w}).then(function(r){b.disabled=false;dl("sandeep-"+w+"-backup-"+dt+".json",JSON.stringify(r.list),"application/json")}).catch(function(x){b.disabled=false;alert(x.message)})});
+
+/* ================= v4: photos on tickets ================= */
+var PH=[];
+function okPh(x){return typeof x==="string"&&x.length<=160000&&/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(x)}
+function phHtml(t){var p=(t.photos||[]).filter(okPh);return p.length?"<div style='margin-top:6px'>"+p.map(function(x){return"<img class='thm' data-ph='1' alt='photo' src='"+x+"'>"}).join("")+"</div>":""}
+function shrink(file){return new Promise(function(ok){var r=new FileReader();r.onerror=function(){ok(null)};r.onload=function(){var im=new Image();im.onerror=function(){ok(null)};im.onload=function(){var mx=1000;for(var i=0;i<6;i++){var k=Math.min(1,mx/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));c.getContext("2d").drawImage(im,0,0,c.width,c.height);var q=.72,u=c.toDataURL("image/jpeg",q);while(u.length>150000&&q>.35){q-=.1;u=c.toDataURL("image/jpeg",q)}if(u.length<=150000){ok(u);return}mx=Math.round(mx*.75)}ok(null)};im.src=r.result};r.readAsDataURL(file)})}
+function phRender(){$("t_phv").innerHTML=PH.map(function(x,i){return"<span class='phw'><img class='thm' src='"+x+"' alt='photo'><button type='button' data-pr='"+i+"'>x</button></span>"}).join("")}
+$("t_ph").onchange=function(){var fs=Array.prototype.slice.call(this.files||[]).slice(0,3-PH.length),inp=this,m=$("t_msg");m.textContent="";
+ fs.reduce(function(p,f){return p.then(function(){return shrink(f).then(function(u){if(u)PH.push(u);else m.textContent="One photo could not be used."})})},Promise.resolve()).then(function(){inp.value="";phRender()})};
+$("t_phv").addEventListener("click",function(e){var b=e.target.closest("button[data-pr]");if(b){PH.splice(+b.dataset.pr,1);phRender()}});
+document.addEventListener("click",function(e){var i=e.target.closest("img[data-ph]");if(i&&okPh(i.getAttribute("src")))bshow("<img src='"+i.getAttribute("src")+"' alt='photo' style='max-width:100%;display:block;margin:auto;border-radius:8px'><div class='bar'><button data-b='x'>Close</button></div>")});
+
+/* ================= v4: auto logout of users when inactive ================= */
+var IDLE_MS=15*60*1000,idleT=0,idleW=0,lastAct=0;
+function idleReset(force){var n=Date.now();if(!force&&n-lastAct<1500&&$("idlew").style.display!=="block")return;lastAct=n;clearTimeout(idleT);clearTimeout(idleW);$("idlew").style.display="none";if(!AUTHED||ADM)return;
+ idleW=setTimeout(function(){$("idlew").style.display="block"},IDLE_MS-60000);
+ idleT=setTimeout(function(){$("idlew").style.display="none";fb.logout().then(function(){$("lerr").textContent="You were logged out because the page was not used for 15 minutes."})},IDLE_MS)}
+["mousemove","keydown","touchstart","click","scroll"].forEach(function(ev){document.addEventListener(ev,function(){idleReset()},{passive:true})});
+fb.setLabels(L);
 </script>
 </body>
 </html>
