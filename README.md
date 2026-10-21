@@ -86,3 +86,5 @@ Dashboard (totals, assets by company/type, latest tickets), digital gate passes 
 **QR label** prints the user's name and the serial number.
 
 **Required:** publish the new `firestore.rules` (new: user can confirm receipt, asset back to In Use).
+
+**Asset List** - new **Branch Location** filter next to Company (shows only that company's branches with asset counts; Print Labels / Export use the filtered list).

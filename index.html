@@ -142,6 +142,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);outline-offs
 <div class="g">
 <div><label>Search / Scan (press Enter)</label><input id="q" placeholder="code, user, location, serial..."></div>
 <div><label>Company</label><select id="fco"></select></div>
+<div><label>Branch Location</label><select id="fbr"></select></div>
 <div><label>Type</label><select id="fty"></select></div>
 <div><label>Status</label><select id="fst"></select></div>
 </div>
@@ -289,9 +290,13 @@ function save(){if(editId&&!ADM){alert("Only admin can edit assets.");return}
  if(!o.code){alert("Please wait a moment - the asset code is being prepared.");return}
  put(o,!editId).then(function(r){clearForm();if(r&&r.code&&$("hf").checked)handover(find(r.code)||r)})}
 function find(c){c=String(c).trim().toLowerCase();return A.filter(function(a){return a.code.toLowerCase()===c})[0]}
+/* Branch filter: lists only the branches of the chosen company (with asset count) */
+function fbrSync(c){var sel=$("fbr"),cur=sel.value,m={};A.forEach(function(a){if(a.loc&&(!c||a.company===c))m[a.loc]=(m[a.loc]||0)+1});
+ var ks=Object.keys(m).sort(),h="<option value=''>All branches</option>"+ks.map(function(k){return"<option value=\""+esc(k)+"\">"+esc(k)+" ("+m[k]+")</option>"}).join("");
+ if(!m[cur])cur="";if(sel.innerHTML!==h)sel.innerHTML=h;sel.value=cur;return cur}
 function filtered(){
- var q=$("q").value.toLowerCase(),c=$("fco").value,t=$("fty").value,s=$("fst").value;
- return A.filter(function(a){if(c&&a.company!==c)return false;if(t&&a.type!==t)return false;if(s&&a.st!==s)return false;return !q||JSON.stringify(a).toLowerCase().indexOf(q)>-1}).sort(function(a,b){return a.code<b.code?-1:1})}
+ var q=$("q").value.toLowerCase(),c=$("fco").value,t=$("fty").value,s=$("fst").value,br=fbrSync(c);
+ return A.filter(function(a){if(c&&a.company!==c)return false;if(br&&a.loc!==br)return false;if(t&&a.type!==t)return false;if(s&&a.st!==s)return false;return !q||JSON.stringify(a).toLowerCase().indexOf(q)>-1}).sort(function(a,b){return a.code<b.code?-1:1})}
 function conf(a){if(!T[a.type])return"";var p=T[a.type][1].filter(function(k){return MK.indexOf(k)<0}).map(function(k){return a[k]}).filter(Boolean);if(a.mon_model||a.mon_sn)p.push("Monitor: "+[a.mon_model,a.mon_sn?"SN "+a.mon_sn:""].filter(Boolean).join(" "));return p.join(" | ")}
 function render(){rdash();remp();
  var R=filtered();$("cnt").textContent=ADM?R.length+" / "+A.length+" assets":A.length+" asset(s) added in this session";
@@ -331,7 +336,7 @@ function onClick(e){
  if(b.dataset.a==="e"){editId=a.code;$("f_company").value=a.company;if(TL.indexOf(a.type)<0&&![].some.call($("f_type").options,function(o){return o.value===a.type}))$("f_type").add(new Option(a.type,a.type));$("f_type").value=a.type;showSpecs();BK.concat(SK).forEach(function(k){$("f_"+k).value=a[k]||""});fillBranch(a.loc);setTicks(a);$("f_code").value=a.code;$("pqr").innerHTML=qrSvg(a.code,3);bar("#pbc",a.code);$("ft").textContent="Edit: "+a.code;window.scrollTo(0,0)}}
 $("tb").addEventListener("click",onClick);$("det").addEventListener("click",onClick);
 $("save").onclick=save;$("clear").onclick=clearForm;$("f_loc").onchange=function(){if(this.value!=="__new"||!ADM)return;var n=prompt("Enter the new branch name for "+$("f_company").value+":");n=n?n.trim().slice(0,60):"";if(n&&!branchesFor($("f_company").value).some(function(x){return x.toLowerCase()===n.toLowerCase()}))fb.addBranch($("f_company").value,n).catch(function(x){alert("Could not save the new branch: "+x.message)});fillBranch(n)};$("f_company").onchange=function(){fillBranch("");refresh()};$("f_type").onchange=refresh;
-["q","fco","fty","fst"].forEach(function(i){$(i).oninput=render});
+["q","fco","fbr","fty","fst"].forEach(function(i){$(i).oninput=render});
 $("q").addEventListener("keydown",function(e){if(e.key!=="Enter")return;var m=$("q").value.match(/[A-Za-z]{2}-[A-Za-z]{2}-\d{4}/),a=m&&find(m[0]);if(a){detail(a);$("q").value=""; render()}});
 $("plAll").onclick=function(){printLabels(filtered())};
 function dl(n,t,m){var u=URL.createObjectURL(new Blob([t],{type:m})),a=document.createElement("a");a.href=u;a.download=n;a.click();setTimeout(function(){URL.revokeObjectURL(u)},500)}
