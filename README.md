@@ -103,3 +103,6 @@ Dashboard (totals, assets by company/type, latest tickets), digital gate passes 
 **Required after this update:** publish the new `firestore.rules` AND redeploy on Vercel (api/users.js changed).
 
 **Auto logout** - every user (including admin and full access) is logged out after **3 minutes** without any movement; a warning shows after 2 minutes. A running stock audit is saved automatically before logout (log in and press Resume). Camera scans count as activity.
+
+**IT engineer auto-select** - on a ticket the engineer is pre-selected from the login: `techpoint.chandu@gmail.com` -> Chandraprakash Khatik, `bhanwar.vaishnav` -> Bhanwar Vaishnav (still changeable).
+**Add-only users now have Stock Audit** - they choose company + branch and can mark an asset **only by scanning its QR with the camera**. No manual tick, no typed code, no "add missed". Only their own audits are visible to them. When the admin / full-access user opens ("Continue") that audit, the assets that were NOT scanned show as missing. **Publish the new `firestore.rules`.**

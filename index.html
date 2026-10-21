@@ -543,7 +543,7 @@ function publicView(c){
 var pm=location.pathname.match(/\/a\/([^\/]+)/),pq=new URLSearchParams(location.search).get("a"),pcode=pm?decodeURIComponent(pm[1]):pq;
 if(pcode){publicView(pcode)}else{
  fb.onAuth(function(u,role){
-  if(u){ROOT=(u.email||"").toLowerCase()===ADMIN;ROLE=ROOT?"admin":(role||"user");FULLX=ROOT||ROLE==="full";ADM=FULLX||ROLE==="editor";document.body.classList.toggle("ed",ROLE==="editor");["rs","csv","bk","brm"].forEach(function(id){$(id).style.display=FULLX?"":"none"});["nv_d","nv_t","nv_e","nv_s","nv_r","nv_l"].forEach(function(id){$(id).style.display=FULLX?"":"none"});$("nv_u").style.display=ROOT?"":"none";$("bulkb").textContent=ADM?"Bulk Add/Edit (Excel)":"Bulk Add (Excel)";$("nv_a").parentNode.style.display=ADM?"":"none";$("lg").style.display="none";$("app").style.display="";$("lo").style.display="";$("scanb").style.display="";$("cpw").style.display="";$("cpw").textContent=ROOT?"Reset password (e-mail)":"Change password";$("mode").textContent=uname(u.email)+({admin:" (Admin)",full:" (Full access)",editor:" (Edit only)"}[ROLE]||" (User · add only)");
+  if(u){ROOT=(u.email||"").toLowerCase()===ADMIN;ROLE=ROOT?"admin":(role||"user");FULLX=ROOT||ROLE==="full";ADM=FULLX||ROLE==="editor";document.body.classList.toggle("ed",ROLE==="editor");["rs","csv","bk","brm"].forEach(function(id){$(id).style.display=FULLX?"":"none"});["nv_d","nv_t","nv_e","nv_r","nv_l"].forEach(function(id){$(id).style.display=FULLX?"":"none"});$("nv_s").style.display=(FULLX||ROLE==="user")?"":"none";$("nv_u").style.display=ROOT?"":"none";$("bulkb").textContent=ADM?"Bulk Add/Edit (Excel)":"Bulk Add (Excel)";$("nv_a").parentNode.style.display=(ADM||ROLE==="user")?"":"none";$("lg").style.display="none";$("app").style.display="";$("lo").style.display="";$("scanb").style.display="";$("cpw").style.display="";$("cpw").textContent=ROOT?"Reset password (e-mail)":"Change password";$("mode").textContent=uname(u.email)+({admin:" (Admin)",full:" (Full access)",editor:" (Edit only)"}[ROLE]||" (User · add only)");
    AUTHED=true;ME=u.email||"";tab(FULLX?"d":"a");idleReset(true);unsubs.push(fb.watchConfig(function(c){CFG=c||{};fillBranch($("f_loc").value);if(FULLX){syncCfg();bmRender()}},function(){}));
    if(ADM){unsubs.push(fb.watch(function(l){A=l;fillBranch($("f_loc").value);if(!editId)refresh();render();if(!ctrSync){ctrSync=true;fb.syncCounters(l)}},function(e){alert("Could not load assets: "+e.message)}));if(FULLX)watchT()}
    else{A=[];loadMine();refresh()}}
@@ -710,7 +710,9 @@ function showLatest(a){
   CUR=t.id;CURT=t;$("tkst").style.display="";$("tkview").innerHTML=tlHtml(t)},function(){})}
 function beep(){try{var c=new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator();o.connect(c.destination);o.frequency.value=880;o.start();setTimeout(function(){o.stop();c.close()},350)}catch(e){}}
 var ENG=[{n:"Bhanwar Vaishnav",m:"7300257678"},{n:"Chandraprakash Khatik",m:"9116044500"}];
-function engOpts(cur){return"<option value=''>-- Assign IT engineer --</option>"+ENG.map(function(e,i){return"<option value='"+i+"'"+(e.n===cur?" selected":"")+">"+esc(e.n)+" ("+esc(e.m)+")</option>"}).join("")}
+/* the logged-in IT person is pre-selected as engineer: techpoint.chandu... -> Chandraprakash, bhanwar.vaishnav -> Bhanwar */
+function myEng(){var m=(ME||"").toLowerCase();if(m.indexOf("chandu")>-1||m.indexOf("chandra")>-1)return 1;if(m.indexOf("bhanwar")>-1)return 0;return -1}
+function engOpts(cur){var d=cur?-1:myEng();return"<option value=''>-- Assign IT engineer --</option>"+ENG.map(function(e,i){return"<option value='"+i+"'"+(e.n===cur||i===d?" selected":"")+">"+esc(e.n)+" ("+esc(e.m)+")</option>"}).join("")}
 function fbHtml(t){return t.feedback?"<div class='stat' style='margin-top:6px'><b>User feedback:</b> <span style='color:#f5a623'>"+stars(t.feedback.rating)+"</span> "+esc(t.feedback.comment||"")+"</div>":""}
 function stBadge(x){var c={"Open":["#fee2e2","#b91c1c"],"In Progress":["#dbeafe","#1d4ed8"],"Resolved":["#dcfce7","#15803d"],"Closed":["#e5e7eb","#374151"]}[x]||["#eee","#333"];return"<span class='sb' style='background:"+c[0]+";color:"+c[1]+"'>"+esc(x)+"</span>"}
 function rtk(){rdash();
@@ -765,7 +767,7 @@ $("trf").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new Fil
   if(confirm("Restore "+d.length+" tickets ("+TS.map(function(k){return k+": "+(c[k]||0)}).join(", ")+")?\nEach ticket goes back with the same status, notes, engineer and history. Tickets with the same number will be overwritten."))
    fb.restoreTickets(d,TK).then(function(){alert("Tickets restored")}).catch(function(x){alert("Restore failed: "+x.message)})
  }catch(x){alert("Invalid tickets backup file.")}};r.readAsText(f);e.target.value=""};
-function tab(t){var M={d:"dashboard",a:"assets",t:"tickets",e:"employees",s:"stock",r:"reports",l:"audit",u:"users"};Object.keys(M).forEach(function(k){$("tab_"+M[k]).style.display=k===t?"":"none";$("nv_"+k).className=k===t?"p":""});if(!ADM)return;if(t==="u"){loadUsers();loadBackups()}if(t==="d")rdash();if(t==="e")remp();if(t==="s")saInit();if(t==="r"){if(!$("rp_m").value)$("rp_m").value=new Date().toISOString().slice(0,7);rrep()}if(t==="l")startAudit()}
+function tab(t){var M={d:"dashboard",a:"assets",t:"tickets",e:"employees",s:"stock",r:"reports",l:"audit",u:"users"};Object.keys(M).forEach(function(k){$("tab_"+M[k]).style.display=k===t?"":"none";$("nv_"+k).className=k===t?"p":""});if(!ADM&&!(ROLE==="user"&&t==="s"))return;if(t==="u"){loadUsers();loadBackups()}if(t==="d")rdash();if(t==="e")remp();if(t==="s")saInit();if(t==="r"){if(!$("rp_m").value)$("rp_m").value=new Date().toISOString().slice(0,7);rrep()}if(t==="l")startAudit()}
 $("nv_a").onclick=function(){tab("a")};$("nv_t").onclick=function(){tab("t")};$("nv_d").onclick=function(){tab("d")};$("nv_u").onclick=function(){tab("u")};$("nv_e").onclick=function(){tab("e")};$("nv_s").onclick=function(){tab("s")};$("nv_r").onclick=function(){tab("r")};$("nv_l").onclick=function(){tab("l")};
 function watchT(){unsubs.push(fb.watchTickets(function(l){TK=l;var o=l.filter(isOpen).length;$("tbadge").textContent=o;document.title=(o?"("+o+") ":"")+"Sandeep Group – Asset Tracker";
  if(seenT){l.forEach(function(t){if(!seenT[t.id]&&isOpen(t))beep()})}seenT={};l.forEach(function(t){seenT[t.id]=1});rtk();if(!window.__sync){window.__sync=1;fb.syncLatest(l)}},function(){}))}
@@ -948,7 +950,7 @@ function prepDet(){var jq=function(){if(window.jsQR)return Promise.resolve();ret
  if(!window.BarcodeDetector)return jq();
  var want=["qr_code","code_128","code_39","code_93","codabar","ean_13","ean_8","upc_a","upc_e","itf","data_matrix"];
  return(BarcodeDetector.getSupportedFormats?BarcodeDetector.getSupportedFormats():Promise.resolve(want)).then(function(sup){var f=want.filter(function(x){return sup.indexOf(x)>-1});SC.det=new BarcodeDetector({formats:f.length?f:["qr_code"]})}).catch(function(){SC.det=null;return jq()})}
-function scanOpen(cb,cont,msg,raw){SC.cb=cb;SC.cont=!!cont;SC.m=msg||"";SC.raw=!!raw;SC.last="";$("scan").style.display="flex";$("sc_in").value="";$("sc_msg").textContent="Starting camera...";
+function scanOpen(cb,cont,msg,raw){SC.cb=cb;SC.cont=!!cont;SC.m=msg||"";SC.raw=!!raw;SC.last="";$("scan").style.display="flex";$("sc_in").value="";$("sc_in").style.display=$("sc_ok").style.display=(SA&&SA.scanOnly&&cont)?"none":"";$("sc_msg").textContent="Starting camera...";
  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$("sc_msg").textContent="Camera is not available in this browser. Type the code below.";return}
  navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false}).then(function(st){
   if(!SC.cb){st.getTracks().forEach(function(t){t.stop()});return}
@@ -970,25 +972,26 @@ $("sc_in").addEventListener("keydown",function(e){if(e.key==="Enter"){scanHit(th
 
 /* ================= v4: stock audit (admin) ================= */
 var SA=null,SAH=[],saW=false;
-function saInit(){if(!ADM)return;var cos={};A.forEach(function(a){cos[a.company]=1});var sel=$("sa_co"),cur=sel.value;sel.innerHTML=Object.keys(cos).sort().map(function(c){return"<option>"+esc(c)+"</option>"}).join("");if(cur)sel.value=cur;saLocs();
- if(!saW){saW=true;unsubs.push(fb.watchStockAudits(function(l){SAH=l;saHist()},function(){}))}}
-function saLocs(){var co=$("sa_co").value,l={};A.forEach(function(a){if(a.company===co&&a.loc&&a.st!=="Scrapped")l[a.loc]=(l[a.loc]||0)+1});$("sa_loc").innerHTML=Object.keys(l).sort().map(function(k){return"<option value=\""+esc(k)+"\">"+esc(k)+" ("+l[k]+")</option>"}).join("")}
+function saInit(){if(!ADM&&ROLE!=="user")return;var cos={};if(ROLE==="user")CO.forEach(function(c){cos[c[0]]=1});else A.forEach(function(a){cos[a.company]=1});var sel=$("sa_co"),cur=sel.value;sel.innerHTML=Object.keys(cos).sort().map(function(c){return"<option>"+esc(c)+"</option>"}).join("");if(cur)sel.value=cur;saLocs();
+ if(!saW){saW=true;unsubs.push(fb.watchStockAudits(function(l){SAH=l;saHist()},function(){},ROLE==="user"?ME:""))}}
+function saLocs(){var co=$("sa_co").value,l={};if(ROLE==="user"){(branchesFor(co)||[]).forEach(function(b){b=typeof b==="string"?b:(b.n||b.name||b[0]);if(b)l[b]=0});$("sa_loc").innerHTML=Object.keys(l).sort().map(function(k){return"<option value=\""+esc(k)+"\">"+esc(k)+"</option>"}).join("");return}A.forEach(function(a){if(a.company===co&&a.loc&&a.st!=="Scrapped")l[a.loc]=(l[a.loc]||0)+1});$("sa_loc").innerHTML=Object.keys(l).sort().map(function(k){return"<option value=\""+esc(k)+"\">"+esc(k)+" ("+l[k]+")</option>"}).join("")}
 $("sa_co").onchange=saLocs;
 function saShowRun(){$("sa_setup").style.display="none";$("sa_run").style.display="";$("sa_t").textContent="Auditing: "+SA.co+" - "+SA.loc;$("sa_msg").textContent="";saRender()}
 function saBase(co,loc){return A.filter(function(a){return a.company===co&&a.loc===loc&&a.st!=="Scrapped"})}
 function saSort(l){return l.sort(function(x,y){return((x.aloc||"")+x.code)<((y.aloc||"")+y.code)?-1:1})}
 function saDoc(s){var miss=s.list.filter(function(a){return!s.found[a.code]});
-  return{at:s.at,start:s.start,upd:Date.now(),by:s.by||ME,company:s.co,loc:s.loc,total:s.list.length,found:s.list.length-miss.length,done:s.done===true,fm:s.found,xm:s.extra,ad:s.ad,
+  return{at:s.at,start:s.start,upd:Date.now(),by:s.by||ME,company:s.co,loc:s.loc,total:s.list.length,found:s.list.length-miss.length,done:s.done===true,scanOnly:!!s.scanOnly,fm:s.found,xm:s.extra,ad:s.ad,
   missing:miss.map(function(a){return{code:a.code,type:a.type||"",model:a.model||"",aloc:a.aloc||"",usr:a.usr||""}}),extra:Object.keys(s.extra).map(function(c){return{code:c,loc:s.extra[c].loc||""}})}}
 var saT=null;
 /* every change is saved to the database after a moment, so the audit can be resumed any time */
 function saSave(now){if(!SA)return;clearTimeout(saT);var s=SA,go=function(){fb.putStockAudit(s.id,saDoc(s)).then(function(){if(SA===s)$("sa_sv").textContent="Saved "+new Date().toLocaleTimeString()}).catch(function(x){$("sa_sv").textContent="Could not save: "+x.message})};if(now)go();else saT=setTimeout(go,600)}
 $("sa_go").onclick=function(){var co=$("sa_co").value,loc=$("sa_loc").value;if(!co||!loc){alert("Choose company and branch.");return}
-  var list=saSort(saBase(co,loc));
-  if(!list.length){alert("No assets found in this branch.");return}
-  SA={id:fb.newSAId(),co:co,loc:loc,list:list,found:{},extra:{},ad:{},start:Date.now(),at:Date.now(),by:ME,done:false};saShowRun();saSave(true)};
+  var so=ROLE==="user",list=so?[]:saSort(saBase(co,loc));
+  if(!list.length&&!so){alert("No assets found in this branch.");return}
+  SA={id:fb.newSAId(),co:co,loc:loc,list:list,found:{},extra:{},ad:{},start:Date.now(),at:Date.now(),by:ME,done:false,scanOnly:so};saShowRun();saSave(true)};
 /* resume a saved (or finished) audit: found assets stay ticked, missed ones can be added */
-function saResume(d){if(SA)return;var base=saBase(d.company,d.loc),have={};base.forEach(function(a){have[a.code]=1});
+function saResume(d){if(SA)return;
+  if(d.scanOnly&&ROLE==="user"){Promise.all(Object.keys(d.fm||{}).map(function(c){return fb.getOne(c)})).then(function(r){if(SA)return;SA={id:d.id,co:d.company,loc:d.loc,list:saSort(r.filter(Boolean)),found:d.fm||{},extra:d.xm||{},ad:{},start:d.start||d.at,at:d.at,by:d.by,done:d.done!==false,scanOnly:true};saShowRun()});return}var base=saBase(d.company,d.loc),have={};base.forEach(function(a){have[a.code]=1});
   Object.keys(d.ad||{}).forEach(function(c){var a=find(c);if(a&&!have[c]){base.push(a);have[c]=1}});
   var fm=d.fm;if(!fm){fm={};var ms={};(d.missing||[]).forEach(function(m){ms[m.code]=1});base.forEach(function(a){if(!ms[a.code])fm[a.code]=d.at})}
   var xm=d.xm;if(!xm){xm={};(d.extra||[]).forEach(function(e){xm[e.code]={at:d.at,loc:e.loc||""}})}
@@ -996,13 +999,19 @@ function saResume(d){if(SA)return;var base=saBase(d.company,d.loc),have={};base.
 function saAdd(code){if(!SA)return"";var a=find(code);if(!a)return"Unknown code: "+code;
   if(!SA.list.some(function(x){return x.code===a.code})){SA.list=saSort(SA.list.concat([a]));SA.ad[a.code]=1}
   delete SA.extra[a.code];SA.found[a.code]=Date.now();saRender();saSave();return"ADDED to this audit: "+a.code+" - "+a.type+(a.model?" "+a.model:"")}
-function saMark(code){if(!SA)return"";var a=find(code);if(!a)return"Unknown code: "+code;
+var SAX={};
+function saFetch(code){fb.getOne(code).then(function(a){if(!a||!SA){$("sa_msg").textContent="Unknown code: "+code;return}SAX[a.code]=a;$("sa_msg").textContent=saMark(a.code)}).catch(function(){$("sa_msg").textContent="Could not check "+code});return"Checking "+code+" ..."}
+function saMark(code){if(!SA)return"";var a=find(code)||SAX[code]||SAX[String(code).toUpperCase()];if(!a)return SA.scanOnly?saFetch(code):"Unknown code: "+code;
+  if(SA.scanOnly){if(a.company!==SA.co||a.loc!==SA.loc){SA.extra[a.code]={at:Date.now(),loc:a.loc,aloc:a.aloc,co:a.company};saRender();saSave();return"EXTRA (belongs to "+a.company+" / "+a.loc+"): "+a.code}
+   if(SA.found[a.code])return"Already scanned: "+a.code;if(!SA.list.some(function(x){return x.code===a.code}))SA.list=saSort(SA.list.concat([a]));SA.found[a.code]=Date.now();saRender();saSave();return"FOUND: "+a.code+" - "+a.type+(a.model?" "+a.model:"")}
   if(SA.list.some(function(x){return x.code===a.code})){if(SA.found[a.code])return"Already marked: "+a.code;SA.found[a.code]=Date.now();saRender();saSave();return"FOUND: "+a.code+" - "+a.type+(a.model?" "+a.model:"")}
   SA.extra[a.code]={at:Date.now(),loc:a.loc,aloc:a.aloc,co:a.company};saRender();saSave();return"EXTRA (belongs to "+a.loc+"): "+a.code+" - use \"Add to this audit\" below if it should be counted"}
 function saRender(){if(!SA)return;var n=SA.list.filter(function(a){return SA.found[a.code]}).length,t=SA.list.length;
   $("sa_kp").innerHTML="<div class='kc ok'><b>"+n+"</b><span>Found</span></div><div class='kc "+(t-n?"r":"")+"'><b>"+(t-n)+"</b><span>Not found yet</span></div><div class='kc'><b>"+t+"</b><span>Total in system</span></div><div class='kc w'><b>"+Object.keys(SA.extra).length+"</b><span>Extra (other branch)</span></div>";
-  $("sa_tb").innerHTML=SA.list.slice().sort(function(x,y){return(SA.found[x.code]?1:0)-(SA.found[y.code]?1:0)}).map(function(a){return"<tr><td><input type='checkbox' data-sa='"+esc(a.code)+"' style='width:auto'"+(SA.found[a.code]?" checked":"")+"></td><td class='code'>"+esc(a.code)+"<br><span class='stat'>"+esc((a.type||"")+(a.model?" - "+a.model:""))+"</span></td><td>"+esc(a.aloc||"")+"<br><span class='stat'>"+esc([a.dept,a.usr].filter(Boolean).join(" · "))+(SA.ad[a.code]?" · added to audit":"")+"</span></td></tr>"}).join("");
-  var ex=Object.keys(SA.extra);$("sa_ex").innerHTML=ex.length?"<h3 style='margin:14px 0 4px;font-size:15px'>Extra assets scanned (belong to another branch)</h3>"+ex.map(function(c){return"<div class='stat' style='margin:4px 0'>"+esc(c)+" - belongs to "+esc(SA.extra[c].loc||"")+" <button data-sax='"+esc(c)+"'>Add to this audit</button></div>"}).join(""):""}
+  $("sa_tb").innerHTML=SA.list.slice().sort(function(x,y){return(SA.found[x.code]?1:0)-(SA.found[y.code]?1:0)}).map(function(a){return"<tr><td><input type='checkbox' data-sa='"+esc(a.code)+"' style='width:auto'"+(SA.found[a.code]?" checked":"")+(SA.scanOnly?" disabled":"")+"></td><td class='code'>"+esc(a.code)+"<br><span class='stat'>"+esc((a.type||"")+(a.model?" - "+a.model:""))+"</span></td><td>"+esc(a.aloc||"")+"<br><span class='stat'>"+esc([a.dept,a.usr].filter(Boolean).join(" · "))+(SA.ad[a.code]?" · added to audit":"")+"</span></td></tr>"}).join("");
+  var ex=Object.keys(SA.extra);$("sa_ex").innerHTML=ex.length?"<h3 style='margin:14px 0 4px;font-size:15px'>Extra assets scanned (belong to another branch)</h3>"+ex.map(function(c){return"<div class='stat' style='margin:4px 0'>"+esc(c)+" - belongs to "+esc(SA.extra[c].loc||"")+(SA.scanOnly?"":" <button data-sax='"+esc(c)+"'>Add to this audit</button>")+"</div>"}).join(""):""}
+var saRender0=saRender;saRender=function(){saRender0();var so=!!(SA&&SA.scanOnly);["sa_in","sa_add","sa_addb"].forEach(function(i){$(i).style.display=so?"none":""});
+ if(so)$("sa_kp").innerHTML="<div class='kc ok'><b>"+SA.list.length+"</b><span>Scanned</span></div><div class='kc w'><b>"+Object.keys(SA.extra).length+"</b><span>Extra (other branch)</span></div>"};
 $("sa_ex").addEventListener("click",function(e){var b=e.target.closest("button[data-sax]");if(!b||!SA)return;$("sa_msg").textContent=saAdd(b.dataset.sax)});
 $("sa_tb").addEventListener("change",function(e){var c=e.target.dataset.sa;if(!c||!SA)return;if(e.target.checked)SA.found[c]=Date.now();else delete SA.found[c];saRender();saSave()});
 $("sa_in").addEventListener("keydown",function(e){if(e.key!=="Enter")return;var v=this.value.trim();this.value="";if(v)$("sa_msg").textContent=saMark(codeFrom(v)||v.toUpperCase())});
@@ -1024,7 +1033,7 @@ $("sa_fin").onclick=function(){if(!SA)return;var n=SA.list.filter(function(a){re
   fb.putStockAudit(s.id,saDoc(s)).then(function(){fb.audit("stock.audit","",s.loc+": found "+d.found+" of "+d.total+", not found "+d.missing.length);saEnd();saShow(d)}).catch(function(x){s.done=false;alert("Could not save: "+x.message)})};
 function saHist(){if(!$("sa_hist"))return;var dr=SAH.filter(function(d){return d.done===false}),dn=SAH.filter(function(d){return d.done!==false});
   $("sa_drafts").innerHTML=dr.length?"<h3 style='margin:12px 0 4px;font-size:15px'>Saved audits - resume where you stopped</h3><div class='tw'><table style='min-width:560px'><tbody>"+dr.map(function(d){var left=(d.total||0)-(d.found||0);return"<tr><td>"+esc(d.company)+"<br><span class='stat'>"+esc(d.loc)+"</span></td><td>"+(d.found||0)+" / "+(d.total||0)+" found <span class='badge' style='color:var(--dg)'>"+left+" left</span><br><span class='stat'>Saved "+esc(fdt(d.upd||d.at))+" · "+esc(uname(d.by))+"</span></td><td style='white-space:nowrap'><button class='p' data-sr='"+esc(d.id)+"'>Resume</button> <button class='d' data-sdel='"+esc(d.id)+"'>Delete</button></td></tr>"}).join("")+"</tbody></table></div>":"";
-  $("sa_hist").innerHTML=dn.map(function(d){return"<tr><td>"+esc(fdt(d.at))+"</td><td>"+esc(d.company)+"<br><span class='stat'>"+esc(d.loc)+"</span></td><td>"+d.found+" / "+d.total+(d.missing&&d.missing.length?" <span class='badge' style='color:var(--dg)'>"+d.missing.length+" missing</span>":"")+"</td><td class='stat'>"+esc(uname(d.by))+"</td><td style='white-space:nowrap'><button data-sh='"+esc(d.id)+"'>View / PDF</button> <button data-sc='"+esc(d.id)+"'>Continue / add missed</button></td></tr>"}).join("")||"<tr><td colspan='5' class='stat'>No audit done yet.</td></tr>"}
+  $("sa_hist").innerHTML=dn.map(function(d){return"<tr><td>"+esc(fdt(d.at))+"</td><td>"+esc(d.company)+"<br><span class='stat'>"+esc(d.loc)+"</span></td><td>"+d.found+" / "+d.total+(d.missing&&d.missing.length?" <span class='badge' style='color:var(--dg)'>"+d.missing.length+" missing</span>":"")+"</td><td class='stat'>"+esc(uname(d.by))+"</td><td style='white-space:nowrap'><button data-sh='"+esc(d.id)+"'>View / PDF</button> "+(ROLE==="user"?"":"<button data-sc='"+esc(d.id)+"'>Continue / add missed</button>")+"</td></tr>"}).join("")||"<tr><td colspan='5' class='stat'>No audit done yet.</td></tr>"}
 $("sa_hist").addEventListener("click",function(e){var b=e.target.closest("button[data-sh],button[data-sc]");if(!b)return;var id=b.dataset.sh||b.dataset.sc,d=SAH.filter(function(x){return x.id===id})[0];if(!d)return;if(b.dataset.sh)saShow(d);else saResume(d)});
 $("sa_drafts").addEventListener("click",function(e){var b=e.target.closest("button[data-sr],button[data-sdel]");if(!b)return;var id=b.dataset.sr||b.dataset.sdel,d=SAH.filter(function(x){return x.id===id})[0];if(!d)return;
   if(b.dataset.sr)saResume(d);else if(confirm("Delete this saved audit ("+d.loc+")? This cannot be undone."))fb.delStockAudit(id).catch(function(x){alert(x.message)})});

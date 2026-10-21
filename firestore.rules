@@ -167,9 +167,12 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // ---------- STOCK AUDITS (admin only) ----------
+    // ---------- STOCK AUDITS (staff: all; add-only user: only his own SCAN-ONLY audits) ----------
     match /stockaudits/{id} {
-      allow read, write: if isStaff();
+      allow read: if isStaff() || (isAddOnly() && resource.data.by == request.auth.token.email);
+      allow create: if isStaff() || (isAddOnly() && request.resource.data.by == request.auth.token.email && request.resource.data.scanOnly == true);
+      allow update: if isStaff() || (isAddOnly() && resource.data.by == request.auth.token.email && request.resource.data.by == request.auth.token.email && request.resource.data.scanOnly == true);
+      allow delete: if isStaff();
     }
 
     // Daily backups are written/read only by the server (api/backup.js) - closed to the browser.

@@ -40,7 +40,7 @@ export const saveStockAudit=o=>setDoc(doc(scol),o);
 export const newSAId=()=>doc(scol).id;
 export const putStockAudit=(id,o)=>setDoc(doc(scol,id),o);
 export const delStockAudit=id=>deleteDoc(doc(scol,id));
-export const watchStockAudits=(ok,err)=>onSnapshot(query(scol,orderBy("at","desc"),limit(50)),s=>ok(s.docs.map(d=>({...d.data(),id:d.id}))),err);
+export const watchStockAudits=(ok,err,me)=>onSnapshot(me?query(scol,where("by","==",me),limit(50)):query(scol,orderBy("at","desc"),limit(50)),s=>{const l=s.docs.map(d=>({...d.data(),id:d.id}));if(me)l.sort((x,y)=>(y.at||0)-(x.at||0));ok(l)},err);
 export async function save(o,isNew){
   let code=o.code;
   if(isNew){const m=/^(.*-)(\d+)$/.exec(code);if(m){let n=+m[2];while((await getDoc(doc(db,"assets",code))).exists()){n++;code=m[1]+String(n).padStart(4,"0")}}}
