@@ -106,3 +106,5 @@ Dashboard (totals, assets by company/type, latest tickets), digital gate passes 
 
 **IT engineer auto-select** - on a ticket the engineer is pre-selected from the login: `techpoint.chandu@gmail.com` -> Chandraprakash Khatik, `bhanwar.vaishnav` -> Bhanwar Vaishnav (still changeable).
 **Add-only users now have Stock Audit** - they choose company + branch and can mark an asset **only by scanning its QR with the camera**. No manual tick, no typed code, no "add missed". Only their own audits are visible to them. When the admin / full-access user opens ("Continue") that audit, the assets that were NOT scanned show as missing. **Publish the new `firestore.rules`.**
+
+**Stock audit / scanner update** - Add-only users see only the audit they are running (no history, no delete). *Previous stock audits* now have a **Delete** button (admin / full access only). A finished audit never appears again under "Saved audits - resume". The camera is now a **small frame** (not full screen) and reads only the picture inside that frame; after every scan the phone gives a **beep, a vibration and a voice** ("Found", "Already scanned", "Extra asset", "Unknown code", "Scanned").
