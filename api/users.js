@@ -4,6 +4,7 @@ const admin = require("firebase-admin");
 
 const ADMIN_EMAIL = "techpoint.chandu@gmail.com";
 const DOMAIN = "@assets.local";
+const ROLES = ["user", "editor", "full"];   // user = add only, editor = edit only, full = everything except users & backup
 
 const slug = s => String(s || "").trim().toLowerCase().replace(/\s+/g, ".").replace(/[^a-z0-9._-]/g, "");
 const toEmail = u => slug(u) + DOMAIN;
@@ -47,7 +48,7 @@ module.exports = async (req, res) => {
       if (!/^[a-z0-9._-]{3,30}$/.test(username)) return bad(res, "Username: 3-30 letters/numbers (a-z, 0-9, . _ -).");
       if (pw.length < 8 || pw.length > 128) return bad(res, "Password must be 8 to 128 characters.");
       const u = await A.createUser({ email: toEmail(username), password: pw, displayName: String(b.name || "").slice(0, 80) || undefined });
-      await A.setCustomUserClaims(u.uid, { role: "user" });
+      await A.setCustomUserClaims(u.uid, { role: ROLES.includes(b.role) ? b.role : "user" });
       return res.json({ ok: true, username });
     }
 
@@ -57,6 +58,12 @@ module.exports = async (req, res) => {
       const pw = String(b.password || "");
       if (pw.length < 8 || pw.length > 128) return bad(res, "Password must be 8 to 128 characters.");
       await A.updateUser(u.uid, { password: pw });
+      await A.revokeRefreshTokens(u.uid);
+      return res.json({ ok: true });
+    }
+    if (b.action === "setRole") {
+      if (!ROLES.includes(b.role)) return bad(res, "Unknown role.");
+      await A.setCustomUserClaims(u.uid, { role: b.role });
       await A.revokeRefreshTokens(u.uid);
       return res.json({ ok: true });
     }

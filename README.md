@@ -94,3 +94,12 @@ Dashboard (totals, assets by company/type, latest tickets), digital gate passes 
 
 **Tickets tab (new layout)** - one clean row per ticket: S.N, Branch, Ticket No., Asset Code, Problem, Raised By, Date, Status (coloured), where the asset is now + repair mode, and buttons **View / Repair Approval / Gate Pass / Close**. *View* opens the full ticket window (details, status, engineer, IT note, movement, Received at IT / Return to user, history, delete). *Gate Pass* shows only for tickets where the user ticked "send out" and IT issued a pass. *Close* closes the ticket in one click. A count strip on top shows Open / In progress / At IT / Waiting for approval / Resolved.
 **Design** - new look: soft cards with shadow, pill-shaped tabs, sticky table headings, row hover, striped ticket table, focus rings, smoother buttons (light and dark mode).
+
+**User roles (Users tab -> Add User -> Role)**
+* **Add only** - can add new assets only (as before).
+* **Edit only** - sees the asset list and can edit existing assets; cannot add, delete, export, see tickets. Only the Assets tab is shown.
+* **Full access** - everything the admin has (assets, tickets, gate passes, stock audit, reports, audit log, export) **except** the Users & Backup tab and e-mail password reset.
+* **Change role** button on every user row (user is logged out and gets the new role at next login). Admin (`techpoint.chandu@gmail.com`) is always the only one who manages users.
+**Required after this update:** publish the new `firestore.rules` AND redeploy on Vercel (api/users.js changed).
+
+**Auto logout** - every user (including admin and full access) is logged out after **3 minutes** without any movement; a warning shows after 2 minutes. A running stock audit is saved automatically before logout (log in and press Resume). Camera scans count as activity.

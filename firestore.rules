@@ -12,6 +12,15 @@ service cloud.firestore {
         && request.auth.token.email.matches('.*@assets[.]local');
     }
 
+    // roles set by the admin in the Users tab (server gives the claim): user = add only, editor = edit only, full = everything except users / backup
+    function hasRole(x) {
+      return request.auth != null && ('role' in request.auth.token) && request.auth.token.role == x
+        && request.auth.token.email.matches('.*@assets[.]local');
+    }
+    function isFull() { return hasRole("full"); }
+    function isEditor() { return hasRole("editor"); }
+    function isStaff() { return isAdmin() || isFull(); }
+
     // optional text field: if present it must be a short string
     function okStr(k, n) {
       return !(k in request.resource.data)
@@ -46,27 +55,27 @@ service cloud.firestore {
     match /assets/{code} {
       // anyone can read ONE asset (needed for the QR-scan page) - nobody can list them except admin
       allow get: if true;
-      allow list: if isAdmin();
+      allow list: if isStaff() || isEditor();
       // admin: anything. add-only user: only NEW assets that pass newAssetOk (cannot overwrite an existing one)
-      allow create: if isAdmin() || (isAddOnly() && newAssetOk(code));
+      allow create: if isStaff() || (isAddOnly() && newAssetOk(code));
       // ONLY admin can edit or delete
-      allow delete: if isAdmin();
+      allow delete: if isStaff();
       // admin: anything. Anyone: ONLY Under Repair -> In Use, and only after IT has sent the asset back (ticket has track.ret)
-      allow update: if isAdmin() || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['st'])
+      allow update: if isStaff() || isEditor() || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['st'])
         && request.resource.data.st == 'In Use' && resource.data.st == 'Under Repair'
         && get(/databases/$(database)/documents/tickets/$(get(/databases/$(database)/documents/assetLatest/$(code)).data.ticketId)).data.track.ret is number);
     }
 
     // ---------- Branch list per company (admin edits, add-only user can only read) ----------
     match /config/{doc} {
-      allow get: if isAdmin() || isAddOnly();
-      allow write: if isAdmin();
+      allow get: if isStaff() || isEditor() || isAddOnly();
+      allow write: if isStaff();
     }
 
     // ---------- Next-code hints (SK-DT -> last used number) ----------
     match /counters/{pfx} {
-      allow get: if isAdmin() || isAddOnly();
-      allow write: if isAdmin() || (isAddOnly()
+      allow get: if isStaff() || isEditor() || isAddOnly();
+      allow write: if isStaff() || (isAddOnly()
         && pfx.matches('^[A-Z]{2}-[A-Z]{2}$')
         && request.resource.data.keys().hasOnly(['n'])
         && request.resource.data.n is int
@@ -78,7 +87,7 @@ service cloud.firestore {
     match /tickets/{id} {
       // Anyone who scans the QR can raise a ticket for a REAL asset (strict checks).
       // Admin can also create any ticket (needed for Restore).
-      allow create: if isAdmin() || (request.resource.data.keys().hasOnly(['id','assetCode','assetType','assetLoc','company','name','dept','mobile','category','priority','issue','status','notes','created','move','photos'])
+      allow create: if isStaff() || (request.resource.data.keys().hasOnly(['id','assetCode','assetType','assetLoc','company','name','dept','mobile','category','priority','issue','status','notes','created','move','photos'])
         && request.resource.data.id == id
         && id.size() >= 10 && id.size() <= 40
         && request.resource.data.assetCode is string
@@ -114,10 +123,10 @@ service cloud.firestore {
       allow get: if true;
 
       // ONLY admin can see the ticket list or delete
-      allow list, delete: if isAdmin();
+      allow list, delete: if isStaff();
 
       // Admin can update anything. The ticket owner may ONLY add one feedback, and only after it is Resolved.
-      allow update: if isAdmin() || (
+      allow update: if isStaff() || (
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['feedback'])
         && resource.data.status == 'Resolved'
         && !('feedback' in resource.data)
@@ -138,29 +147,29 @@ service cloud.firestore {
     // ---------- Pointer: asset code -> its newest ticket (QR page shows the latest ticket) ----------
     match /assetLatest/{code} {
       allow get: if true;
-      allow create, update: if isAdmin() || (request.resource.data.keys().hasOnly(['ticketId','at'])
+      allow create, update: if isStaff() || (request.resource.data.keys().hasOnly(['ticketId','at'])
         && request.resource.data.ticketId is string
         && getAfter(/databases/$(database)/documents/tickets/$(request.resource.data.ticketId)).data.assetCode == code
         && getAfter(/databases/$(database)/documents/tickets/$(request.resource.data.ticketId)).data.created == request.resource.data.at);
-      allow delete: if isAdmin();
+      allow delete: if isStaff();
     }
 
     // ---------- AUDIT LOG: every logged-in user can only ADD a line about himself; only admin can read; nobody can change or delete ----------
     match /audit/{id} {
-      allow create: if (isAdmin() || isAddOnly())
+      allow create: if (isStaff() || isEditor() || isAddOnly())
         && request.resource.data.keys().hasOnly(['at','by','action','code','detail'])
         && request.resource.data.by == request.auth.token.email
         && request.resource.data.at is number
         && request.resource.data.action is string && request.resource.data.action.size() <= 40
         && request.resource.data.code is string && request.resource.data.code.size() <= 40
         && request.resource.data.detail is string && request.resource.data.detail.size() <= 600;
-      allow read: if isAdmin();
+      allow read: if isStaff();
       allow update, delete: if false;
     }
 
     // ---------- STOCK AUDITS (admin only) ----------
     match /stockaudits/{id} {
-      allow read, write: if isAdmin();
+      allow read, write: if isStaff();
     }
 
     // Daily backups are written/read only by the server (api/backup.js) - closed to the browser.

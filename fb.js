@@ -19,7 +19,7 @@ const slug=s=>String(s||"").trim().toLowerCase().replace(/\s+/g,".").replace(/[^
 export const login=(e,p)=>signInWithEmailAndPassword(auth,String(e).includes("@")?String(e).trim():slug(e)+"@assets.local",p);
 export const sendReset=e=>sendPasswordResetEmail(auth,e);
 export const logout=()=>signOut(auth);
-export const onAuth=cb=>onAuthStateChanged(auth,cb);
+export const onAuth=cb=>onAuthStateChanged(auth,async u=>{let role="";if(u){try{role=(await u.getIdTokenResult()).claims.role||""}catch(e){}}cb(u,role)});
 export const watch=(ok,err)=>onSnapshot(col,s=>ok(s.docs.map(d=>({...d.data(),code:d.id}))),err);
 export const getOne=async c=>{const s=await getDoc(doc(db,"assets",c));return s.exists()?{...s.data(),code:s.id}:null};
 // ---- Audit log: who did what, when (admin can read, everybody logged-in can only add) ----

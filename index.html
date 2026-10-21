@@ -141,6 +141,7 @@ tbody tr{transition:background .12s}tbody tr:hover{background:rgba(37,99,235,.06
 .tkt tbody tr:nth-child(even){background:rgba(100,116,139,.05)}
 #bulkc{border-radius:16px}
 .tvx .tl{margin-top:6px}
+.ed button[data-a=x],.ed button[data-a=hi]{display:none}
 </style>
 </head>
 <body>
@@ -198,8 +199,8 @@ tbody tr{transition:background .12s}tbody tr:hover{background:rgba(37,99,235,.06
 <div class="g2"><section><h2>Tickets by branch</h2><div class="bars" id="rp_br"></div></section><section><h2>Tickets by issue type</h2><div class="bars" id="rp_cat"></div></section></div>
 <section><h2>Tickets &amp; repair cost of the month</h2><div class="tw"><table style="min-width:720px"><thead><tr><th>Ticket</th><th>Asset / branch</th><th>Issue</th><th>Stage</th><th>Cost (Rs)</th></tr></thead><tbody id="rp_tb"></tbody></table></div></section></div>
 <div id="tab_audit" style="display:none"><section><h2>Audit Log</h2><p class="stat">Latest 300 actions. Nobody can edit or delete these lines.</p><div class="g"><div><label>Search</label><input id="au_q" placeholder="user, asset code, text..."></div><div><label>Action</label><select id="au_a"></select></div></div><div class="stat" id="au_cnt" style="margin:8px 0"></div><div class="tw"><table style="min-width:720px"><thead><tr><th>When</th><th>User</th><th>Action</th><th>Asset</th><th>Details</th></tr></thead><tbody id="au_tb"></tbody></table></div></section></div>
-<div id="tab_users" style="display:none"><section><h2>Add User</h2><p class="stat">The user logs in with this <b>username</b> and password (no e-mail needed). Role: add assets only - cannot edit, delete, export or see tickets.</p>
-<div class="g"><div><label>Full name</label><input id="uf_name" maxlength="80" placeholder="e.g. Ramesh Kumar"></div><div><label>Username (used to login)</label><input id="uf_user" maxlength="30" autocapitalize="none" placeholder="e.g. ramesh.kumar"></div><div><label>Password (min 8)</label><input id="uf_pw" type="text" autocomplete="off" maxlength="128"></div><div><label>Role</label><select id="uf_role"><option value="user">User - add assets only</option></select></div></div>
+<div id="tab_users" style="display:none"><section><h2>Add User</h2><p class="stat">The user logs in with this <b>username</b> and password (no e-mail needed). Choose what the user may do: <b>Add only</b> (new assets only), <b>Edit only</b> (edit existing assets, cannot add or delete), or <b>Full access</b> (everything - add, edit, delete, tickets, stock audit, reports - except managing users and backups).</p>
+<div class="g"><div><label>Full name</label><input id="uf_name" maxlength="80" placeholder="e.g. Ramesh Kumar"></div><div><label>Username (used to login)</label><input id="uf_user" maxlength="30" autocapitalize="none" placeholder="e.g. ramesh.kumar"></div><div><label>Password (min 8)</label><input id="uf_pw" type="text" autocomplete="off" maxlength="128"></div><div><label>Role</label><select id="uf_role"><option value="user">Add only - can add new assets</option><option value="editor">Edit only - can edit existing assets</option><option value="full">Full access - everything except Users &amp; Backup</option></select></div></div>
 <div class="bar"><button class="p" id="uf_go">Create user</button><button id="uf_gen">Generate password</button><span class="stat" id="uf_msg"></span></div></section>
 <section><h2>Users</h2><div class="tw"><table style="min-width:620px"><thead><tr><th>Username / name</th><th>Role</th><th>Status</th><th>Last login</th><th></th></tr></thead><tbody id="utb"></tbody></table></div></section>
 <section><h2>Daily backups</h2><p class="stat">A full backup (assets, tickets, audit log, settings) is taken automatically every night at 2:00 AM and the last 30 are kept. Each backup downloads as <b>one single file</b>; use <b>Restore full backup (file)</b> to bring everything back. Backups are stored safely in your Firebase database (collection <b>backups</b>).</p><div class="bar"><button class="p" id="bkn">Backup now</button><button id="bkrs">Restore full backup (file)</button><input type="file" id="bkrf" accept=".json" style="display:none"><span class="stat" id="bkm"></span></div><div class="tw" style="margin-top:8px"><table style="min-width:560px"><thead><tr><th>Date</th><th>Contains</th><th>Size</th><th>Download</th></tr></thead><tbody id="bktb"></tbody></table></div></section></div>
@@ -264,7 +265,7 @@ var BK=["model","sn","loc","aloc","dept","usr","pd","wt","st","rm"];
 var SK=["cpu","ram","hdd","os","size","res","ports","ip","mac","ntype","sip","smask","sgw","dns1","dns2","cap","batt"].concat(MK);
 var L={company:"Company",type:"Product Type",code:"Asset Code",model:"Brand / Model",sn:"Serial No.",cpu:"Processor",ram:"RAM",hdd:"Storage",os:"Operating System",size:"Screen Size",res:"Resolution",ports:"Ports",ip:"IP Address",sip:"Static IP Address",smask:"Subnet Mask",sgw:"Default Gateway",dns1:"Preferred DNS Server",dns2:"Alternate DNS Server",mac:"MAC Address",ntype:"Device (Switch/Router/AP/Firewall)",cap:"Capacity (VA / kVA)",batt:"Battery Details (Qty / Ah)",mon_model:"Monitor Brand / Model",mon_sn:"Monitor Serial No.",mon_pd:"Monitor Purchase Date",mon_wt:"Monitor Warranty Till",loc:"Branch Location",aloc:"Asset Location (Floor / Room / Desk)",dept:"Department",usr:"Assigned User",pd:"Purchase Date",wt:"Warranty Till",st:"Status",rm:"Remarks"};
 var ST=["In Use","In Stock","Under Repair","Scrapped"];
-var A=[],editId=null,ADM=false,ADMIN="techpoint.chandu@gmail.com",CFG={},unsubs=[],AUTHED=false,ctrSync=false,seeding=false,codeTok=0;
+var A=[],editId=null,ADM=false,ROOT=false,ROLE="",FULLX=false,ADMIN="techpoint.chandu@gmail.com",CFG={},unsubs=[],AUTHED=false,ctrSync=false,seeding=false,codeTok=0;
 var ACC=["Charger / Adapter","Power cable","Mouse","Keyboard","Bag / Cover"],CD=["New","Good","Fair"];
 var DL={model:"Desktop Brand / Model",sn:"Desktop Serial No.",pd:"Desktop Purchase Date",wt:"Desktop Warranty Till"};
 function lab(k,t){return t==="Desktop"&&DL[k]?DL[k]:L[k]}
@@ -311,7 +312,7 @@ function clearForm(){editId=null;BK.concat(SK).forEach(function(k){$("f_"+k).val
 /* storage: Firebase */
 function put(o,isNew){return(ADM?fb.save(o,isNew):fb.createAsset(o)).then(function(r){if(r&&r.code){if(ADM)fb.bumpCounters([r.code]);else rememberMine([r.code])}return r}).catch(function(e){alert("Could not save: "+e.message+(ADM?"":"\n\nIf the problem continues, refresh the page and try again. A branch that is not in the list must be added by the admin first."))})}
 function del(c){return fb.remove(c).catch(function(e){alert("Could not delete: "+e.message)})}
-function save(){if(editId&&!ADM){alert("Only admin can edit assets.");return}
+function save(){if(editId&&!ADM){alert("Only admin can edit assets.");return}if(!editId&&ROLE==="editor"){alert("Edit-only users cannot add new assets. Open an asset and press Edit.");return}
  var t=$("f_type").value,o={company:$("f_company").value,type:t,code:$("f_code").value};
  BK.concat(SK).forEach(function(k){if(k==="st"||keysOf(t).indexOf(k)>-1)o[k]=$("f_"+k).value.trim()});
  o.acc=getAcc();o.accd=getAccD();o.accOther=$("acc_o").checked?$("acc_ot").value.trim():"";o.cond=getCond();
@@ -359,7 +360,7 @@ function handover(a){
 window.onafterprint=function(){document.body.className=""};
 function onClick(e){
  var b=e.target.closest("button");if(!b||!b.dataset.c)return;var a=find(b.dataset.c);if(!a)return;
- if(!ADM&&(b.dataset.a==="e"||b.dataset.a==="x"))return;
+ if((!ADM&&(b.dataset.a==="e"||b.dataset.a==="x"))||(!FULLX&&b.dataset.a==="x"))return;
  if(b.dataset.a==="v")detail(a);
  if(b.dataset.a==="l")printLabels([a]);
  if(b.dataset.a==="h")handover(a);
@@ -541,12 +542,12 @@ function publicView(c){
  }).catch(function(e){$("pc").innerHTML="<h2>Could not load</h2><p>"+esc(e.message)+"</p>"})}
 var pm=location.pathname.match(/\/a\/([^\/]+)/),pq=new URLSearchParams(location.search).get("a"),pcode=pm?decodeURIComponent(pm[1]):pq;
 if(pcode){publicView(pcode)}else{
- fb.onAuth(function(u){
-  if(u){ADM=(u.email||"").toLowerCase()===ADMIN;["rs","csv","bk","brm"].forEach(function(id){$(id).style.display=ADM?"":"none"});$("bulkb").textContent=ADM?"Bulk Add/Edit (Excel)":"Bulk Add (Excel)";$("nv_a").parentNode.style.display=ADM?"":"none";$("lg").style.display="none";$("app").style.display="";$("lo").style.display="";$("scanb").style.display="";$("cpw").style.display="";$("cpw").textContent=ADM?"Reset password (e-mail)":"Change password";$("mode").textContent=uname(u.email)+(ADM?" (Admin)":" (User · add only)");
-   AUTHED=true;ME=u.email||"";tab(ADM?"d":"a");idleReset(true);unsubs.push(fb.watchConfig(function(c){CFG=c||{};fillBranch($("f_loc").value);if(ADM){syncCfg();bmRender()}},function(){}));
-   if(ADM){unsubs.push(fb.watch(function(l){A=l;fillBranch($("f_loc").value);if(!editId)refresh();render();if(!ctrSync){ctrSync=true;fb.syncCounters(l)}},function(e){alert("Could not load assets: "+e.message)}));watchT()}
+ fb.onAuth(function(u,role){
+  if(u){ROOT=(u.email||"").toLowerCase()===ADMIN;ROLE=ROOT?"admin":(role||"user");FULLX=ROOT||ROLE==="full";ADM=FULLX||ROLE==="editor";document.body.classList.toggle("ed",ROLE==="editor");["rs","csv","bk","brm"].forEach(function(id){$(id).style.display=FULLX?"":"none"});["nv_d","nv_t","nv_e","nv_s","nv_r","nv_l"].forEach(function(id){$(id).style.display=FULLX?"":"none"});$("nv_u").style.display=ROOT?"":"none";$("bulkb").textContent=ADM?"Bulk Add/Edit (Excel)":"Bulk Add (Excel)";$("nv_a").parentNode.style.display=ADM?"":"none";$("lg").style.display="none";$("app").style.display="";$("lo").style.display="";$("scanb").style.display="";$("cpw").style.display="";$("cpw").textContent=ROOT?"Reset password (e-mail)":"Change password";$("mode").textContent=uname(u.email)+({admin:" (Admin)",full:" (Full access)",editor:" (Edit only)"}[ROLE]||" (User · add only)");
+   AUTHED=true;ME=u.email||"";tab(FULLX?"d":"a");idleReset(true);unsubs.push(fb.watchConfig(function(c){CFG=c||{};fillBranch($("f_loc").value);if(FULLX){syncCfg();bmRender()}},function(){}));
+   if(ADM){unsubs.push(fb.watch(function(l){A=l;fillBranch($("f_loc").value);if(!editId)refresh();render();if(!ctrSync){ctrSync=true;fb.syncCounters(l)}},function(e){alert("Could not load assets: "+e.message)}));if(FULLX)watchT()}
    else{A=[];loadMine();refresh()}}
-  else{unsubs.forEach(function(f){try{f()}catch(e){}});unsubs=[];ADM=false;AUTHED=false;ctrSync=false;CFG={};window.__sync=0;try{sessionStorage.removeItem("mine_codes")}catch(e){}A=[];TK=[];$("app").style.display="none";$("lo").style.display="none";$("cpw").style.display="none";$("scanb").style.display="none";ME="";saW=false;auW=false;idleReset(true);$("lg").style.display=""}})}
+  else{unsubs.forEach(function(f){try{f()}catch(e){}});unsubs=[];ADM=false;ROOT=false;ROLE="";FULLX=false;AUTHED=false;ctrSync=false;CFG={};window.__sync=0;try{sessionStorage.removeItem("mine_codes")}catch(e){}A=[];TK=[];$("app").style.display="none";$("lo").style.display="none";$("cpw").style.display="none";$("scanb").style.display="none";ME="";saW=false;auW=false;idleReset(true);$("lg").style.display=""}})}
 
 /* ---------- Support tickets ---------- */
 var TK=[],PA=null,TS=["Open","In Progress","Resolved","Closed"],seenT=null;
@@ -833,11 +834,11 @@ function rdash(){if(!ADM||!$("kp"))return;var wl=warnList(),wsoon=wl.filter(func
  $("dtb").innerHTML=T.slice().sort(function(a,b){return(b.updated||b.created||0)-(a.updated||a.created||0)}).slice(0,8).map(function(t){var w=tWhere(t);return"<tr><td class='code'>"+esc(ftk(t.id))+"</td><td><b>"+esc(t.assetCode)+"</b><br><span class='stat'>"+esc(t.name)+"</span></td><td><b style='color:"+(w[1]==="ok"?"#16a34a":w[1]==="w"?"#d97706":"inherit")+"'>"+esc(w[0])+"</b></td><td>"+esc(tMode(t))+"</td><td>"+tWork(t)+"</td><td class='stat'>"+esc(fdt(t.updated||t.created))+"</td></tr>"}).join("")||"<tr><td colspan='6' class='stat'>No tickets yet.</td></tr>";rsmart(T)}
 
 /* ---------- Users (admin) ---------- */
-var US=[],ME="";
+var US=[],ME="",RL={user:"Add only",editor:"Edit only",full:"Full access"};
 function loadUsers(){if(!ADM)return;$("utb").innerHTML="<tr><td colspan='5' class='stat'>Loading...</td></tr>";
  fb.usersApi("list").then(function(r){US=r.users||[];renderUsers()}).catch(function(e){$("utb").innerHTML="<tr><td colspan='5' class='stat'>"+esc(e.message)+"</td></tr>"})}
 function renderUsers(){var adm="<tr><td><b>"+esc(ADMIN)+"</b><br><span class='stat'>Admin</span></td><td>Admin - full access</td><td><span class='badge'>Active</span></td><td class='stat'>-</td><td class='stat'>Password: use \"Reset password (e-mail)\" in the header</td></tr>";
- $("utb").innerHTML=adm+US.map(function(u){var n=esc(u.username);return"<tr><td><b>"+n+"</b><br><span class='stat'>"+esc(u.name||"")+"</span></td><td>User - add only</td><td>"+(u.disabled?"<span class='badge'>Disabled</span>":"<span class='badge' style='color:#16a34a;border-color:#16a34a'>Active</span>")+"</td><td class='stat'>"+esc(u.last?fdt(u.last):"never")+"</td><td style='white-space:nowrap'><button data-u='"+n+"' data-ua='pw'>Set password</button> <button data-u='"+n+"' data-ua='dis'>"+(u.disabled?"Enable":"Disable")+"</button> <button class='d' data-u='"+n+"' data-ua='del'>Delete</button></td></tr>"}).join("")}
+ $("utb").innerHTML=adm+US.map(function(u){var n=esc(u.username);return"<tr><td><b>"+n+"</b><br><span class='stat'>"+esc(u.name||"")+"</span></td><td><b>"+esc(RL[u.role]||RL.user)+"</b></td><td>"+(u.disabled?"<span class='badge'>Disabled</span>":"<span class='badge' style='color:#16a34a;border-color:#16a34a'>Active</span>")+"</td><td class='stat'>"+esc(u.last?fdt(u.last):"never")+"</td><td style='white-space:nowrap'><button data-u='"+n+"' data-ua='role'>Change role</button> <button data-u='"+n+"' data-ua='pw'>Set password</button> <button data-u='"+n+"' data-ua='dis'>"+(u.disabled?"Enable":"Disable")+"</button> <button class='d' data-u='"+n+"' data-ua='del'>Delete</button></td></tr>"}).join("")}
 $("uf_name").oninput=function(){if(!$("uf_user").dataset.t)$("uf_user").value=slug(this.value)};
 $("uf_user").oninput=function(){this.dataset.t=this.value?"1":""};
 $("uf_gen").onclick=function(){$("uf_pw").value=genPw()};
@@ -845,21 +846,23 @@ $("uf_go").onclick=function(){var n=$("uf_name").value.trim(),u=slug($("uf_user"
  if(!/^[a-z0-9._-]{3,30}$/.test(u)){m.textContent="Username: 3-30 letters/numbers (a-z, 0-9, . _ -).";return}
  if(p.length<8){m.textContent="Password must be at least 8 characters.";return}
  b.disabled=true;m.textContent="Creating...";
- fb.usersApi("create",{username:u,name:n,password:p}).then(function(){b.disabled=false;m.textContent="User created. Login: "+u+" / "+p+"  (note it down now).";$("uf_name").value="";$("uf_user").value="";$("uf_user").dataset.t="";$("uf_pw").value="";loadUsers()}).catch(function(e){b.disabled=false;m.textContent=e.message})};
+ fb.usersApi("create",{username:u,name:n,password:p,role:$("uf_role").value}).then(function(){b.disabled=false;m.textContent="User created ("+RL[$("uf_role").value]+"). Login: "+u+" / "+p+"  (note it down now).";$("uf_name").value="";$("uf_user").value="";$("uf_user").dataset.t="";$("uf_pw").value="";loadUsers()}).catch(function(e){b.disabled=false;m.textContent=e.message})};
 $("utb").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||!b.dataset.u)return;var u=b.dataset.u,usr=US.filter(function(x){return x.username===u})[0]||{};
  if(b.dataset.ua==="pw")bshow("<h2>Set password - "+esc(u)+"</h2><p class='stat'>No old password needed. The user is logged out everywhere and must use the new password.</p><div class='g'><div><label>New password (min 8)</label><input id='sp_p' type='text' autocomplete='off'></div></div><div class='stat' id='sp_m' style='margin-top:8px'></div><div class='bar'><button class='p' id='sp_go'>Save password</button><button id='sp_gen'>Generate</button><button data-b='x'>Cancel</button></div>");
+ if(b.dataset.ua==="role")bshow("<h2>Change role - "+esc(u)+"</h2><div class='g'><div><label>Role</label><select id='cr_r'><option value='user'>Add only</option><option value='editor'>Edit only</option><option value='full'>Full access</option></select></div></div><p class='stat'>The user is logged out and gets the new role at the next login.</p><div class='stat' id='cr_m'></div><div class='bar'><button class='p' id='cr_go'>Save role</button><button data-b='x'>Cancel</button></div>"),$("cr_r").value=usr.role||"user";
  if(b.dataset.ua==="dis")fb.usersApi("setDisabled",{username:u,disabled:!usr.disabled}).then(loadUsers).catch(function(x){alert(x.message)});
  if(b.dataset.ua==="del"&&confirm("Delete user "+u+" permanently?\nThe assets this user added are NOT deleted."))fb.usersApi("delete",{username:u}).then(loadUsers).catch(function(x){alert(x.message)})});
 $("bulkc").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;
  if(b.id==="sp_gen")$("sp_p").value=genPw();
  if(b.id==="sp_go"){var t=$("bulkc").querySelector("h2").textContent.replace("Set password - ",""),p=$("sp_p").value,m=$("sp_m");if(p.length<8){m.textContent="Password must be at least 8 characters.";return}
-  b.disabled=true;fb.usersApi("setPassword",{username:t,password:p}).then(function(){m.textContent="Password changed. New password: "+p+"  (note it down now)."}).catch(function(x){b.disabled=false;m.textContent=x.message})}});
+  b.disabled=true;fb.usersApi("setPassword",{username:t,password:p}).then(function(){m.textContent="Password changed. New password: "+p+"  (note it down now)."}).catch(function(x){b.disabled=false;m.textContent=x.message})}
+ if(b.id==="cr_go"){var t2=$("bulkc").querySelector("h2").textContent.replace("Change role - ","");b.disabled=true;fb.usersApi("setRole",{username:t2,role:$("cr_r").value}).then(function(){bclose();loadUsers()}).catch(function(x){b.disabled=false;$("cr_m").textContent=x.message})}});
 
 /* ---------- Passwords ---------- */
 /* Admin: ONLY through the Firebase e-mail link. Other users: direct change, or admin sets it in the Users tab. */
 function pwErr(e){var c=(e&&e.code)||"";if(/wrong-password|invalid-credential|invalid-login/.test(c))return"Current password is wrong.";if(/weak-password/.test(c))return"New password is too weak (use at least 8 characters).";if(/too-many/.test(c))return"Too many attempts. Please wait a few minutes and try again.";if(/requires-recent-login/.test(c))return"Please logout, login again and retry.";return(e&&e.message)||"Could not complete the request."}
 $("cpw").onclick=function(){
- if(ADM){if(confirm("Send a password reset e-mail to "+ME+"?\nOpen the link in that mailbox to set a new password."))fb.sendReset(ME).then(function(){alert("Reset e-mail sent to "+ME+". Check the inbox (and Spam).")}).catch(function(e){alert(pwErr(e))});return}
+ if(ROOT){if(confirm("Send a password reset e-mail to "+ME+"?\nOpen the link in that mailbox to set a new password."))fb.sendReset(ME).then(function(){alert("Reset e-mail sent to "+ME+". Check the inbox (and Spam).")}).catch(function(e){alert(pwErr(e))});return}
  bshow("<h2>Change Password</h2><h3 style='margin:0 0 6px;font-size:15px'>"+esc(uname(ME))+"</h3><div class='g'><div><label>Current password</label><input id='pw_o' type='password' autocomplete='current-password'></div><div><label>New password (min 8 characters)</label><input id='pw_n1' type='password' autocomplete='new-password'></div><div><label>Confirm new password</label><input id='pw_n2' type='password' autocomplete='new-password'></div></div><div class='bar'><button class='p' id='pw_go'>Change my password</button><button data-b='x'>Close</button></div><div class='stat' id='pw_m' style='margin-top:8px'></div>")};
 $("bulkc").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||b.id!=="pw_go")return;var o=$("pw_o").value,n1=$("pw_n1").value,n2=$("pw_n2").value,m=$("pw_m");
  if(!o){m.textContent="Enter your current password.";return}
@@ -956,7 +959,7 @@ function scanLoop(){if(!SC.on)return;var v=$("sc_v"),done=function(t){if(t)scanH
  if(SC.det)SC.det.detect(v).then(function(r){done(r.length?r[0].rawValue:"")}).catch(function(){done("")});
  else if(window.jsQR){var c=$("sc_c"),k=Math.min(1,640/v.videoWidth);c.width=Math.round(v.videoWidth*k);c.height=Math.round(v.videoHeight*k);var x=c.getContext("2d",{willReadFrequently:true});x.drawImage(v,0,0,c.width,c.height);var im=x.getImageData(0,0,c.width,c.height),q=jsQR(im.data,c.width,c.height);done(q?q.data:"")}
  else SC.tm=setTimeout(scanLoop,500)}
-function scanHit(txt){var c=SC.raw?String(txt).trim():(codeFrom(txt)||String(txt).trim().toUpperCase());if(!c)return;var n=Date.now();if(c===SC.last&&n-SC.lt<2500)return;SC.last=c;SC.lt=n;if(navigator.vibrate)navigator.vibrate(80);
+function scanHit(txt){idleReset();var c=SC.raw?String(txt).trim():(codeFrom(txt)||String(txt).trim().toUpperCase());if(!c)return;var n=Date.now();if(c===SC.last&&n-SC.lt<2500)return;SC.last=c;SC.lt=n;if(navigator.vibrate)navigator.vibrate(80);
  if(SC.cont){var m=SC.cb?SC.cb(c):"";$("sc_msg").textContent=m||c}else{var cb=SC.cb;scanClose();if(cb)cb(c)}}
 function scanClose(){SC.on=false;clearTimeout(SC.tm);if(SC.stream){SC.stream.getTracks().forEach(function(t){t.stop()});SC.stream=null}$("sc_v").srcObject=null;$("scan").style.display="none";SC.cb=null}
 function scanGo(c){if(ADM){var a=find(c);if(a){tab("a");detail(a)}else alert("Asset "+c+" was not found.")}else location.href="/a/"+encodeURIComponent(c)}
@@ -1097,10 +1100,10 @@ $("t_phv").addEventListener("click",function(e){var b=e.target.closest("button[d
 document.addEventListener("click",function(e){var i=e.target.closest("img[data-ph]");if(i&&okPh(i.getAttribute("src")))bshow("<img src='"+i.getAttribute("src")+"' alt='photo' style='max-width:100%;display:block;margin:auto;border-radius:8px'><div class='bar'><button data-b='x'>Close</button></div>")});
 
 /* ================= v4: auto logout of users when inactive ================= */
-var IDLE_MS=15*60*1000,idleT=0,idleW=0,lastAct=0;
-function idleReset(force){var n=Date.now();if(!force&&n-lastAct<1500&&$("idlew").style.display!=="block")return;lastAct=n;clearTimeout(idleT);clearTimeout(idleW);$("idlew").style.display="none";if(!AUTHED||ADM)return;
+var IDLE_MS=3*60*1000,idleT=0,idleW=0,lastAct=0;
+function idleReset(force){var n=Date.now();if(!force&&n-lastAct<1500&&$("idlew").style.display!=="block")return;lastAct=n;clearTimeout(idleT);clearTimeout(idleW);$("idlew").style.display="none";if(!AUTHED)return;
  idleW=setTimeout(function(){$("idlew").style.display="block"},IDLE_MS-60000);
- idleT=setTimeout(function(){$("idlew").style.display="none";fb.logout().then(function(){$("lerr").textContent="You were logged out because the page was not used for 15 minutes."})},IDLE_MS)}
+ idleT=setTimeout(function(){$("idlew").style.display="none";try{if(SA)saSave(true)}catch(e){}fb.logout().then(function(){$("lerr").textContent="You were logged out because the page was not used for 3 minutes."})},IDLE_MS)}
 ["mousemove","keydown","touchstart","click","scroll"].forEach(function(ev){document.addEventListener(ev,function(){idleReset()},{passive:true})});
 fb.setLabels(L);
 </script>
