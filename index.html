@@ -157,7 +157,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);outline-offs
 <div class="tw"><table><thead><tr><th>Ticket</th><th>Asset</th><th>Reported by</th><th>Issue</th><th>Status / IT note</th></tr></thead><tbody id="ttb"></tbody></table></div></section></div>
 <div id="tab_dashboard" style="display:none"><section><h2>Dashboard</h2><div class="kp" id="kp"></div></section>
 <div class="g2"><section><h2>Assets by company</h2><div class="bars" id="bco"></div></section><section><h2>Assets by type</h2><div class="bars" id="bty"></div></section></div>
-<section><h2>Latest tickets &amp; movements</h2><div class="tw"><table style="min-width:520px"><thead><tr><th>Ticket</th><th>Asset</th><th>Stage</th><th>When</th></tr></thead><tbody id="dtb"></tbody></table></div></section>
+<section><h2>Smart insights <span class="stat" style="font-weight:400">- what needs your attention</span></h2><div id="smtb"></div></section>
+<section><h2>Latest tickets &amp; movements</h2><div class="tw"><table style="min-width:820px"><thead><tr><th>Ticket</th><th>Asset</th><th>Where is the asset now?</th><th>Repair mode</th><th>Work status</th><th>When</th></tr></thead><tbody id="dtb"></tbody></table></div></section>
 <section><h2>Warranty alerts (ending within 30 days, or expired)</h2><div class="tw"><table style="min-width:620px"><thead><tr><th>Asset</th><th>Item</th><th>Branch / user</th><th>Warranty till</th><th>Status</th></tr></thead><tbody id="wtb"></tbody></table></div></section></div>
 <div id="tab_employees" style="display:none"><section><h2>Employees &amp; their assets</h2><div class="g"><div><label>Search employee / department / asset</label><input id="em_q" placeholder="employee name, department, asset code..."></div></div><div class="stat" id="em_cnt" style="margin:8px 0"></div><div class="tw"><table style="min-width:640px"><thead><tr><th>Employee</th><th>Assets issued</th><th></th></tr></thead><tbody id="em_tb"></tbody></table></div></section></div>
 <div id="tab_stock" style="display:none"><section id="sa_setup"><h2>Stock Audit</h2><p class="stat">Every audit is <b>saved automatically</b>. If you stop in the middle, <b>resume</b> it below - nothing starts from zero. You can also add a missed asset later, or start a brand new audit.</p><div id="sa_drafts"></div><h3 style="margin:12px 0 4px;font-size:15px">Start a new audit</h3><div class="g"><div><label>Company</label><select id="sa_co"></select></div><div><label>Branch</label><select id="sa_loc"></select></div></div><div class="bar"><button class="p" id="sa_go">Start NEW audit</button></div></section>
@@ -542,7 +543,7 @@ $("t_go").onclick=function(){
  }).catch(function(e){$("t_go").disabled=false;m.textContent="Could not submit: "+e.message})};
 /*MOVE*/
 /* ---------- Asset movement (user -> IT), repair approval and gate pass ---------- */
-var CURT=null,RA_T=["Onsite Internal Repair","Offsite Internal Repair","Onsite External Vendor Repair","Offsite External Vendor Repair"];
+var CURT=null,RA_T=["Onsite Internal Repair","Offsite Internal Repair","Onsite External Vendor Repair","Offsite External Vendor Repair","Remote Support (no visit)"];
 function fiso(s){return s?String(s).split("-").reverse().join("/"):""}
 function fyOf(iso){var p=String(iso||"").split("-"),y=+p[0],m=+p[1];if(!y||!m)return 0;return m>=4?y:y-1}
 function mvBox(t){var m=t.move,r=t.repair,k=t.track||{},x=t.ret,u=t.urcv;if(!m&&!k.rcv&&!x)return"";
@@ -753,12 +754,38 @@ function genPw(){var c="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789
 /* ---------- Dashboard (admin) ---------- */
 function bars(el,map){var k=Object.keys(map).sort(function(a,b){return map[b]-map[a]}),mx=k.length?map[k[0]]:1;$(el).innerHTML=k.map(function(n){return"<div class='br'><span>"+esc(n)+"</span><div class='bt'><i style='width:"+Math.max(3,Math.round(map[n]/mx*100))+"%'></i></div><b>"+map[n]+"</b></div>"}).join("")||"<p class='stat'>No data yet.</p>"}
 function stage(t){var k=t.track||{};if(t.urcv)return"Received by user";if(k.ret)return"Returned";if(k.rcv)return"At IT (repair)";if(t.repair)return t.repair.gate?"Approved - gate pass issued":"Repair approved";if(t.move)return"Waiting for approval";return t.status}
+/* where is the asset now / how is it being repaired / what work is going on - used by the dashboard */
+function tWhere(t){var k=t.track||{},r=t.repair,m=t.move,x=t.ret,fin=t.status==="Resolved"||t.status==="Closed";
+ if(t.urcv)return["With user - back in use","ok"];
+ if(k.ret)return["Sent back by IT to "+(x?x.to:"user")+(x&&x.carrier?" (with "+x.carrier+")":"")+" - waiting for user to confirm","w"];
+ if(k.rcv)return["At IT office","w"];
+ if(m)return["On the way to "+m.dest+" (with "+m.carrier+")","w"];
+ if(fin)return["With user - work done","ok"];
+ if(r&&/^Offsite/.test(r.type||""))return["To be taken outside for repair","w"];
+ return["With user (at his place)",""]}
+function tMode(t){var r=t.repair;if(!r)return t.move?"Waiting for IT decision":"Not decided yet";
+ var ty=r.type||"";return ty+(r.partyName?" - "+r.partyName:"")}
+function tWork(t){var ev=tlEvents(t)[0]||{},k=t.track||{},h="<b>"+esc(t.status)+"</b>";
+ if(t.eng)h+=" &middot; "+esc(t.eng);var n=ev.note||t.notes||"";if(n)h+="<br><span class='stat'>"+esc(n)+"</span>";return h}
+/* simple rules that look at all tickets and assets and point out problems */
+function rsmart(T){var el=$("smtb");if(!el)return;var D=864e5,now=Date.now(),L=[],byA={};
+ T.forEach(function(t){(byA[t.assetCode]=byA[t.assetCode]||[]).push(t)});
+ Object.keys(byA).forEach(function(c){var n=byA[c].filter(function(t){return now-t.created<90*D}).length;if(n>=3)L.push(["r",c,n+" problems in the last 90 days - this asset keeps failing. Consider replacing it."])});
+ T.forEach(function(t){var k=t.track||{},open=isOpen(t),a=find(t.assetCode)||{};
+  if(k.rcv&&!k.ret&&now-k.rcv>7*D)L.push(["r",t.assetCode,"is at IT for "+Math.floor((now-k.rcv)/D)+" days - repair is taking long."]);
+  if(t.move&&!t.repair&&open&&now-t.created>2*D)L.push(["w",t.assetCode,"user sent it "+Math.floor((now-t.created)/D)+" days ago and IT has not taken any action."]);
+  if(open&&t.status==="Open"&&!t.move&&now-t.created>3*D)L.push(["w",t.assetCode,"ticket is still Open after "+Math.floor((now-t.created)/D)+" days - nobody picked it up."]);
+  if(k.ret&&!t.urcv&&now-k.ret>3*D)L.push(["w",t.assetCode,"IT sent it back "+Math.floor((now-k.ret)/D)+" days ago but the user has not confirmed receipt. Call the user."]);
+  if(open&&a.wt){var d=Date.parse(a.wt);if(isFinite(d)&&d>now)L.push(["i",t.assetCode,"has an open ticket and is still UNDER WARRANTY (till "+esc(a.wt)+"). Check the warranty / vendor before paying for repair."])}});
+ var ord={r:0,w:1,i:2},col={r:"#dc2626",w:"#d97706",i:"#2563eb"},seen={};
+ L=L.filter(function(x){var q=x[1]+x[2];if(seen[q])return false;seen[q]=1;return true}).sort(function(a,b){return ord[a[0]]-ord[b[0]]});
+ el.innerHTML=L.slice(0,12).map(function(x){return"<div style='border-left:4px solid "+col[x[0]]+";padding:6px 10px;margin:6px 0;background:#f8fafc;border-radius:4px'><b class='code'>"+esc(x[1])+"</b> "+(x[0]==="i"?x[2]:esc(x[2]))+"</div>"}).join("")||"<p class='stat'>All good - nothing needs your attention right now.</p>"}
 function rdash(){if(!ADM||!$("kp"))return;var wl=warnList(),wsoon=wl.filter(function(x){return x.days>=0}).length,wexp=wl.length-wsoon;rwarn(wl);var T=(typeof TK!=="undefined"&&TK)||[],c={};ST.forEach(function(x){c[x]=0});A.forEach(function(a){c[a.st]=(c[a.st]||0)+1});
  var open=T.filter(isOpen).length,atIT=T.filter(function(t){return t.track&&t.track.rcv&&!t.track.ret}).length,wait=T.filter(function(t){return t.move&&!t.repair&&isOpen(t)}).length;
  var K=[[A.length,"Total assets",""],[c["In Use"],"In use","ok"],[c["In Stock"],"In stock",""],[c["Under Repair"],"Under repair","w"],[open,"Open tickets",open?"w":""],[wait,"Waiting for approval",wait?"r":""],[atIT,"At IT now",atIT?"w":""],[wsoon,"Warranty ends in 30 days",wsoon?"w":""],[wexp,"Warranty expired",wexp?"r":""]];
  $("kp").innerHTML=K.map(function(x){return"<div class='kc "+x[2]+"'><b>"+x[0]+"</b><span>"+x[1]+"</span></div>"}).join("");
  var co={},ty={};A.forEach(function(a){co[a.company]=(co[a.company]||0)+1;ty[a.type]=(ty[a.type]||0)+1});bars("bco",co);bars("bty",ty);
- $("dtb").innerHTML=T.slice().sort(function(a,b){return(b.updated||b.created||0)-(a.updated||a.created||0)}).slice(0,8).map(function(t){return"<tr><td class='code'>"+esc(ftk(t.id))+"</td><td><b>"+esc(t.assetCode)+"</b><br><span class='stat'>"+esc(t.name)+"</span></td><td>"+esc(stage(t))+"</td><td class='stat'>"+esc(fdt(t.updated||t.created))+"</td></tr>"}).join("")||"<tr><td colspan='4' class='stat'>No tickets yet.</td></tr>"}
+ $("dtb").innerHTML=T.slice().sort(function(a,b){return(b.updated||b.created||0)-(a.updated||a.created||0)}).slice(0,8).map(function(t){var w=tWhere(t);return"<tr><td class='code'>"+esc(ftk(t.id))+"</td><td><b>"+esc(t.assetCode)+"</b><br><span class='stat'>"+esc(t.name)+"</span></td><td><b style='color:"+(w[1]==="ok"?"#16a34a":w[1]==="w"?"#d97706":"inherit")+"'>"+esc(w[0])+"</b></td><td>"+esc(tMode(t))+"</td><td>"+tWork(t)+"</td><td class='stat'>"+esc(fdt(t.updated||t.created))+"</td></tr>"}).join("")||"<tr><td colspan='6' class='stat'>No tickets yet.</td></tr>";rsmart(T)}
 
 /* ---------- Users (admin) ---------- */
 var US=[],ME="";

@@ -88,3 +88,6 @@ Dashboard (totals, assets by company/type, latest tickets), digital gate passes 
 **Required:** publish the new `firestore.rules` (new: user can confirm receipt, asset back to In Use).
 
 **Asset List** - new **Branch Location** filter next to Company (shows only that company's branches with asset counts; Print Labels / Export use the filtered list).
+
+**Dashboard** - *Latest tickets & movements* now shows: **where the asset is now** (with user / on the way to IT with whom / at IT office / sent back by IT / back in use), **repair mode** (Onsite / Offsite / vendor / **Remote Support**) and **work status** (ticket status, engineer, latest IT note).
+**Smart insights** (new card) - automatic warnings: asset with 3+ problems in 90 days (replace?), asset at IT for more than 7 days, user request without IT action for 2 days, ticket not picked for 3 days, user has not confirmed receipt for 3 days, open ticket on an asset that is still under warranty.
