@@ -37,6 +37,9 @@ export const updateAsset=async(code,patch,action,detail)=>{await updateDoc(doc(d
 // ---- Stock audits (admin) ----
 const scol=collection(db,"stockaudits");
 export const saveStockAudit=o=>setDoc(doc(scol),o);
+export const newSAId=()=>doc(scol).id;
+export const putStockAudit=(id,o)=>setDoc(doc(scol,id),o);
+export const delStockAudit=id=>deleteDoc(doc(scol,id));
 export const watchStockAudits=(ok,err)=>onSnapshot(query(scol,orderBy("at","desc"),limit(50)),s=>ok(s.docs.map(d=>({...d.data(),id:d.id}))),err);
 export async function save(o,isNew){
   let code=o.code;
@@ -112,6 +115,8 @@ export const syncCounters=list=>bumpCounters(list.map(a=>a.code));
 // ---- Asset movement / repair approval (admin) ----
 // Next gate-pass number for a financial year, e.g. fy "2026-27" -> 1, 2, 3 ...
 export async function nextGP(fy,pfx){pfx=pfx||"GP";const r=doc(db,"counters",pfx+fy);let n=0;try{const s=await getDoc(r);if(s.exists())n=+s.data().n||0}catch(e){}n++;await setDoc(r,{n});return n}
+// User confirms the asset is back in his hands: ticket gets urcv, asset goes back to In Use (rules allow only this exact change)
+export async function userReceive(id,code,name){const now=Date.now();await updateDoc(doc(db,"tickets",id),{urcv:{at:now,name:String(name||"").slice(0,80)}});try{await updateDoc(doc(db,"assets",code),{st:"In Use"})}catch(e){}return now}
 export const setAssetStatus=async(code,st)=>{await updateDoc(doc(db,"assets",code),{st});audit("asset.status",code,"Status -> "+st)};
 
 // ---- Passwords (direct change, no e-mail) ----

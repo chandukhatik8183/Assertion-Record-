@@ -50,7 +50,11 @@ service cloud.firestore {
       // admin: anything. add-only user: only NEW assets that pass newAssetOk (cannot overwrite an existing one)
       allow create: if isAdmin() || (isAddOnly() && newAssetOk(code));
       // ONLY admin can edit or delete
-      allow update, delete: if isAdmin();
+      allow delete: if isAdmin();
+      // admin: anything. Anyone: ONLY Under Repair -> In Use, and only after IT has sent the asset back (ticket has track.ret)
+      allow update: if isAdmin() || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['st'])
+        && request.resource.data.st == 'In Use' && resource.data.st == 'Under Repair'
+        && get(/databases/$(database)/documents/tickets/$(get(/databases/$(database)/documents/assetLatest/$(code)).data.ticketId)).data.track.ret is number);
     }
 
     // ---------- Branch list per company (admin edits, add-only user can only read) ----------
@@ -121,7 +125,14 @@ service cloud.firestore {
         && request.resource.data.feedback.rating is int
         && request.resource.data.feedback.rating >= 1 && request.resource.data.feedback.rating <= 5
         && request.resource.data.feedback.comment is string && request.resource.data.feedback.comment.size() <= 500
-        && request.resource.data.feedback.at is number);
+        && request.resource.data.feedback.at is number)
+        // The ticket owner (QR page) confirms the asset came back from IT - only once, only after IT sent it back
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['urcv'])
+        && resource.data.track.ret is number
+        && !('urcv' in resource.data)
+        && request.resource.data.urcv.keys().hasOnly(['at','name'])
+        && request.resource.data.urcv.at is number
+        && request.resource.data.urcv.name is string && request.resource.data.urcv.name.size() <= 80);
     }
 
     // ---------- Pointer: asset code -> its newest ticket (QR page shows the latest ticket) ----------

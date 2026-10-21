@@ -70,3 +70,19 @@ Dashboard (totals, assets by company/type, latest tickets), digital gate passes 
 * Every night at 2:00 AM (India time) and on **Backup now**, the whole data (assets, tickets, audit log, stock audits, settings) is saved inside **your Firebase database**: Firebase console -> Firestore Database -> collection **backups** (one document per date, last 30 kept). It is not stored on your PC.
 * Users & Backup tab -> **Download full backup** gives ONE file `sandeep-FULL-backup-DATE.json`. Keep a copy on your PC / Google Drive now and then (a backup inside the same Firebase project cannot help if the project itself is deleted).
 * **Restore full backup (file)** puts assets and tickets back from that one file (nothing is deleted, same codes are overwritten).
+
+
+## v5 - changes
+**Stock Audit**
+* Every audit is saved automatically (collection `stockaudits`, `done:false` while running). *Stock Audit* tab -> "Saved audits" -> **Resume** continues exactly where you stopped (found assets stay ticked). **Delete** removes a saved audit.
+* **Add missed asset**: type / scan any code in "Add missed asset" (or press *Add to this audit* on an extra asset). Not-found assets can still be ticked later.
+* A finished audit can be reopened with **Continue / add missed** in the history list; the report is updated.
+* **Start NEW audit** starts a fresh one any time.
+
+**QR page (user)** - only the request form ("Report an issue with this asset"). It has a tick **"This asset has to be sent out (to IT / outside)"**. Only when it is ticked the user writes *where* and *sent with (person)*; the ticket is then marked as a movement. The user sees no gate pass option until IT creates one; then **View / Print Gate Pass** appears on the same QR page (only for tickets where he ticked "send out").
+**IT** - on every ticket: *Repair Approval* and status updates (shown live to the user). The **Gate Pass** option (inside Repair Approval), *Received at IT* and *Return to user* appear **only for tickets where the user ticked "send out"**. Return to user asks only *who carries it* (company courier - no AWB / tracking fields). The asset stays **Under Repair** until the user taps **I have received the asset** on the QR page -> then it becomes **In Use**.
+
+**Asset add / edit** - *Serial No.* can be typed, or press **Scan label**: the camera opens, reads the barcode / QR on the serial label and fills the field automatically (also for Monitor Serial No.). Chrome on Android reads QR and common barcodes (Code128, Code39, EAN ...). Other browsers read QR only - type the serial there.
+**QR label** prints the user's name and the serial number.
+
+**Required:** publish the new `firestore.rules` (new: user can confirm receipt, asset back to In Use).
