@@ -41,15 +41,29 @@ export const newSAId=()=>doc(scol).id;
 export const putStockAudit=(id,o)=>setDoc(doc(scol,id),o);
 export const delStockAudit=id=>deleteDoc(doc(scol,id));
 export const watchStockAudits=(ok,err,me)=>onSnapshot(me?query(scol,where("by","==",me),limit(50)):query(scol,orderBy("at","desc"),limit(50)),s=>{const l=s.docs.map(d=>({...d.data(),id:d.id}));if(me)l.sort((x,y)=>(y.at||0)-(x.at||0));ok(l)},err);
+// ---- Serial numbers: one serial number can belong to ONE asset only (registry collection "serials") ----
+const snKey=v=>{v=String(v||"").trim().toUpperCase();return(!v||/^(NA|N\/A|NIL|NONE|NULL|-+|\.+)$/.test(v))?"":v};
+const sdoc=k=>doc(db,"serials",encodeURIComponent(k));
+// returns the code of the asset that really owns this serial number, or null
+export async function serialOwner(v){const k=snKey(v);if(!k)return null;try{const s=await getDoc(sdoc(k));if(!s.exists())return null;const c=s.data().code,x=await getDoc(doc(db,"assets",c));if(!x.exists())return null;const d=x.data();return(snKey(d.sn)===k||snKey(d.mon_sn)===k)?c:null}catch(e){return null}}
+async function serCheck(o,code){const ks=[snKey(o.sn),snKey(o.mon_sn)].filter(Boolean);
+  if(ks.length===2&&ks[0]===ks[1])throw new Error("Serial No. and Monitor Serial No. cannot be the same ("+ks[0]+").");
+  for(const k of ks){const c=await serialOwner(k);if(c&&c!==code)throw new Error("Serial number "+k+" is already added for asset "+c+".\nA serial number can be added only once. Delete that asset first, or enter the correct serial number.")}
+  return ks}
+async function serPut(ks,code){for(const k of ks){try{await setDoc(sdoc(k),{code,at:Date.now()})}catch(e){}}}
+async function serDrop(o,code,keep){for(const k of [snKey(o.sn),snKey(o.mon_sn)].filter(Boolean)){if(keep&&keep.includes(k))continue;try{const s=await getDoc(sdoc(k));if(s.exists()&&s.data().code===code)await deleteDoc(sdoc(k))}catch(e){}}}
+// admin: register serial numbers of assets that were added before this rule existed
+export async function syncSerials(list){for(const a of list){for(const k of [snKey(a.sn),snKey(a.mon_sn)].filter(Boolean)){try{const s=await getDoc(sdoc(k));if(!s.exists())await setDoc(sdoc(k),{code:a.code,at:Date.now()})}catch(e){}}}}
 export async function save(o,isNew){
   let code=o.code;
   if(isNew){const m=/^(.*-)(\d+)$/.exec(code);if(m){let n=+m[2];while((await getDoc(doc(db,"assets",code))).exists()){n++;code=m[1]+String(n).padStart(4,"0")}}}
   let before=null;if(!isNew){try{const s=await getDoc(doc(db,"assets",code));if(s.exists())before=s.data()}catch(e){}}
   const d={...o,code};if(before&&before.assigned&&!d.assigned)d.assigned=before.assigned;
-  await setDoc(doc(db,"assets",code),d);
+  const ks=await serCheck(d,code);
+  await setDoc(doc(db,"assets",code),d);await serPut(ks,code);if(before)await serDrop(before,code,ks);
   audit(before?"asset.edit":"asset.add",code,before?(diffText(before,d)||"Saved (no change)"):"Added "+[d.type,d.model].filter(Boolean).join(" ")+" at "+[d.loc,d.aloc].filter(Boolean).join(" / "));return d}
-export const remove=async c=>{let s="";try{const x=await getDoc(doc(db,"assets",c));if(x.exists()){const d=x.data();s=[d.type,d.model,d.sn&&"SN "+d.sn,d.loc,d.usr].filter(Boolean).join(" | ")}}catch(e){}
-  await deleteDoc(doc(db,"assets",c));audit("asset.delete",c,"Deleted: "+s)};
+export const remove=async c=>{let s="",dd=null;try{const x=await getDoc(doc(db,"assets",c));if(x.exists()){const d=x.data();dd=d;s=[d.type,d.model,d.sn&&"SN "+d.sn,d.loc,d.usr].filter(Boolean).join(" | ")}}catch(e){}
+  await deleteDoc(doc(db,"assets",c));if(dd)await serDrop(dd,c);audit("asset.delete",c,"Deleted: "+s)};
 export async function restore(list){
   for(let i=0;i<list.length;i+=400){const b=writeBatch(db);
     list.slice(i,i+400).forEach(x=>{const c=String(x.code).toUpperCase();b.set(doc(db,"assets",c),{...x,code:c})});await b.commit()}
@@ -90,18 +104,20 @@ export async function nextFree(p){let n=await hint(p);
   for(let i=0;i<500;i++){n++;const c=p+String(n).padStart(4,"0");if(!(await getDoc(doc(db,"assets",c))).exists())return c}
   throw new Error("No free asset code found")}
 // Add-only user: create ONE new asset. If the code was taken meanwhile, pick the next free one and retry.
-export async function createAsset(o){let code=o.code,last;
+export async function createAsset(o){let code=o.code,last;const ks=await serCheck(o,"__new");
   for(let t=0;t<4;t++){const p=code.slice(0,6),num=parseInt(code.slice(6),10),b=writeBatch(db);
     b.set(doc(db,"assets",code),{...o,code});
     if(num>await hint(p))b.set(doc(db,"counters",cid(p)),{n:num});
-    try{await b.commit();audit("asset.add",code,"Added "+[o.type,o.model].filter(Boolean).join(" ")+" at "+[o.loc,o.aloc].filter(Boolean).join(" / "));return{...o,code}}catch(e){last=e;code=await nextFree(p)}}
+    try{await b.commit();await serPut(ks,code);audit("asset.add",code,"Added "+[o.type,o.model].filter(Boolean).join(" ")+" at "+[o.loc,o.aloc].filter(Boolean).join(" / "));return{...o,code}}catch(e){last=e;code=await nextFree(p)}}
   throw last}
 // Add-only user: create many NEW assets (items = [{p:"SK-DT-",o:asset}]); codes are allotted here. Returns the codes.
-export async function bulkCreate(items){const cur={};
+export async function bulkCreate(items){const cur={};const seen={};
+  for(const it of items){const ks=await serCheck(it.o,"__new");for(const k of ks){if(seen[k])throw new Error("Serial number "+k+" is repeated in the file. A serial number can be added only once.");seen[k]=1}it.ks=ks}
   for(const it of items){const p=it.p;if(cur[p]===undefined)cur[p]=await hint(p);it.code="";
     for(let i=0;i<500&&!it.code;i++){cur[p]++;const c=p+String(cur[p]).padStart(4,"0");if(!(await getDoc(doc(db,"assets",c))).exists())it.code=c}
     if(!it.code)throw new Error("No free asset code found")}
   for(let i=0;i<items.length;i+=400){const b=writeBatch(db);items.slice(i,i+400).forEach(it=>b.set(doc(db,"assets",it.code),{...it.o,code:it.code}));await b.commit()}
+  for(const it of items)await serPut(it.ks||[],it.code);
   for(const it of items)audit("asset.add",it.code,"Added (bulk) "+[it.o.type,it.o.model].filter(Boolean).join(" ")+" at "+[it.o.loc,it.o.aloc].filter(Boolean).join(" / "));
   const mx={};items.forEach(it=>{mx[it.p]=Math.max(mx[it.p]||0,parseInt(it.code.slice(6),10))});
   for(const p in mx){try{if(mx[p]>await hint(p))await setDoc(doc(db,"counters",cid(p)),{n:mx[p]})}catch(e){}}

@@ -264,7 +264,7 @@ function branchesFor(co){var out=[],seen={};function add(b){b=String(b||"").trim
 var PC=["cpu","ram","hdd","os"];
 var MK=["mon_model","mon_sn","mon_pd","mon_wt"];
 var T={"Desktop":["DT",PC.concat(MK)],"Laptop":["LT",PC],"All-in-One":["AO",PC],"Monitor":["MN",["size","res","ports"]],"Networking":["NW",["ntype","ports","ip","mac"]],"Server":["SV",PC.concat("ip")],"Printer":["PR",["ports","ip","mac"]],"Biometric":["BM",["ip","mac"]],"Mobile":["MB",["ram","hdd","os"]],"Tablet":["TB",["ram","hdd","os","size"]],"ISP":["IS",["sip","smask","sgw","dns1","dns2"]],"UPS":["UP",["cap","batt"]]};
-var HT=["Monitor"],TL=Object.keys(T).filter(function(k){return HT.indexOf(k)<0});
+var HT=[],TL=Object.keys(T).filter(function(k){return HT.indexOf(k)<0});
 var BK=["model","sn","loc","aloc","dept","usr","pd","wt","st","rm"];
 var SK=["cpu","ram","hdd","os","size","res","ports","ip","mac","ntype","sip","smask","sgw","dns1","dns2","cap","batt"].concat(MK);
 var L={company:"Company",type:"Product Type",code:"Asset Code",model:"Brand / Model",sn:"Serial No.",cpu:"Processor",ram:"RAM",hdd:"Storage",os:"Operating System",size:"Screen Size",res:"Resolution",ports:"Ports",ip:"IP Address",sip:"Static IP Address",smask:"Subnet Mask",sgw:"Default Gateway",dns1:"Preferred DNS Server",dns2:"Alternate DNS Server",mac:"MAC Address",ntype:"Device (Switch/Router/AP/Firewall)",cap:"Capacity (VA / kVA)",batt:"Battery Details (Qty / Ah)",mon_model:"Monitor Brand / Model",mon_sn:"Monitor Serial No.",mon_pd:"Monitor Purchase Date",mon_wt:"Monitor Warranty Till",loc:"Branch Location",aloc:"Asset Location (Floor / Room / Desk)",dept:"Department",usr:"Assigned User",pd:"Purchase Date",wt:"Warranty Till",st:"Status",rm:"Remarks"};
@@ -551,7 +551,7 @@ if(pcode){publicView(pcode)}else{
    AUTHED=true;ME=u.email||"";tab(FULLX?"d":"a");idleReset(true);unsubs.push(fb.watchConfig(function(c){CFG=c||{};fillBranch($("f_loc").value);if(FULLX){syncCfg();bmRender()}},function(){}));
    if(ADM){unsubs.push(fb.watch(function(l){A=l;fillBranch($("f_loc").value);if(!editId)refresh();render();if(!ctrSync){ctrSync=true;fb.syncCounters(l)}},function(e){alert("Could not load assets: "+e.message)}));if(FULLX)watchT()}
    else{A=[];loadMine();refresh()}}
-  else{unsubs.forEach(function(f){try{f()}catch(e){}});unsubs=[];ADM=false;ROOT=false;ROLE="";FULLX=false;AUTHED=false;ctrSync=false;CFG={};window.__sync=0;try{sessionStorage.removeItem("mine_codes")}catch(e){}A=[];TK=[];$("app").style.display="none";$("lo").style.display="none";$("cpw").style.display="none";$("scanb").style.display="none";ME="";saW=false;auW=false;idleReset(true);$("lg").style.display=""}})}
+  else{unsubs.forEach(function(f){try{f()}catch(e){}});unsubs=[];ADM=false;ROOT=false;ROLE="";FULLX=false;AUTHED=false;ctrSync=false;CFG={};window.__sync=0;try{sessionStorage.removeItem("mine_codes")}catch(e){}A=[];TK=[];$("app").style.display="none";$("lo").style.display="none";$("cpw").style.display="none";$("scanb").style.display="none";ME="";saW=false;auW=false;idleReset(true);$("lg").style.display="";try{var lr=sessionStorage.getItem("lo_reason");if(lr){$("lerr").textContent=lr;sessionStorage.removeItem("lo_reason")}}catch(e){}}})}
 
 /* ---------- Support tickets ---------- */
 var TK=[],PA=null,TS=["Open","In Progress","Resolved","Closed"],seenT=null;
@@ -820,7 +820,8 @@ function tMode(t){var r=t.repair;if(!r)return t.move?"Waiting for IT decision":"
 function tWork(t){var ev=tlEvents(t)[0]||{},k=t.track||{},h="<b>"+esc(t.status)+"</b>";
  if(t.eng)h+=" &middot; "+esc(t.eng);var n=ev.note||t.notes||"";if(n)h+="<br><span class='stat'>"+esc(n)+"</span>";return h}
 /* simple rules that look at all tickets and assets and point out problems */
-function rsmart(T){var el=$("smtb");if(!el)return;var D=864e5,now=Date.now(),L=[],byA={};
+function rsmart(T){var el=$("smtb");if(!el)return;
+ try{if(A.length&&!window.__ss){window.__ss=1;var dk=new Date().toDateString();if(localStorage.getItem("ssync")!==dk){localStorage.setItem("ssync",dk);fb.syncSerials(A)}}}catch(e){}var D=864e5,now=Date.now(),L=[],byA={};
  T.forEach(function(t){(byA[t.assetCode]=byA[t.assetCode]||[]).push(t)});
  Object.keys(byA).forEach(function(c){var n=byA[c].filter(function(t){return now-t.created<90*D}).length;if(n>=3)L.push(["r",c,n+" problems in the last 90 days - this asset keeps failing. Consider replacing it."])});
  T.forEach(function(t){var k=t.track||{},open=isOpen(t),a=find(t.assetCode)||{};
@@ -829,6 +830,8 @@ function rsmart(T){var el=$("smtb");if(!el)return;var D=864e5,now=Date.now(),L=[
   if(open&&t.status==="Open"&&!t.move&&now-t.created>3*D)L.push(["w",t.assetCode,"ticket is still Open after "+Math.floor((now-t.created)/D)+" days - nobody picked it up."]);
   if(k.ret&&!t.urcv&&now-k.ret>3*D)L.push(["w",t.assetCode,"IT sent it back "+Math.floor((now-k.ret)/D)+" days ago but the user has not confirmed receipt. Call the user."]);
   if(open&&a.wt){var d=Date.parse(a.wt);if(isFinite(d)&&d>now)L.push(["i",t.assetCode,"has an open ticket and is still UNDER WARRANTY (till "+esc(a.wt)+"). Check the warranty / vendor before paying for repair."])}});
+ var sm={};A.forEach(function(a){[a.sn,a.mon_sn].forEach(function(v){v=String(v||"").trim().toUpperCase();if(!v||/^(NA|N\/A|NIL|NONE|NULL|-+|\.+)$/.test(v))return;(sm[v]=sm[v]||[]).push(a.code)})});
+ Object.keys(sm).forEach(function(k){var u=sm[k].filter(function(c,i,a){return a.indexOf(c)===i});if(u.length>1)L.push(["r",u[0],"Serial number "+k+" is used in "+u.length+" assets ("+u.join(", ")+") - duplicate. Delete or correct the wrong one."])});
  var ord={r:0,w:1,i:2},col={r:"#dc2626",w:"#d97706",i:"#2563eb"},seen={};
  L=L.filter(function(x){var q=x[1]+x[2];if(seen[q])return false;seen[q]=1;return true}).sort(function(a,b){return ord[a[0]]-ord[b[0]]});
  el.innerHTML=L.slice(0,12).map(function(x){return"<div style='border-left:4px solid "+col[x[0]]+";padding:6px 10px;margin:6px 0;background:#f8fafc;border-radius:4px'><b class='code'>"+esc(x[1])+"</b> "+(x[0]==="i"?x[2]:esc(x[2]))+"</div>"}).join("")||"<p class='stat'>All good - nothing needs your attention right now.</p>"}
@@ -977,7 +980,9 @@ function scanClose(){SC.on=false;clearTimeout(SC.tm);if(SC.stream){SC.stream.get
 function scanGo(c){if(ADM){var a=find(c);if(a){tab("a");detail(a)}else alert("Asset "+c+" was not found.")}else location.href="/a/"+encodeURIComponent(c)}
 $("scanb").onclick=function(){scanOpen(scanGo,false)};
 /* serial number: type it, or press "Scan label" - the camera reads the barcode / QR on the serial label and fills the field */
-document.addEventListener("click",function(e){var b=e.target.closest("button[data-scsn]");if(!b)return;var id=b.dataset.scsn;scanOpen(function(c){$(id).value=c;if(id==="f_sn"||id==="f_mon_sn")$(id).dispatchEvent(new Event("input",{bubbles:true}))},false,"Point the camera at the serial number barcode / QR on the asset label",true)});$("sc_x").onclick=scanClose;$("sc_ok").onclick=function(){scanHit($("sc_in").value);$("sc_in").value=""};
+function serChk(id){var el=$(id),v=el.value.trim();if(!v)return;fb.serialOwner(v).then(function(c){if(c&&c!==(editId||"")){alert("Serial number "+v.toUpperCase()+" is already added for asset "+c+".\n\nA serial number can be added only once. Delete that asset first, or enter the correct number.");el.value=""}}).catch(function(){})}
+document.addEventListener("change",function(e){var i=e.target.id;if(i==="f_sn"||i==="f_mon_sn")serChk(i)});
+document.addEventListener("click",function(e){var b=e.target.closest("button[data-scsn]");if(!b)return;var id=b.dataset.scsn;scanOpen(function(c){$(id).value=c;serChk(id);if(id==="f_sn"||id==="f_mon_sn")$(id).dispatchEvent(new Event("input",{bubbles:true}))},false,"Point the camera at the serial number barcode / QR on the asset label",true)});$("sc_x").onclick=scanClose;$("sc_ok").onclick=function(){scanHit($("sc_in").value);$("sc_in").value=""};
 $("sc_in").addEventListener("keydown",function(e){if(e.key==="Enter"){scanHit(this.value);this.value=""}});
 
 /* ================= v4: stock audit (admin) ================= */
@@ -1123,7 +1128,7 @@ document.addEventListener("click",function(e){var i=e.target.closest("img[data-p
 var IDLE_MS=3*60*1000,idleT=0,idleW=0,lastAct=0;
 function idleReset(force){var n=Date.now();if(!force&&n-lastAct<1500&&$("idlew").style.display!=="block")return;lastAct=n;clearTimeout(idleT);clearTimeout(idleW);$("idlew").style.display="none";if(!AUTHED)return;
  idleW=setTimeout(function(){$("idlew").style.display="block"},IDLE_MS-60000);
- idleT=setTimeout(function(){$("idlew").style.display="none";try{if(SA)saSave(true)}catch(e){}fb.logout().then(function(){$("lerr").textContent="You were logged out because the page was not used for 3 minutes."})},IDLE_MS)}
+ idleT=setTimeout(function(){$("idlew").style.display="none";try{if(SA)saSave(true)}catch(e){}var rs="Auto logout: you were logged out because there was no activity on this page for 3 minutes (at "+new Date().toLocaleTimeString()+"). Please login again.";try{sessionStorage.setItem("lo_reason",rs)}catch(e){}fb.logout().then(function(){$("lerr").textContent=rs})},IDLE_MS)}
 ["mousemove","keydown","touchstart","click","scroll"].forEach(function(ev){document.addEventListener(ev,function(){idleReset()},{passive:true})});
 fb.setLabels(L);
 </script>

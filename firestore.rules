@@ -167,6 +167,14 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // ---------- SERIAL NUMBER REGISTRY (one serial number = one asset) ----------
+    match /serials/{id} {
+      allow get: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.keys().hasOnly(['code','at'])
+        && request.resource.data.code is string && request.resource.data.code.size() < 40;
+      allow update, delete: if isStaff() || isEditor();
+    }
+
     // ---------- STOCK AUDITS (staff: all; add-only user: only his own SCAN-ONLY audits) ----------
     match /stockaudits/{id} {
       allow read: if isStaff() || (isAddOnly() && resource.data.by == request.auth.token.email);
