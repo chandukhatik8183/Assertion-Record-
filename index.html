@@ -182,7 +182,7 @@ tbody tr{transition:background .12s}tbody tr:hover{background:rgba(37,99,235,.06
 <div><label>Type</label><select id="fty"></select></div>
 <div><label>Status</label><select id="fst"></select></div>
 </div>
-<div class="bar"><button class="p" id="plAll">Print Labels (all listed)</button><button id="csv">Excel/CSV Export</button><button id="bk">Backup (JSON)</button><button id="rs">Restore</button><input type="file" id="rsf" accept=".json" style="display:none"><button id="bulkb">Bulk Add/Edit (Excel)</button><button id="brm">Manage Branches</button><input type="file" id="bf" accept=".xlsx,.csv,.txt" style="display:none"><span class="stat" id="cnt"></span></div>
+<div class="bar"><button class="p" id="plAll">Print Labels (all listed)</button><button id="csv">Excel Export</button><button id="bk">Backup (JSON)</button><button id="rs">Restore</button><input type="file" id="rsf" accept=".json" style="display:none"><button id="bulkb">Bulk Add/Edit (Excel)</button><button id="brm">Manage Branches</button><input type="file" id="bf" accept=".xlsx,.csv,.txt" style="display:none"><span class="stat" id="cnt"></span></div>
 <div class="tw" style="margin-top:10px"><table><thead><tr><th>Asset Code</th><th>Company</th><th>Type / Model</th><th>Configuration</th><th>Branch / Asset Location / User</th><th>Status</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>
 </section>
 </div>
@@ -392,9 +392,24 @@ $("save").onclick=save;$("clear").onclick=clearForm;$("f_loc").onchange=function
 $("q").addEventListener("keydown",function(e){if(e.key!=="Enter")return;var m=$("q").value.match(/[A-Za-z]{2}-[A-Za-z]{2}-\d{4}/),a=m&&find(m[0]);if(a){detail(a);$("q").value=""; render()}});
 $("plAll").onclick=function(){printLabels(filtered())};
 function dl(n,t,m){var u=URL.createObjectURL(new Blob([t],{type:m})),a=document.createElement("a");a.href=u;a.download=n;a.click();setTimeout(function(){URL.revokeObjectURL(u)},500)}
-$("csv").onclick=function(){if(!ADM)return;
- var H=["code","company","type"].concat(BK,SK,["acc","accd","accOther","cond"]),rows=[H.join(",")].concat(A.map(function(a){return H.map(function(k){return'"'+String(cv(a,k)).replace(/"/g,'""')+'"'}).join(",")}));
- dl("sandeep-assets.csv","\ufeff"+rows.join("\n"),"text/csv")};
+$("csv").onclick=function(){if(!ADM)return;if(!xlOk())return;xlGo(function(){
+ var R=filtered();if(!R.length){alert("No assets to export. Change the filter and try again.");return}
+ var co=$("fco").value,br=$("fbr").value,ty=$("fty").value,st=$("fst").value,by={};
+ R.forEach(function(a){(by[a.type]=by[a.type]||[]).push(a)});
+ var names=Object.keys(by).sort(),used={},sheets=[],sum=[["Item","Value"],["Company",co||"All companies"],["Branch",br||"All branches"],["Product Type",ty||"All types"],["Status",st||"All statuses"],["Exported on",new Date().toLocaleString("en-GB")],["Total assets",String(R.length)]];
+ names.forEach(function(t){sum.push(["  "+t,String(by[t].length)])});
+ sheets.push({name:"Summary",rows:sum,widths:[24,34],header:true});
+ names.forEach(function(t){
+  var list=by[t],cols=[["code","Asset Code"],["company","Company"],["type","Product Type"]];
+  var ks=T[t]?keysOf(t):BK.concat(SK);
+  ks.forEach(function(k){if(list.some(function(a){return String(cv(a,k)||"").trim()!==""}))cols.push([k,lab(k,t)])});
+  if(ACT.indexOf(t)>-1){[["acc","Accessories"],["accOther","Other Accessory"],["cond","Condition at Handover"]].forEach(function(c){if(list.some(function(a){return String(cv(a,c[0])||"").trim()!==""}))cols.push(c)})}
+  var rows=[cols.map(function(c){return c[1]})].concat(list.map(function(a){return cols.map(function(c){return String(cv(a,c[0])==null?"":cv(a,c[0]))})}));
+  var w=cols.map(function(c){var m=c[1].length+4;list.forEach(function(a){var l=String(cv(a,c[0])||"").length;if(l>m)m=l});return Math.min(Math.max(m,12),42)});
+  var nm=t.replace(/[\\\/?*\[\]:]/g,"").slice(0,28)||"Assets",n=nm,c=2;while(used[n.toLowerCase()])n=nm+" "+(c++);used[n.toLowerCase()]=1;
+  sheets.push({name:n,rows:rows,widths:w,header:true,freeze:true,textCols:true})});
+ var tag=(br||co||"All-branches").replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,""),d=new Date().toISOString().slice(0,10);
+ dl("Sandeep-Assets-"+tag+"-"+d+".xlsx",XL.write({sheets:sheets}),XLSX_MIME)})};
 $("bk").onclick=function(){if(!ADM)return;dl("sandeep-assets-backup-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify(A),"application/json")};
 $("rs").onclick=function(){if(ADM)$("rsf").click()};
 $("rsf").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var d=JSON.parse(r.result);if(d&&!Array.isArray(d)&&d.assets)d=d.assets;if(!Array.isArray(d)||!d.every(function(x){return x&&x.code}))throw 1;if(confirm("Restore "+d.length+" assets from this backup? Assets with the same code will be overwritten."))fb.restore(d).then(function(){alert("Restore complete")}).catch(function(x){alert("Restore failed: "+x.message)})}catch(x){alert("Invalid backup file.")}};r.readAsText(f);e.target.value=""};
