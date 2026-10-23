@@ -126,3 +126,6 @@ Dashboard (totals, assets by company/type, latest tickets), digital gate passes 
 **ISP update** - *Billing Time* is now **Billing Type** (Monthly / Quarterly / Yearly). The reminder (5 days before) follows the type: Monthly = every month, Quarterly = every 3 months from the Billing Date, Yearly = once a year. *Department* is now **Router User Name** and *Assigned User* is **Router Password** (kept in the asset details; not shown in lists, labels, employee list; no Assign / Handover for ISP).
 
 **ISP additions** - Billing Type now has **Half-yearly** (reminder every 6 months from the Billing Date). New fields: **Connection Type** (Leased Line / Broadband / Airfiber, next to DSL ID), **Account Manager Name** and **Account Manager Contact No.** **Publish the new `firestore.rules`.**
+
+
+**SIM asset type (new)** - Product Type *SIM* (code prefix SM). Fields: *SIM Vendor Name*, *Company Number*, *User Personal Number*, *Status* (Active / Deactive), *Plan Name*, *SIM Number*, *User Name*, *User Email*, *User Designation* (plus Company, Branch Location, Asset Code as always). Asset Location, Department, Purchase Date, Warranty, Remarks and Accessories are not used for SIM. No Handover / Assign for SIM. **Publish the new `firestore.rules`.**
