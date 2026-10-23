@@ -556,13 +556,13 @@ if(pcode){publicView(pcode)}else{
   else{unsubs.forEach(function(f){try{f()}catch(e){}});unsubs=[];ADM=false;ROOT=false;ROLE="";FULLX=false;AUTHED=false;ctrSync=false;CFG={};window.__sync=0;try{sessionStorage.removeItem("mine_codes")}catch(e){}A=[];TK=[];$("app").style.display="none";$("lo").style.display="none";$("cpw").style.display="none";$("scanb").style.display="none";ME="";saW=false;auW=false;idleReset(true);$("lg").style.display="";try{var lr=sessionStorage.getItem("lo_reason");if(lr){$("lerr").textContent=lr;sessionStorage.removeItem("lo_reason")}}catch(e){}}})}
 
 /* ---------- Support tickets ---------- */
-var TK=[],PA=null,TS=["Open","In Progress","Resolved","Closed"],seenT=null;
+var TK=[],PA=null,TS=["Open","In Progress","Pending from User","Pending for Part","Resolved","Closed"],seenT=null;
 function tid(){var a=new Uint8Array(12);crypto.getRandomValues(a);return Array.prototype.map.call(a,function(x){return"abcdefghijklmnopqrstuvwxyz0123456789"[x%36]}).join("")}
 function ftk(id){return String(id).toUpperCase().replace(/(.{4})(?=.)/g,"$1-")}
 function isOpen(t){return t.status!=="Resolved"&&t.status!=="Closed"}
 function fdt(n){try{return new Date(n).toLocaleString("en-GB",{dateStyle:"short",timeStyle:"short"})}catch(e){return""}}
 opt($("t_cat"),["Hardware","Software / OS","Network / Internet","Printer / Scanner","Power / UPS","Other"]);opt($("t_pri"),["Low","Medium","High"]);$("t_pri").value="Medium";
-opt($("tfs"),["Active","Open","In Progress","Resolved","Closed","All"]);
+opt($("tfs"),["Active","Open","In Progress","Pending from User","Pending for Part","Resolved","Closed","All"]);
 $("t_snd").onchange=function(){$("t_sndf").style.display=this.checked?"":"none"};
 $("t_go").onclick=function(){
  var n=$("t_name").value.trim(),is=$("t_issue").value.trim(),m=$("t_msg");m.textContent="";
@@ -681,7 +681,7 @@ function mvAdm(t){var m=t.move,r=t.repair,k=t.track||{},h="",how=function(o){ret
  if(t.urcv)h+="<div class='stat'><b>Received by user:</b> "+esc(t.urcv.name||"")+" &middot; "+esc(fdt(t.urcv.at))+" &middot; asset is In Use</div>";
  else if(k.ret)h+="<div class='stat'>Waiting for the user to confirm receipt (asset stays Under Repair until then).</div>";
  return h}
-var TXT={"Open":"Your ticket has been received. IT team will pick it up soon.","In Progress":"IT team is working on your issue.","Resolved":"IT team has fixed the issue. Please confirm everything works.","Closed":"This ticket is closed."};
+var TXT={"Open":"Your ticket has been received. IT team will pick it up soon.","In Progress":"IT team is working on your issue.","Pending from User":"IT is waiting for you. Please call or reply to IT so the work can continue.","Pending for Part":"IT is waiting for a spare part to finish the repair.","Resolved":"IT team has fixed the issue. Please confirm everything works.","Closed":"This ticket is closed."};
 var unsubT=null;
 var FR=0;
 function stars(n){return"\u2605\u2605\u2605\u2605\u2605".slice(0,n)+"\u2606\u2606\u2606\u2606\u2606".slice(0,5-n)}
@@ -694,7 +694,7 @@ function tlEvents(t){var e=[{status:"Open",note:"",at:t.created,first:1}],h=Arra
  if(!h.length&&(t.status!=="Open"||t.notes))h=[{status:t.status,note:t.notes||"",at:t.updated||t.created}];
  return e.concat(h).reverse()}
 function tlHtml(t){
- var PS=TS.slice(0,3),si=Math.max(0,PS.indexOf(t.status)),fin=t.status==="Resolved",ev=tlEvents(t),last=ev[0];
+ var PS=["Open","In Progress","Resolved"],si=Math.max(0,PS.indexOf(/^Pending/.test(t.status)?"In Progress":t.status)),fin=t.status==="Resolved",ev=tlEvents(t),last=ev[0];
  var h="<h3 style='margin:0 0 6px;font-size:15px'>Ticket <span class='code'>"+esc(ftk(t.id))+"</span></h3>"
  +"<p style='margin:4px 0'><span class='sbig'>"+esc(t.status)+"</span> <span class='stat'>Last updated: "+esc(fdt(last.at))+"</span></p>"
  +"<p style='margin:6px 0'>"+esc(TXT[t.status]||"")+"</p>"+mvBox(t)
@@ -721,15 +721,15 @@ function myEng(){var m=(ME||"").toLowerCase();if(m.indexOf("chandu")>-1||m.index
 function engOpts(cur){var d=cur?-1:myEng();return"<option value=''>-- Assign IT engineer --</option>"+ENG.map(function(e,i){return"<option value='"+i+"'"+(e.n===cur||i===d?" selected":"")+">"+esc(e.n)+" ("+esc(e.m)+")</option>"}).join("")}
 function fbHtml(t){return t.feedback?"<div class='stat' style='margin-top:6px'><b>User feedback:</b> <span style='color:#f5a623'>"+stars(t.feedback.rating)+"</span> "+esc(t.feedback.comment||"")+"</div>":""}
 /* one button per ticket moves it to the next status: Open > In Progress > Resolved > Close */
-function nxOf(st){return{"Open":["In Progress","ab2"],"In Progress":["Resolved","gb"],"Resolved":["Close","rb"]}[st]}
-function stBadge(x){var c={"Open":["#fee2e2","#b91c1c"],"In Progress":["#dbeafe","#1d4ed8"],"Resolved":["#dcfce7","#15803d"],"Closed":["#e5e7eb","#374151"]}[x]||["#eee","#333"];return"<span class='sb' style='background:"+c[0]+";color:"+c[1]+"'>"+esc(x)+"</span>"}
+function nxOf(st){return{"Open":["In Progress","ab2"],"In Progress":["Resolved","gb"],"Pending from User":["In Progress","ab2"],"Pending for Part":["In Progress","ab2"],"Resolved":["Close","rb"]}[st]}
+function stBadge(x){var c={"Open":["#fee2e2","#b91c1c"],"In Progress":["#dbeafe","#1d4ed8"],"Pending from User":["#fef3c7","#b45309"],"Pending for Part":["#ede9fe","#6d28d9"],"Resolved":["#dcfce7","#15803d"],"Closed":["#e5e7eb","#374151"]}[x]||["#eee","#333"];return"<span class='sb' style='background:"+c[0]+";color:"+c[1]+"'>"+esc(x)+"</span>"}
 function rtk(){rdash();
  var f=$("tfs").value,q=$("tq").value.toLowerCase(),R=TK.filter(function(t){
   if(f==="Active"&&!isOpen(t))return false;if(f!=="Active"&&f!=="All"&&t.status!==f)return false;
   return !q||(ftk(t.id)+" "+JSON.stringify(t)).toLowerCase().indexOf(q)>-1}).sort(function(a,b){return(b.created||0)-(a.created||0)});
  $("tcnt").textContent=R.length+" shown / "+TK.length+" total tickets";
  var c=function(fn){return TK.filter(fn).length};
- $("tsum").innerHTML=[[c(function(t){return t.status==="Open"}),"Open (new)","r"],[c(function(t){return t.status==="In Progress"}),"In progress","w"],[c(function(t){return t.track&&t.track.rcv&&!t.track.ret}),"Asset at IT now","w"],[c(function(t){return t.move&&!t.repair&&isOpen(t)}),"Waiting for approval","w"],[c(function(t){return t.status==="Resolved"}),"Resolved","ok"]].map(function(x){return"<div class='kc "+x[2]+"'><b>"+x[0]+"</b><span>"+x[1]+"</span></div>"}).join("");
+ $("tsum").innerHTML=[[c(function(t){return t.status==="Open"}),"Open (new)","r"],[c(function(t){return t.status==="In Progress"}),"In progress","w"],[c(function(t){return/^Pending/.test(t.status)}),"Pending (user / part)","w"],[c(function(t){return t.track&&t.track.rcv&&!t.track.ret}),"Asset at IT now","w"],[c(function(t){return t.move&&!t.repair&&isOpen(t)}),"Waiting for approval","w"],[c(function(t){return t.status==="Resolved"}),"Resolved","ok"]].map(function(x){return"<div class='kc "+x[2]+"'><b>"+x[0]+"</b><span>"+x[1]+"</span></div>"}).join("");
  $("ttb").innerHTML=R.map(function(t,i){var r=t.repair,w=tWhere(t),id=esc(t.id),bt=function(a,l,cl,dis){return"<button class='"+cl+"' data-tid='"+id+"' data-ta='"+a+"'"+(dis?" disabled":"")+">"+l+"</button>"};
   return"<tr><td>"+(i+1)+"</td><td>"+esc(brOf(t))+"</td><td class='code'>"+esc(ftk(t.id))+"</td><td><b>"+esc(t.assetCode)+"</b><br><span class='stat'>"+esc(t.assetType||"")+"</span></td><td style='max-width:260px'><b>"+esc(t.category||"")+"</b> &middot; "+esc(t.priority||"")+"<br>"+esc(t.issue)+"</td><td>"+esc(t.name)+"<br><span class='stat'>"+esc(t.dept||"")+"</span></td><td class='stat' style='white-space:nowrap'>"+esc(fdt(t.created))+"</td><td>"+stBadge(t.status)+"</td><td><b style='color:"+(w[1]==="ok"?"#16a34a":w[1]==="w"?"#d97706":"inherit")+"'>"+esc(w[0])+"</b><br><span class='stat'>"+esc(tMode(t))+"</span></td><td>"+bt("v","View","pb")+"</td><td>"+bt("ra",r?"View":"Approve","pb")+"</td><td>"+(t.move&&r&&r.gate?bt("gp","Gate Pass","pb"):"<span class='stat'>"+(t.move?"not issued":"not needed")+"</span>")+"</td><td>"+(nxOf(t.status)?bt("nx",nxOf(t.status)[0],nxOf(t.status)[1]):bt("nx","Closed","rb",true))+"</td></tr>"}).join("")||"<tr><td colspan=13 class='stat'>No tickets.</td></tr>"}
 /* full ticket window: details, status / engineer / note, movement, history, all actions */
@@ -833,6 +833,7 @@ function rsmart(T){var el=$("smtb");if(!el)return;
   if(t.move&&!t.repair&&open&&now-t.created>2*D)L.push(["w",t.assetCode,"user sent it "+Math.floor((now-t.created)/D)+" days ago and IT has not taken any action."]);
   if(open&&t.status==="Open"&&!t.move&&now-t.created>3*D)L.push(["w",t.assetCode,"ticket is still Open after "+Math.floor((now-t.created)/D)+" days - nobody picked it up."]);
   if(k.ret&&!t.urcv&&now-k.ret>3*D)L.push(["w",t.assetCode,"IT sent it back "+Math.floor((now-k.ret)/D)+" days ago but the user has not confirmed receipt. Call the user."]);
+  if(/^Pending/.test(t.status)){var pa=(tlEvents(t)[0]||{}).at||t.created;if(now-pa>3*D)L.push(["w",t.assetCode,"has been \""+t.status+"\" for "+Math.floor((now-pa)/D)+" days - please follow up."])}
   if(open&&a.wt){var d=Date.parse(a.wt);if(isFinite(d)&&d>now)L.push(["i",t.assetCode,"has an open ticket and is still UNDER WARRANTY (till "+esc(a.wt)+"). Check the warranty / vendor before paying for repair."])}});
  var sm={};A.forEach(function(a){[a.sn,a.mon_sn].forEach(function(v){v=String(v||"").trim().toUpperCase();if(!v||/^(NA|N\/A|NIL|NONE|NULL|-+|\.+)$/.test(v))return;(sm[v]=sm[v]||[]).push(a.code)})});
  Object.keys(sm).forEach(function(k){var u=sm[k].filter(function(c,i,a){return a.indexOf(c)===i});if(u.length>1)L.push(["r",u[0],"Serial number "+k+" is used in "+u.length+" assets ("+u.join(", ")+") - duplicate. Delete or correct the wrong one."])});

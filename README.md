@@ -115,3 +115,5 @@ Dashboard (totals, assets by company/type, latest tickets), digital gate passes 
 **Publish the new `firestore.rules`.**
 
 **Tickets - Next Step button** - the last column shows the next status of the ticket: Open -> **In Progress**, In Progress -> **Resolved**, Resolved -> **Close** (asks confirmation). One click from the list, no need to open View Ticket. Repair Approval already moves an Open ticket to In Progress.
+
+**New ticket statuses** - **Pending from User** (IT is waiting for the user) and **Pending for Part** (waiting for a spare part). They are in the status list of the ticket window and in the filter; the user sees a clear message on the QR page; the *Next Step* button resumes work (-> In Progress); the dashboard counts them and Smart insights warns when a ticket stays pending for more than 3 days.
