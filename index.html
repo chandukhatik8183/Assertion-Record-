@@ -265,16 +265,18 @@ function branchesFor(co){var out=[],seen={};function add(b){b=String(b||"").trim
  return out}
 var PC=["cpu","ram","hdd","os"];
 var MK=["mon_model","mon_sn","mon_pd","mon_wt"];
-var T={"Desktop":["DT",PC.concat(MK)],"Laptop":["LT",PC],"All-in-One":["AO",PC],"Monitor":["MN",["size","res","ports"]],"Networking":["NW",["ntype","ports","ip","mac"]],"Server":["SV",PC.concat("ip")],"Printer":["PR",["ports","ip","mac"]],"Biometric":["BM",["ip","mac"]],"Mobile":["MB",["ram","hdd","os"]],"Tablet":["TB",["ram","hdd","os","size"]],"ISP":["IS",["sip","smask","sgw","dns1","dns2"]],"UPS":["UP",["cap","batt"]]};
+var T={"Desktop":["DT",PC.concat(MK)],"Laptop":["LT",PC],"All-in-One":["AO",PC],"Monitor":["MN",["size","res","ports"]],"Networking":["NW",["ntype","ports","ip","mac"]],"Server":["SV",PC.concat("ip")],"Printer":["PR",["ports","ip","mac"]],"Biometric":["BM",["ip","mac"]],"Mobile":["MB",["ram","hdd","os"]],"Tablet":["TB",["ram","hdd","os","size"]],"ISP":["IS",["sip","smask","sgw","dns1","dns2","bt","bd"]],"UPS":["UP",["cap","batt"]]};
 var HT=[],TL=Object.keys(T).filter(function(k){return HT.indexOf(k)<0});
 var BK=["model","sn","loc","aloc","dept","usr","pd","wt","st","rm"];
-var SK=["cpu","ram","hdd","os","size","res","ports","ip","mac","ntype","sip","smask","sgw","dns1","dns2","cap","batt"].concat(MK);
-var L={company:"Company",type:"Product Type",code:"Asset Code",model:"Brand / Model",sn:"Serial No.",cpu:"Processor",ram:"RAM",hdd:"Storage",os:"Operating System",size:"Screen Size",res:"Resolution",ports:"Ports",ip:"IP Address",sip:"Static IP Address",smask:"Subnet Mask",sgw:"Default Gateway",dns1:"Preferred DNS Server",dns2:"Alternate DNS Server",mac:"MAC Address",ntype:"Device (Switch/Router/AP/Firewall)",cap:"Capacity (VA / kVA)",batt:"Battery Details (Qty / Ah)",mon_model:"Monitor Brand / Model",mon_sn:"Monitor Serial No.",mon_pd:"Monitor Purchase Date",mon_wt:"Monitor Warranty Till",loc:"Branch Location",aloc:"Asset Location (Floor / Room / Desk)",dept:"Department",usr:"Assigned User",pd:"Purchase Date",wt:"Warranty Till",st:"Status",rm:"Remarks"};
-var ST=["In Use","In Stock","Under Repair","Scrapped"];
+var SK=["cpu","ram","hdd","os","size","res","ports","ip","mac","ntype","sip","smask","sgw","dns1","dns2","cap","batt","bt","bd"].concat(MK);
+var L={company:"Company",type:"Product Type",code:"Asset Code",model:"Brand / Model",sn:"Serial No.",cpu:"Processor",ram:"RAM",hdd:"Storage",os:"Operating System",size:"Screen Size",res:"Resolution",ports:"Ports",ip:"IP Address",sip:"Static IP Address",smask:"Subnet Mask",sgw:"Default Gateway",dns1:"Preferred DNS Server",dns2:"Alternate DNS Server",mac:"MAC Address",ntype:"Device (Switch/Router/AP/Firewall)",cap:"Capacity (VA / kVA)",batt:"Battery Details (Qty / Ah)",mon_model:"Monitor Brand / Model",mon_sn:"Monitor Serial No.",mon_pd:"Monitor Purchase Date",mon_wt:"Monitor Warranty Till",loc:"Branch Location",aloc:"Asset Location (Floor / Room / Desk)",dept:"Department",usr:"Assigned User",pd:"Purchase Date",wt:"Warranty Till",st:"Status",rm:"Remarks",bt:"Billing Time",bd:"Billing Date"};
+var ST=["In Use","In Stock","Under Repair","Scrapped","Active","Deactive"];
+function stFor(t){return t==="ISP"?["Active","Deactive"]:ST.slice(0,4)}
+var IL={model:"ISP Vendor Name",sn:"Account Number",pd:"DSL ID",wt:"Bill Amount"};
 var A=[],editId=null,ADM=false,ROOT=false,ROLE="",FULLX=false,ADMIN="techpoint.chandu@gmail.com",CFG={},unsubs=[],AUTHED=false,ctrSync=false,seeding=false,codeTok=0;
 var ACC=["Charger / Adapter","Power cable","Mouse","Keyboard","Bag / Cover"],CD=["New","Good","Fair"];
 var DL={model:"Desktop Brand / Model",sn:"Desktop Serial No.",pd:"Desktop Purchase Date",wt:"Desktop Warranty Till"};
-function lab(k,t){return t==="Desktop"&&DL[k]?DL[k]:L[k]}
+function lab(k,t){return t==="ISP"&&IL[k]?IL[k]:(t==="Desktop"&&DL[k]?DL[k]:L[k])}
 function ak(x){return String(x).replace(/[^A-Za-z0-9]+/g,"_")}
 function accLines(a){var s=a.acc||[],D=a.accd||{};return s.map(function(x){var v=D[ak(x)]||{},n=x==="Other"&&a.accOther?"Other: "+a.accOther:x,p=[];if(v.sn)p.push("SN: "+v.sn);if(v.pd)p.push("Purchased: "+v.pd);if(v.wt)p.push("Warranty till: "+v.wt);return[n,p.join("  ·  ")]})}
 function cv(a,k){if(k==="accd")return accLines(a).map(function(r){return r.join(" ")}).join("; ");var v=a[k];return Array.isArray(v)?v.join("; "):(v==null?"":v)}
@@ -282,8 +284,8 @@ var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function opt(el,arr,first){if(first)el.add(new Option(first,""));arr.forEach(function(v){el.add(new Option(v,v))})}
 function pre(n){for(var i=0;i<CO.length;i++)if(CO[i][0]===n)return CO[i][1];return"XX"}
-function keysOf(t){var sp=T[t][1].filter(function(k){return MK.indexOf(k)<0}),mo=T[t][1].filter(function(k){return MK.indexOf(k)>-1});return BK.slice(0,2).concat(sp,BK.slice(2,8),mo,BK.slice(8))}
-function mk(k){var d=document.createElement("div");d.id="w_"+k;var inp=k==="st"?"<select id='f_st'></select>":k==="loc"?"<select id='f_loc'></select>":"<input id='f_"+k+"'"+(/(^|_)(pd|wt)$/.test(k)?" type='date'":"")+">";if(/(^|_)sn$/.test(k))inp="<div style='display:flex;gap:6px'>"+inp+"<button type='button' data-scsn='f_"+k+"' style='white-space:nowrap'>Scan label</button></div>";d.innerHTML="<label>"+L[k]+"</label>"+inp;return d}
+function keysOf(t){if(t==="ISP")return["model","sn","bt","loc","aloc","dept","usr","pd","wt","st","rm","sip","smask","sgw","dns1","dns2","bd"];var sp=T[t][1].filter(function(k){return MK.indexOf(k)<0}),mo=T[t][1].filter(function(k){return MK.indexOf(k)>-1});return BK.slice(0,2).concat(sp,BK.slice(2,8),mo,BK.slice(8))}
+function mk(k){var d=document.createElement("div");d.id="w_"+k;var inp=k==="st"?"<select id='f_st'></select>":k==="loc"?"<select id='f_loc'></select>":"<input id='f_"+k+"'"+(/(^|_)(pd|wt)$/.test(k)||k==="bd"?" type='date'":k==="bt"?" type='time'":"")+">";if(/(^|_)sn$/.test(k))inp="<div style='display:flex;gap:6px'>"+inp+"<button type='button' data-scsn='f_"+k+"' style='white-space:nowrap'>Scan label</button></div>";d.innerHTML="<label>"+L[k]+"</label>"+inp;return d}
 BK.forEach(function(k){$("base").appendChild(mk(k))});(function(){var cd=$("f_company").parentNode;cd.parentNode.insertBefore($("w_loc"),cd.nextSibling)})();SK.forEach(function(k){$(MK.indexOf(k)>-1?"monspecs":"specs").appendChild(mk(k))});
 var AXH="<span class='ax' style='display:none'><input data-f='sn' placeholder='Serial No.'><label>Purchase Date<input type='date' data-f='pd'></label><label>Warranty Till<input type='date' data-f='wt'></label></span>";
 $("accs").innerHTML=ACC.map(function(x){return"<div class='ai'><label class='tki'><input type='checkbox' class='acc' value='"+esc(x)+"'> "+esc(x)+"</label>"+AXH+"</div>"}).join("")+"<div class='ai'><label class='tki'><input type='checkbox' id='acc_o'> Other:</label><input id='acc_ot' placeholder='specify other accessory' style='width:220px;display:inline-block;vertical-align:middle'>"+AXH+"</div>";
@@ -300,7 +302,11 @@ function setTicks(a){setTicks0(a);setAccD(a)}
 function setTicks0(a){var s=(a&&a.acc)||[];document.querySelectorAll(".acc").forEach(function(c){c.checked=s.indexOf(c.value)>-1});$("acc_o").checked=s.indexOf("Other")>-1;$("acc_ot").value=(a&&a.accOther)||"";document.querySelectorAll(".cnd").forEach(function(c){c.checked=!!a&&a.cond===c.value})}
 opt($("f_st"),ST);opt($("f_company"),CO.map(function(c){return c[0]}));opt($("f_type"),TL);
 opt($("fco"),CO.map(function(c){return c[0]}),"All companies");opt($("fty"),TL,"All types");opt($("fst"),ST,"All statuses");
-function showSpecs(){var t=$("f_type").value;if(!T[t])return;SK.forEach(function(k){$("w_"+k).style.display=T[t][1].indexOf(k)>-1?"":"none"});$("monbox").style.display=T[t][1].indexOf("mon_sn")>-1?"":"none";Object.keys(DL).forEach(function(k){$("w_"+k).querySelector("label").textContent=lab(k,t)})}
+function showSpecs(){var t=$("f_type").value;if(!T[t])return;SK.forEach(function(k){$("w_"+k).style.display=T[t][1].indexOf(k)>-1?"":"none"});$("monbox").style.display=T[t][1].indexOf("mon_sn")>-1?"":"none";["model","sn","pd","wt"].forEach(function(k){$("w_"+k).querySelector("label").textContent=lab(k,t)});
+ var isp=t==="ISP",sel=$("f_st"),cur=sel.value,sl=stFor(t);sel.innerHTML="";opt(sel,sl);sel.value=sl.indexOf(cur)>-1?cur:sl[0];
+ $("f_pd").type=isp?"text":"date";$("f_wt").type=isp?"number":"date";if(isp)$("f_wt").min="0";
+ var sb=$("w_sn").querySelector("button[data-scsn]");if(sb)sb.style.display=isp?"none":"";
+ if(isp)$("w_sn").parentNode.insertBefore($("w_bt"),$("w_sn").nextSibling)}
 function nextCode(co,t){var p=pre(co)+"-"+T[t][0]+"-",m=0;A.forEach(function(a){if(a.code.indexOf(p)===0){var k=parseInt(a.code.slice(p.length),10);if(k>m)m=k}});return p+("0000"+(m+1)).slice(-4)}
 function urlFor(c){return location.origin+"/a/"+encodeURIComponent(c)}
 function qrSvg(c,cell){try{var q=qrcode(0,"M");q.addData(urlFor(c));q.make();return q.createSvgTag(cell||3,0)}catch(e){return""}}
@@ -335,8 +341,8 @@ function fbrSync(c){var sel=$("fbr"),cur=sel.value,m={};A.forEach(function(a){if
 function filtered(){
  var q=$("q").value.toLowerCase(),c=$("fco").value,t=$("fty").value,s=$("fst").value,br=fbrSync(c);
  return A.filter(function(a){if(c&&a.company!==c)return false;if(br&&a.loc!==br)return false;if(t&&a.type!==t)return false;if(s&&a.st!==s)return false;return !q||JSON.stringify(a).toLowerCase().indexOf(q)>-1}).sort(function(a,b){return a.code<b.code?-1:1})}
-function conf(a){if(!T[a.type])return"";var p=T[a.type][1].filter(function(k){return MK.indexOf(k)<0}).map(function(k){return a[k]}).filter(Boolean);if(a.mon_model||a.mon_sn)p.push("Monitor: "+[a.mon_model,a.mon_sn?"SN "+a.mon_sn:""].filter(Boolean).join(" "));return p.join(" | ")}
-function render(){rdash();remp();
+function conf(a){if(!T[a.type])return"";var p=T[a.type][1].filter(function(k){return MK.indexOf(k)<0&&k!=="bt"&&k!=="bd"}).map(function(k){return a[k]}).filter(Boolean);if(a.mon_model||a.mon_sn)p.push("Monitor: "+[a.mon_model,a.mon_sn?"SN "+a.mon_sn:""].filter(Boolean).join(" "));return p.join(" | ")}
+function render(){rdash();remp();if(FULLX)try{rbill()}catch(e){}
  var R=filtered();$("cnt").textContent=ADM?R.length+" / "+A.length+" assets":A.length+" asset(s) added in this session";
  $("tb").innerHTML=R.map(function(a){var i=esc(a.code);return"<tr><td class='code'>"+i+"</td><td>"+esc(a.company)+"</td><td>"+esc(a.type)+"<br><span class='stat'>"+esc(a.model)+(a.sn?" · SN "+esc(a.sn):"")+"</span></td><td>"+esc(conf(a))+"</td><td>"+esc(a.loc)+(a.aloc?" – "+esc(a.aloc):"")+"<br><span class='stat'>"+esc([a.dept,a.usr].filter(Boolean).join(" · "))+"</span></td><td>"+esc(a.st)+warnBadge(a)+"</td><td style='white-space:nowrap'><button data-a='v' data-c='"+i+"'>Detail</button> <button data-a='l' data-c='"+i+"'>Label</button> <button data-a='h' data-c='"+i+"'>Handover</button> "+(ADM?"<button data-a='hi' data-c='"+i+"'>History</button> <button data-a='as' data-c='"+i+"'>Assign</button> "+(a.usr?"<button data-a='rb' data-c='"+i+"'>Receive back</button> ":"")+"<button data-a='e' data-c='"+i+"'>Edit</button> <button class='d' data-a='x' data-c='"+i+"'>Del</button>":"")+"</td></tr>"}).join("")||"<tr><td colspan=7 class='stat'>No assets found.</td></tr>"}
 function detail(a){
@@ -834,7 +840,8 @@ function rsmart(T){var el=$("smtb");if(!el)return;
   if(open&&t.status==="Open"&&!t.move&&now-t.created>3*D)L.push(["w",t.assetCode,"ticket is still Open after "+Math.floor((now-t.created)/D)+" days - nobody picked it up."]);
   if(k.ret&&!t.urcv&&now-k.ret>3*D)L.push(["w",t.assetCode,"IT sent it back "+Math.floor((now-k.ret)/D)+" days ago but the user has not confirmed receipt. Call the user."]);
   if(/^Pending/.test(t.status)){var pa=(tlEvents(t)[0]||{}).at||t.created;if(now-pa>3*D)L.push(["w",t.assetCode,"has been \""+t.status+"\" for "+Math.floor((now-pa)/D)+" days - please follow up."])}
-  if(open&&a.wt){var d=Date.parse(a.wt);if(isFinite(d)&&d>now)L.push(["i",t.assetCode,"has an open ticket and is still UNDER WARRANTY (till "+esc(a.wt)+"). Check the warranty / vendor before paying for repair."])}});
+  if(open&&a.wt&&a.type!=="ISP"){var d=Date.parse(a.wt);if(isFinite(d)&&d>now)L.push(["i",t.assetCode,"has an open ticket and is still UNDER WARRANTY (till "+esc(a.wt)+"). Check the warranty / vendor before paying for repair."])}});
+ ispDue().forEach(function(w){L.push([w.days<=1?"r":"w",w.a.code,"ISP bill ("+(w.a.model||"")+", account "+(w.a.sn||"-")+(w.a.wt?", Rs "+w.a.wt:"")+") is "+ispTxt(w)+"."])});
  var sm={};A.forEach(function(a){[a.sn,a.mon_sn].forEach(function(v){v=String(v||"").trim().toUpperCase();if(!v||/^(NA|N\/A|NIL|NONE|NULL|-+|\.+)$/.test(v))return;(sm[v]=sm[v]||[]).push(a.code)})});
  Object.keys(sm).forEach(function(k){var u=sm[k].filter(function(c,i,a){return a.indexOf(c)===i});if(u.length>1)L.push(["r",u[0],"Serial number "+k+" is used in "+u.length+" assets ("+u.join(", ")+") - duplicate. Delete or correct the wrong one."])});
  var ord={r:0,w:1,i:2},col={r:"#dc2626",w:"#d97706",i:"#2563eb"},seen={};
@@ -892,8 +899,19 @@ $("forgot").onclick=function(e){e.preventDefault();var v=$("le").value.trim(),m=
 /* ================= v4: warranty, history, assignment, employees ================= */
 function today0(){var d=new Date();d.setHours(0,0,0,0);return d}
 function dleft(iso){if(!/^\d{4}-\d{2}-\d{2}$/.test(String(iso||"")))return null;return Math.round((new Date(iso+"T00:00:00")-today0())/864e5)}
-function warnItems(a){var o=[];[["wt","Warranty"],["mon_wt","Monitor warranty"]].forEach(function(p){var n=dleft(a[p[0]]);if(n!==null&&n<=30)o.push({lab:p[1],date:a[p[0]],days:n})});return o}
+function warnItems(a){var o=[];if(a.type==="ISP")return o;[["wt","Warranty"],["mon_wt","Monitor warranty"]].forEach(function(p){var n=dleft(a[p[0]]);if(n!==null&&n<=30)o.push({lab:p[1],date:a[p[0]],days:n})});return o}
 function warnBadge(a){if(a.st==="Scrapped")return"";var w=warnItems(a)[0];if(!w)return"";return"<br><span class='badge' style='color:"+(w.days<0?"var(--dg)":"#d97706")+"'>"+(w.days<0?"Warranty expired":"Warranty ends in "+w.days+" d")+"</span>"}
+/* ISP bills: every month, from 5 days before the Billing Date, a reminder is shown (banner + Smart insights) */
+function ispNext(a){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(a.bd||"");if(!m)return null;var day=+m[3],t0=today0(),y=t0.getFullYear(),mo=t0.getMonth();
+ var mk2=function(yy,mm){return new Date(yy,mm,Math.min(day,new Date(yy,mm+1,0).getDate()))};var d=mk2(y,mo);if(d<t0)d=mk2(y,mo+1);return{date:d,days:Math.round((d-t0)/864e5)}}
+function ispDue(){var l=[];A.forEach(function(a){if(a.type!=="ISP"||a.st==="Deactive"||a.st==="Scrapped")return;var n=ispNext(a);if(n&&n.days<=5)l.push({a:a,days:n.days,date:n.date})});return l.sort(function(x,y){return x.days-y.days})}
+function ispTxt(w){return(w.days===0?"due TODAY":w.days===1?"due TOMORROW":"due in "+w.days+" days")+" ("+w.date.toLocaleDateString("en-GB")+")"}
+var billHide=false;
+function rbill(){var bb=$("billbn");if(!bb){bb=document.createElement("div");bb.id="billbn";$("app").insertBefore(bb,$("app").firstChild)}
+ var l=ispDue();if(!l.length||billHide||!FULLX){bb.style.display="none";return}
+ bb.style.cssText="margin:10px 0;padding:12px 16px;border-radius:12px;background:#fff7ed;border:1px solid #fdba74;color:#7c2d12";
+ bb.innerHTML="<button id='billx' style='float:right'>Hide</button><b>ISP bill reminder</b>"+l.map(function(w){var a=w.a;return"<div style='margin-top:4px'><b>"+esc(a.model||"ISP")+"</b> &middot; Account "+esc(a.sn||"-")+" &middot; "+esc(a.loc||"")+(a.wt?" &middot; Rs "+esc(a.wt):"")+" &mdash; <b style='color:"+(w.days<=1?"#b91c1c":"#c2410c")+"'>"+ispTxt(w)+"</b></div>"}).join("");
+ $("billx").onclick=function(){billHide=true;bb.style.display="none"}}
 function warnList(){var l=[];A.forEach(function(a){if(a.st==="Scrapped")return;warnItems(a).forEach(function(w){l.push({a:a,lab:w.lab,date:w.date,days:w.days})})});return l.sort(function(x,y){return x.days-y.days})}
 function rwarn(l){if(!$("wtb"))return;$("wtb").innerHTML=l.slice(0,100).map(function(w){var a=w.a;return"<tr><td class='code'>"+esc(a.code)+"</td><td>"+esc(w.lab)+"<br><span class='stat'>"+esc(a.type+(a.model?" - "+a.model:""))+"</span></td><td>"+esc(a.loc||"")+"<br><span class='stat'>"+esc([a.dept,a.usr].filter(Boolean).join(" · "))+"</span></td><td>"+esc(fiso(w.date))+"</td><td><span class='badge' style='color:"+(w.days<0?"var(--dg)":"#d97706")+"'>"+(w.days<0?"Expired "+(-w.days)+" d ago":w.days===0?"Ends today":"Ends in "+w.days+" d")+"</span></td></tr>"}).join("")||"<tr><td colspan='5' class='stat'>No warranty ending in the next 30 days.</td></tr>"}
 

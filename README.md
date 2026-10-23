@@ -117,3 +117,7 @@ Dashboard (totals, assets by company/type, latest tickets), digital gate passes 
 **Tickets - Next Step button** - the last column shows the next status of the ticket: Open -> **In Progress**, In Progress -> **Resolved**, Resolved -> **Close** (asks confirmation). One click from the list, no need to open View Ticket. Repair Approval already moves an Open ticket to In Progress.
 
 **New ticket statuses** - **Pending from User** (IT is waiting for the user) and **Pending for Part** (waiting for a spare part). They are in the status list of the ticket window and in the filter; the user sees a clear message on the QR page; the *Next Step* button resumes work (-> In Progress); the dashboard counts them and Smart insights warns when a ticket stays pending for more than 3 days.
+
+**ISP asset type (new form)** - labels: *ISP Vendor Name*, *Account Number*, *Billing Time*, *DSL ID*, *Bill Amount*, *Billing Date*; the rest as before (Asset Location, Department, Assigned User, Remarks, Static IP, Subnet Mask, Default Gateway, Preferred / Alternate DNS). Status for ISP is only **Active / Deactive**. No Scan-label button for ISP, no warranty alerts for ISP.
+**ISP bill reminder** - every month, starting 5 days before the day of the *Billing Date* (and on the day), an orange banner shows on every tab for admin / full access (Hide button) and the same line appears in Smart insights. Deactive ISPs give no reminder.
+**Publish the new `firestore.rules`** (new keys bt, bd and statuses Active / Deactive).

@@ -30,13 +30,13 @@ service cloud.firestore {
     // What the ADD-ONLY user is allowed to create: a brand new asset with a valid code,
     // a known company / product type / status, and a branch that is in the admin's branch list.
     function newAssetOk(code) {
-      return request.resource.data.keys().hasOnly(['company','type','code','model','sn','loc','aloc','dept','usr','pd','wt','st','rm','cpu','ram','hdd','os','size','res','ports','ip','mac','ntype','sip','smask','sgw','dns1','dns2','cap','batt','mon_model','mon_sn','mon_pd','mon_wt','acc','accd','accOther','cond'])
+      return request.resource.data.keys().hasOnly(['company','type','code','model','sn','loc','aloc','dept','usr','pd','wt','st','rm','cpu','ram','hdd','os','size','res','ports','ip','mac','ntype','sip','smask','sgw','dns1','dns2','bt','bd','cap','batt','mon_model','mon_sn','mon_pd','mon_wt','acc','accd','accOther','cond'])
         && request.resource.data.keys().hasAll(['code','company','type','loc','aloc','st'])
         && request.resource.data.code == code
         && code.matches('^[A-Z]{2}-[A-Z]{2}-[0-9]{4}$')
         && request.resource.data.company in ['Sandeep Hyundai','Sandeep Kia','Sandeep Bajaj','Sandeep Bajaj Chetak','Sandeep Ford','Sandeep SG Associates','Sandeep STPL','SMPL Finance','Sandeep SMAVL (BKT)']
         && request.resource.data.type in ['Desktop','Laptop','All-in-One','Monitor','Networking','Server','Printer','Biometric','Mobile','Tablet','ISP','UPS']
-        && request.resource.data.st in ['In Use','In Stock','Under Repair','Scrapped']
+        && request.resource.data.st in ['In Use','In Stock','Under Repair','Scrapped','Active','Deactive']
         && request.resource.data.loc is string
         && request.resource.data.loc.size() <= 80
         && request.resource.data.loc in get(/databases/$(database)/documents/config/branches).data[request.resource.data.company]
