@@ -137,6 +137,8 @@ tbody tr{transition:background .12s}tbody tr:hover{background:rgba(37,99,235,.06
 .tkt td,.tkt th{vertical-align:middle}
 .tkt button{padding:6px 12px;font-size:12px;font-weight:600;white-space:nowrap}
 .tkt button.pb{background:#1e3a8a;border-color:#1e3a8a;color:#fff}
+.tkt button.gb{background:#16a34a;border-color:#16a34a;color:#fff}
+.tkt button.ab2{background:#d97706;border-color:#d97706;color:#fff}
 .tkt button.rb{background:#dc2626;border-color:#dc2626;color:#fff}
 .tkt tbody tr:nth-child(even){background:rgba(100,116,139,.05)}
 #bulkc{border-radius:16px}
@@ -189,7 +191,7 @@ tbody tr{transition:background .12s}tbody tr:hover{background:rgba(37,99,235,.06
 <div class="g"><div><label>Status</label><select id="tfs"></select></div><div><label>Search</label><input id="tq" placeholder="ticket no, asset code, name, issue..."></div></div>
 <div class="bar"><button id="tcsv">Excel/CSV Export</button><button id="tbk">Backup (JSON)</button><button id="trs">Restore</button><input type="file" id="trf" accept=".json" style="display:none"></div>
 <div class="stat" id="tcnt" style="margin:8px 0"></div>
-<div class="tw"><table class="tkt" style="min-width:1240px"><thead><tr><th>S.N</th><th>Branch</th><th>Ticket No.</th><th>Asset Code</th><th>Problem Description</th><th>Raised By</th><th>Date</th><th>Status</th><th>Asset now / Repair</th><th>View Ticket</th><th>Repair Approval</th><th>Gate Pass</th><th>Close Ticket</th></tr></thead><tbody id="ttb"></tbody></table></div></section></div>
+<div class="tw"><table class="tkt" style="min-width:1240px"><thead><tr><th>S.N</th><th>Branch</th><th>Ticket No.</th><th>Asset Code</th><th>Problem Description</th><th>Raised By</th><th>Date</th><th>Status</th><th>Asset now / Repair</th><th>View Ticket</th><th>Repair Approval</th><th>Gate Pass</th><th>Next Step</th></tr></thead><tbody id="ttb"></tbody></table></div></section></div>
 <div id="tab_dashboard" style="display:none"><section><h2>Dashboard</h2><div class="kp" id="kp"></div></section>
 <div class="g2"><section><h2>Assets by company</h2><div class="bars" id="bco"></div></section><section><h2>Assets by type</h2><div class="bars" id="bty"></div></section></div>
 <section><h2>Smart insights <span class="stat" style="font-weight:400">- what needs your attention</span></h2><div id="smtb"></div></section>
@@ -718,6 +720,8 @@ var ENG=[{n:"Bhanwar Vaishnav",m:"7300257678"},{n:"Chandraprakash Khatik",m:"911
 function myEng(){var m=(ME||"").toLowerCase();if(m.indexOf("chandu")>-1||m.indexOf("chandra")>-1)return 1;if(m.indexOf("bhanwar")>-1)return 0;return -1}
 function engOpts(cur){var d=cur?-1:myEng();return"<option value=''>-- Assign IT engineer --</option>"+ENG.map(function(e,i){return"<option value='"+i+"'"+(e.n===cur||i===d?" selected":"")+">"+esc(e.n)+" ("+esc(e.m)+")</option>"}).join("")}
 function fbHtml(t){return t.feedback?"<div class='stat' style='margin-top:6px'><b>User feedback:</b> <span style='color:#f5a623'>"+stars(t.feedback.rating)+"</span> "+esc(t.feedback.comment||"")+"</div>":""}
+/* one button per ticket moves it to the next status: Open > In Progress > Resolved > Close */
+function nxOf(st){return{"Open":["In Progress","ab2"],"In Progress":["Resolved","gb"],"Resolved":["Close","rb"]}[st]}
 function stBadge(x){var c={"Open":["#fee2e2","#b91c1c"],"In Progress":["#dbeafe","#1d4ed8"],"Resolved":["#dcfce7","#15803d"],"Closed":["#e5e7eb","#374151"]}[x]||["#eee","#333"];return"<span class='sb' style='background:"+c[0]+";color:"+c[1]+"'>"+esc(x)+"</span>"}
 function rtk(){rdash();
  var f=$("tfs").value,q=$("tq").value.toLowerCase(),R=TK.filter(function(t){
@@ -727,7 +731,7 @@ function rtk(){rdash();
  var c=function(fn){return TK.filter(fn).length};
  $("tsum").innerHTML=[[c(function(t){return t.status==="Open"}),"Open (new)","r"],[c(function(t){return t.status==="In Progress"}),"In progress","w"],[c(function(t){return t.track&&t.track.rcv&&!t.track.ret}),"Asset at IT now","w"],[c(function(t){return t.move&&!t.repair&&isOpen(t)}),"Waiting for approval","w"],[c(function(t){return t.status==="Resolved"}),"Resolved","ok"]].map(function(x){return"<div class='kc "+x[2]+"'><b>"+x[0]+"</b><span>"+x[1]+"</span></div>"}).join("");
  $("ttb").innerHTML=R.map(function(t,i){var r=t.repair,w=tWhere(t),id=esc(t.id),bt=function(a,l,cl,dis){return"<button class='"+cl+"' data-tid='"+id+"' data-ta='"+a+"'"+(dis?" disabled":"")+">"+l+"</button>"};
-  return"<tr><td>"+(i+1)+"</td><td>"+esc(brOf(t))+"</td><td class='code'>"+esc(ftk(t.id))+"</td><td><b>"+esc(t.assetCode)+"</b><br><span class='stat'>"+esc(t.assetType||"")+"</span></td><td style='max-width:260px'><b>"+esc(t.category||"")+"</b> &middot; "+esc(t.priority||"")+"<br>"+esc(t.issue)+"</td><td>"+esc(t.name)+"<br><span class='stat'>"+esc(t.dept||"")+"</span></td><td class='stat' style='white-space:nowrap'>"+esc(fdt(t.created))+"</td><td>"+stBadge(t.status)+"</td><td><b style='color:"+(w[1]==="ok"?"#16a34a":w[1]==="w"?"#d97706":"inherit")+"'>"+esc(w[0])+"</b><br><span class='stat'>"+esc(tMode(t))+"</span></td><td>"+bt("v","View","pb")+"</td><td>"+bt("ra",r?"View":"Approve","pb")+"</td><td>"+(t.move&&r&&r.gate?bt("gp","Gate Pass","pb"):"<span class='stat'>"+(t.move?"not issued":"not needed")+"</span>")+"</td><td>"+bt("cl","Close","rb",t.status==="Closed")+"</td></tr>"}).join("")||"<tr><td colspan=13 class='stat'>No tickets.</td></tr>"}
+  return"<tr><td>"+(i+1)+"</td><td>"+esc(brOf(t))+"</td><td class='code'>"+esc(ftk(t.id))+"</td><td><b>"+esc(t.assetCode)+"</b><br><span class='stat'>"+esc(t.assetType||"")+"</span></td><td style='max-width:260px'><b>"+esc(t.category||"")+"</b> &middot; "+esc(t.priority||"")+"<br>"+esc(t.issue)+"</td><td>"+esc(t.name)+"<br><span class='stat'>"+esc(t.dept||"")+"</span></td><td class='stat' style='white-space:nowrap'>"+esc(fdt(t.created))+"</td><td>"+stBadge(t.status)+"</td><td><b style='color:"+(w[1]==="ok"?"#16a34a":w[1]==="w"?"#d97706":"inherit")+"'>"+esc(w[0])+"</b><br><span class='stat'>"+esc(tMode(t))+"</span></td><td>"+bt("v","View","pb")+"</td><td>"+bt("ra",r?"View":"Approve","pb")+"</td><td>"+(t.move&&r&&r.gate?bt("gp","Gate Pass","pb"):"<span class='stat'>"+(t.move?"not issued":"not needed")+"</span>")+"</td><td>"+(nxOf(t.status)?bt("nx",nxOf(t.status)[0],nxOf(t.status)[1]):bt("nx","Closed","rb",true))+"</td></tr>"}).join("")||"<tr><td colspan=13 class='stat'>No tickets.</td></tr>"}
 /* full ticket window: details, status / engineer / note, movement, history, all actions */
 function tkView(t){var kv=function(l,v){return"<div><label>"+l+"</label><div style='font-weight:600'>"+esc(v||"-")+"</div></div>"},w=tWhere(t),id=esc(t.id);
  var h="<div class='tvx'><h2>Ticket <span class='code'>"+esc(ftk(t.id))+"</span> "+stBadge(t.status)+"</h2><div class='g' style='margin-bottom:10px'>"+kv("Asset",t.assetCode+" - "+(t.assetType||""))+kv("Branch / location",t.assetLoc)+kv("Raised by",t.name+(t.dept?" ("+t.dept+")":""))+kv("Mobile",t.mobile)+kv("Date",fdt(t.created))+kv("Issue type",(t.category||"")+" · "+(t.priority||""))+kv("Asset is now",w[0])+kv("Stage",stage(t))+"</div>"
@@ -743,7 +747,7 @@ function tkClick(e){var b=e.target.closest("button");if(!b||!b.dataset.tid)retur
   fb.actTicket(id,{status:ns,notes:nn,eng:en?en.n:"",engMob:en?en.m:""},en2).then(function(){b.textContent="Saved";setTimeout(function(){b.textContent="Save"},1200)}).catch(function(x){alert("Could not update: "+x.message)})}
  var tk=TK.filter(function(x){return x.id===id})[0];
  if(b.dataset.ta==="v"&&tk)tkView(tk);
- if(b.dataset.ta==="cl"&&tk&&confirm("Close this ticket "+ftk(tk.id)+"?"))fb.actTicket(id,{status:"Closed"},{status:"Closed",note:"Ticket closed by IT",at:Date.now()}).catch(function(x){alert("Could not close: "+x.message)});
+ if(b.dataset.ta==="nx"&&tk){var nx=nxOf(tk.status);if(!nx)return;var ns2=nx[0]==="Close"?"Closed":nx[0];if(ns2==="Closed"&&!confirm("Close this ticket "+ftk(tk.id)+"?"))return;b.disabled=true;var f2={status:ns2},h2={status:ns2,note:"Status changed to "+ns2+" by IT",at:Date.now()};if(!tk.eng&&myEng()>=0){f2.eng=ENG[myEng()].n;h2.eng=f2.eng}fb.actTicket(id,f2,h2).catch(function(x){b.disabled=false;alert("Could not update: "+x.message)})}
  if(b.dataset.ta==="ra"&&tk)raOpen(tk);
  if(b.dataset.ta==="gp"&&tk)printGP(tk,find(tk.assetCode)||{});
  if(b.dataset.ta==="rc"&&tk&&confirm("Mark this asset as RECEIVED at IT?\nThe asset status will change to Under Repair."))

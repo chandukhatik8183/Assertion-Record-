@@ -113,3 +113,5 @@ Dashboard (totals, assets by company/type, latest tickets), digital gate passes 
 **Monitor** is now a normal Product Type (for a monitor given alone, without a computer).
 **Auto logout** - the login page now shows the reason and the time of the logout.
 **Publish the new `firestore.rules`.**
+
+**Tickets - Next Step button** - the last column shows the next status of the ticket: Open -> **In Progress**, In Progress -> **Resolved**, Resolved -> **Close** (asks confirmation). One click from the list, no need to open View Ticket. Repair Approval already moves an Open ticket to In Progress.
