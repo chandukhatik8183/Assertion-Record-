@@ -167,8 +167,8 @@ tbody tr{transition:background .12s}tbody tr:hover{background:rgba(37,99,235,.06
 <div class="g" id="base" style="margin-top:10px"></div>
 <div class="g" id="specs" style="margin-top:10px"></div>
 <div id="monbox" style="display:none;margin-top:12px"><label style="font-size:13px;font-weight:600;color:var(--tx)">Monitor (with this desktop)</label><div class="g" id="monspecs" style="margin-top:6px"></div></div>
-<div style="margin-top:12px"><label>Accessories issued</label><div id="accs"></div></div>
-<div style="margin-top:6px"><label>Condition at handover</label><div id="conds"></div></div>
+<div id="accw" style="margin-top:12px"><label>Accessories issued</label><div id="accs"></div></div>
+<div id="condw" style="margin-top:6px"><label>Condition at handover</label><div id="conds"></div></div>
 <div class="codes"><div class="qr" id="pqr"></div><svg id="pbc"></svg><span class="stat">QR (scan with phone) + Barcode (scan with scanner)</span></div>
 <div class="bar"><button class="p" id="save">Save</button><button id="clear">New / Clear</button><label style="display:flex;gap:6px;align-items:center;margin:0;color:var(--tx)"><input type="checkbox" id="hf" style="width:auto"> Print handover form after saving</label></div>
 </section>
@@ -269,13 +269,14 @@ var T={"Desktop":["DT",PC.concat(MK)],"Laptop":["LT",PC],"All-in-One":["AO",PC],
 var HT=[],TL=Object.keys(T).filter(function(k){return HT.indexOf(k)<0});
 var BK=["model","sn","loc","aloc","dept","usr","pd","wt","st","rm"];
 var SK=["cpu","ram","hdd","os","size","res","ports","ip","mac","ntype","sip","smask","sgw","dns1","dns2","cap","batt","bt","bd"].concat(MK);
-var L={company:"Company",type:"Product Type",code:"Asset Code",model:"Brand / Model",sn:"Serial No.",cpu:"Processor",ram:"RAM",hdd:"Storage",os:"Operating System",size:"Screen Size",res:"Resolution",ports:"Ports",ip:"IP Address",sip:"Static IP Address",smask:"Subnet Mask",sgw:"Default Gateway",dns1:"Preferred DNS Server",dns2:"Alternate DNS Server",mac:"MAC Address",ntype:"Device (Switch/Router/AP/Firewall)",cap:"Capacity (VA / kVA)",batt:"Battery Details (Qty / Ah)",mon_model:"Monitor Brand / Model",mon_sn:"Monitor Serial No.",mon_pd:"Monitor Purchase Date",mon_wt:"Monitor Warranty Till",loc:"Branch Location",aloc:"Asset Location (Floor / Room / Desk)",dept:"Department",usr:"Assigned User",pd:"Purchase Date",wt:"Warranty Till",st:"Status",rm:"Remarks",bt:"Billing Time",bd:"Billing Date"};
+var L={company:"Company",type:"Product Type",code:"Asset Code",model:"Brand / Model",sn:"Serial No.",cpu:"Processor",ram:"RAM",hdd:"Storage",os:"Operating System",size:"Screen Size",res:"Resolution",ports:"Ports",ip:"IP Address",sip:"Static IP Address",smask:"Subnet Mask",sgw:"Default Gateway",dns1:"Preferred DNS Server",dns2:"Alternate DNS Server",mac:"MAC Address",ntype:"Device (Switch/Router/AP/Firewall)",cap:"Capacity (VA / kVA)",batt:"Battery Details (Qty / Ah)",mon_model:"Monitor Brand / Model",mon_sn:"Monitor Serial No.",mon_pd:"Monitor Purchase Date",mon_wt:"Monitor Warranty Till",loc:"Branch Location",aloc:"Asset Location (Floor / Room / Desk)",dept:"Department",usr:"Assigned User",pd:"Purchase Date",wt:"Warranty Till",st:"Status",rm:"Remarks",bt:"Billing Type",bd:"Billing Date"};
 var ST=["In Use","In Stock","Under Repair","Scrapped","Active","Deactive"];
 function stFor(t){return t==="ISP"?["Active","Deactive"]:ST.slice(0,4)}
-var IL={model:"ISP Vendor Name",sn:"Account Number",pd:"DSL ID",wt:"Bill Amount"};
+var IL={model:"ISP Vendor Name",sn:"Account Number",pd:"DSL ID",wt:"Bill Amount",dept:"Router User Name",usr:"Router Password"};
 var A=[],editId=null,ADM=false,ROOT=false,ROLE="",FULLX=false,ADMIN="techpoint.chandu@gmail.com",CFG={},unsubs=[],AUTHED=false,ctrSync=false,seeding=false,codeTok=0;
 var ACC=["Charger / Adapter","Power cable","Mouse","Keyboard","Bag / Cover"],CD=["New","Good","Fair"];
 var DL={model:"Desktop Brand / Model",sn:"Desktop Serial No.",pd:"Desktop Purchase Date",wt:"Desktop Warranty Till"};
+function who(a){return a.type==="ISP"?"":[a.dept,a.usr].filter(Boolean).join(" · ")}
 function lab(k,t){return t==="ISP"&&IL[k]?IL[k]:(t==="Desktop"&&DL[k]?DL[k]:L[k])}
 function ak(x){return String(x).replace(/[^A-Za-z0-9]+/g,"_")}
 function accLines(a){var s=a.acc||[],D=a.accd||{};return s.map(function(x){var v=D[ak(x)]||{},n=x==="Other"&&a.accOther?"Other: "+a.accOther:x,p=[];if(v.sn)p.push("SN: "+v.sn);if(v.pd)p.push("Purchased: "+v.pd);if(v.wt)p.push("Warranty till: "+v.wt);return[n,p.join("  ·  ")]})}
@@ -285,7 +286,7 @@ function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return
 function opt(el,arr,first){if(first)el.add(new Option(first,""));arr.forEach(function(v){el.add(new Option(v,v))})}
 function pre(n){for(var i=0;i<CO.length;i++)if(CO[i][0]===n)return CO[i][1];return"XX"}
 function keysOf(t){if(t==="ISP")return["model","sn","bt","loc","aloc","dept","usr","pd","wt","st","rm","sip","smask","sgw","dns1","dns2","bd"];var sp=T[t][1].filter(function(k){return MK.indexOf(k)<0}),mo=T[t][1].filter(function(k){return MK.indexOf(k)>-1});return BK.slice(0,2).concat(sp,BK.slice(2,8),mo,BK.slice(8))}
-function mk(k){var d=document.createElement("div");d.id="w_"+k;var inp=k==="st"?"<select id='f_st'></select>":k==="loc"?"<select id='f_loc'></select>":"<input id='f_"+k+"'"+(/(^|_)(pd|wt)$/.test(k)||k==="bd"?" type='date'":k==="bt"?" type='time'":"")+">";if(/(^|_)sn$/.test(k))inp="<div style='display:flex;gap:6px'>"+inp+"<button type='button' data-scsn='f_"+k+"' style='white-space:nowrap'>Scan label</button></div>";d.innerHTML="<label>"+L[k]+"</label>"+inp;return d}
+function mk(k){var d=document.createElement("div");d.id="w_"+k;var inp=k==="st"?"<select id='f_st'></select>":k==="loc"?"<select id='f_loc'></select>":k==="bt"?"<select id='f_bt'><option value=''>-- Select billing type --</option><option>Monthly</option><option>Quarterly</option><option>Yearly</option></select>":"<input id='f_"+k+"'"+(/(^|_)(pd|wt)$/.test(k)||k==="bd"?" type='date'":k==="bt"?" type='time'":"")+">";if(/(^|_)sn$/.test(k))inp="<div style='display:flex;gap:6px'>"+inp+"<button type='button' data-scsn='f_"+k+"' style='white-space:nowrap'>Scan label</button></div>";d.innerHTML="<label>"+L[k]+"</label>"+inp;return d}
 BK.forEach(function(k){$("base").appendChild(mk(k))});(function(){var cd=$("f_company").parentNode;cd.parentNode.insertBefore($("w_loc"),cd.nextSibling)})();SK.forEach(function(k){$(MK.indexOf(k)>-1?"monspecs":"specs").appendChild(mk(k))});
 var AXH="<span class='ax' style='display:none'><input data-f='sn' placeholder='Serial No.'><label>Purchase Date<input type='date' data-f='pd'></label><label>Warranty Till<input type='date' data-f='wt'></label></span>";
 $("accs").innerHTML=ACC.map(function(x){return"<div class='ai'><label class='tki'><input type='checkbox' class='acc' value='"+esc(x)+"'> "+esc(x)+"</label>"+AXH+"</div>"}).join("")+"<div class='ai'><label class='tki'><input type='checkbox' id='acc_o'> Other:</label><input id='acc_ot' placeholder='specify other accessory' style='width:220px;display:inline-block;vertical-align:middle'>"+AXH+"</div>";
@@ -302,7 +303,8 @@ function setTicks(a){setTicks0(a);setAccD(a)}
 function setTicks0(a){var s=(a&&a.acc)||[];document.querySelectorAll(".acc").forEach(function(c){c.checked=s.indexOf(c.value)>-1});$("acc_o").checked=s.indexOf("Other")>-1;$("acc_ot").value=(a&&a.accOther)||"";document.querySelectorAll(".cnd").forEach(function(c){c.checked=!!a&&a.cond===c.value})}
 opt($("f_st"),ST);opt($("f_company"),CO.map(function(c){return c[0]}));opt($("f_type"),TL);
 opt($("fco"),CO.map(function(c){return c[0]}),"All companies");opt($("fty"),TL,"All types");opt($("fst"),ST,"All statuses");
-function showSpecs(){var t=$("f_type").value;if(!T[t])return;SK.forEach(function(k){$("w_"+k).style.display=T[t][1].indexOf(k)>-1?"":"none"});$("monbox").style.display=T[t][1].indexOf("mon_sn")>-1?"":"none";["model","sn","pd","wt"].forEach(function(k){$("w_"+k).querySelector("label").textContent=lab(k,t)});
+var ACT=["Desktop","Laptop","All-in-One","Server"];
+function showSpecs(){var t=$("f_type").value;if(!T[t])return;$("accw").style.display=$("condw").style.display=ACT.indexOf(t)>-1?"":"none";SK.forEach(function(k){$("w_"+k).style.display=T[t][1].indexOf(k)>-1?"":"none"});$("monbox").style.display=T[t][1].indexOf("mon_sn")>-1?"":"none";["model","sn","pd","wt","dept","usr"].forEach(function(k){$("w_"+k).querySelector("label").textContent=lab(k,t)});
  var isp=t==="ISP",sel=$("f_st"),cur=sel.value,sl=stFor(t);sel.innerHTML="";opt(sel,sl);sel.value=sl.indexOf(cur)>-1?cur:sl[0];
  $("f_pd").type=isp?"text":"date";$("f_wt").type=isp?"number":"date";if(isp)$("f_wt").min="0";
  var sb=$("w_sn").querySelector("button[data-scsn]");if(sb)sb.style.display=isp?"none":"";
@@ -327,6 +329,7 @@ function del(c){return fb.remove(c).catch(function(e){alert("Could not delete: "
 function save(){if(editId&&!ADM){alert("Only admin can edit assets.");return}if(!editId&&ROLE==="editor"){alert("Edit-only users cannot add new assets. Open an asset and press Edit.");return}
  var t=$("f_type").value,o={company:$("f_company").value,type:t,code:$("f_code").value};
  BK.concat(SK).forEach(function(k){if(k==="st"||keysOf(t).indexOf(k)>-1)o[k]=$("f_"+k).value.trim()});
+ if(ACT.indexOf(t)<0)setTicks(null);
  o.acc=getAcc();o.accd=getAccD();o.accOther=$("acc_o").checked?$("acc_ot").value.trim():"";o.cond=getCond();
  if(!o.loc){alert("Branch Location is required.");return}
  if(!o.aloc){alert("Asset Location is required.");return}
@@ -344,16 +347,16 @@ function filtered(){
 function conf(a){if(!T[a.type])return"";var p=T[a.type][1].filter(function(k){return MK.indexOf(k)<0&&k!=="bt"&&k!=="bd"}).map(function(k){return a[k]}).filter(Boolean);if(a.mon_model||a.mon_sn)p.push("Monitor: "+[a.mon_model,a.mon_sn?"SN "+a.mon_sn:""].filter(Boolean).join(" "));return p.join(" | ")}
 function render(){rdash();remp();if(FULLX)try{rbill()}catch(e){}
  var R=filtered();$("cnt").textContent=ADM?R.length+" / "+A.length+" assets":A.length+" asset(s) added in this session";
- $("tb").innerHTML=R.map(function(a){var i=esc(a.code);return"<tr><td class='code'>"+i+"</td><td>"+esc(a.company)+"</td><td>"+esc(a.type)+"<br><span class='stat'>"+esc(a.model)+(a.sn?" · SN "+esc(a.sn):"")+"</span></td><td>"+esc(conf(a))+"</td><td>"+esc(a.loc)+(a.aloc?" – "+esc(a.aloc):"")+"<br><span class='stat'>"+esc([a.dept,a.usr].filter(Boolean).join(" · "))+"</span></td><td>"+esc(a.st)+warnBadge(a)+"</td><td style='white-space:nowrap'><button data-a='v' data-c='"+i+"'>Detail</button> <button data-a='l' data-c='"+i+"'>Label</button> <button data-a='h' data-c='"+i+"'>Handover</button> "+(ADM?"<button data-a='hi' data-c='"+i+"'>History</button> <button data-a='as' data-c='"+i+"'>Assign</button> "+(a.usr?"<button data-a='rb' data-c='"+i+"'>Receive back</button> ":"")+"<button data-a='e' data-c='"+i+"'>Edit</button> <button class='d' data-a='x' data-c='"+i+"'>Del</button>":"")+"</td></tr>"}).join("")||"<tr><td colspan=7 class='stat'>No assets found.</td></tr>"}
+ $("tb").innerHTML=R.map(function(a){var i=esc(a.code);return"<tr><td class='code'>"+i+"</td><td>"+esc(a.company)+"</td><td>"+esc(a.type)+"<br><span class='stat'>"+esc(a.model)+(a.sn?" · SN "+esc(a.sn):"")+"</span></td><td>"+esc(conf(a))+"</td><td>"+esc(a.loc)+(a.aloc?" – "+esc(a.aloc):"")+"<br><span class='stat'>"+esc(who(a))+"</span></td><td>"+esc(a.st)+warnBadge(a)+"</td><td style='white-space:nowrap'><button data-a='v' data-c='"+i+"'>Detail</button> <button data-a='l' data-c='"+i+"'>Label</button> <button data-a='h' data-c='"+i+"'>Handover</button> "+(ADM?"<button data-a='hi' data-c='"+i+"'>History</button> <button data-a='as' data-c='"+i+"'>Assign</button> "+(a.usr&&a.type!=="ISP"?"<button data-a='rb' data-c='"+i+"'>Receive back</button> ":"")+"<button data-a='e' data-c='"+i+"'>Edit</button> <button class='d' data-a='x' data-c='"+i+"'>Del</button>":"")+"</td></tr>"}).join("")||"<tr><td colspan=7 class='stat'>No assets found.</td></tr>"}
 function detail(a){
  var ks=["company","type","code"].concat(keysOf(a.type)),h="<h2>Asset Detail – "+esc(a.code)+"</h2><div class='g'><dl>";
  ks.forEach(function(k){if(a[k])h+="<dt>"+esc(lab(k,a.type))+"</dt><dd>"+esc(a[k])+"</dd>"});
  accLines(a).forEach(function(r){h+="<dt>Accessory – "+esc(r[0])+"</dt><dd>"+esc(r[1]||"Issued")+"</dd>"});if(a.cond)h+="<dt>Condition at Handover</dt><dd>"+esc(a.cond)+"</dd>";
- h+="</dl><div class='codes' style='margin:0'><div class='qr'>"+qrSvg(a.code,4)+"</div><svg id='dbc'></svg></div></div><div class='bar'><button class='p' data-a='l' data-c='"+esc(a.code)+"'>Label Print</button><button data-a='h' data-c='"+esc(a.code)+"'>Handover Form</button>"+(ADM?"<button data-a='hi' data-c='"+esc(a.code)+"'>History</button><button data-a='as' data-c='"+esc(a.code)+"'>Assign</button>"+(a.usr?"<button data-a='rb' data-c='"+esc(a.code)+"'>Receive back</button>":"")+"<button data-a='e' data-c='"+esc(a.code)+"'>Edit</button>":"")+"<button id='dx'>Close</button></div>";
+ h+="</dl><div class='codes' style='margin:0'><div class='qr'>"+qrSvg(a.code,4)+"</div><svg id='dbc'></svg></div></div><div class='bar'><button class='p' data-a='l' data-c='"+esc(a.code)+"'>Label Print</button><button data-a='h' data-c='"+esc(a.code)+"'>Handover Form</button>"+(ADM?"<button data-a='hi' data-c='"+esc(a.code)+"'>History</button><button data-a='as' data-c='"+esc(a.code)+"'>Assign</button>"+(a.usr&&a.type!=="ISP"?"<button data-a='rb' data-c='"+esc(a.code)+"'>Receive back</button>":"")+"<button data-a='e' data-c='"+esc(a.code)+"'>Edit</button>":"")+"<button id='dx'>Close</button></div>";
  var d=$("det");d.innerHTML=h;d.style.display="block";bar("#dbc",a.code);$("dx").onclick=function(){d.style.display="none"};window.scrollTo(0,0)}
 function printLabels(R){
  if(!R.length){alert("No assets to print.");return}
- $("labels").innerHTML=R.map(function(a,i){return"<div class='lb'><b>"+esc(a.company)+"</b>"+qrSvg(a.code,3)+"<svg id='l"+i+"'></svg><div>"+esc(a.type+" – "+a.loc+(a.aloc?" / "+a.aloc:""))+"</div>"+(a.usr?"<div>User: <b>"+esc(a.usr)+"</b></div>":"")+(a.sn?"<div>S/N: <b>"+esc(a.sn)+"</b></div>":"")+"<div style='font-size:9px'>Scan for details / report an issue</div></div>"}).join("");
+ $("labels").innerHTML=R.map(function(a,i){return"<div class='lb'><b>"+esc(a.company)+"</b>"+qrSvg(a.code,3)+"<svg id='l"+i+"'></svg><div>"+esc(a.type+" – "+a.loc+(a.aloc?" / "+a.aloc:""))+"</div>"+(a.usr&&a.type!=="ISP"?"<div>User: <b>"+esc(a.usr)+"</b></div>":"")+(a.sn?"<div>S/N: <b>"+esc(a.sn)+"</b></div>":"")+"<div style='font-size:9px'>Scan for details / report an issue</div></div>"}).join("");
  R.forEach(function(a,i){bar("#l"+i,a.code)});document.body.className="pl";setTimeout(function(){window.print()},200)}
 function handover(a){
  if(!a)return;
@@ -372,6 +375,7 @@ function handover(a){
 window.onafterprint=function(){document.body.className=""};
 function onClick(e){
  var b=e.target.closest("button");if(!b||!b.dataset.c)return;var a=find(b.dataset.c);if(!a)return;
+ if(a.type==="ISP"&&(b.dataset.a==="as"||b.dataset.a==="rb"||b.dataset.a==="h")){alert("Handover / Assign is not used for ISP. The Router user name and password are kept in the asset details.");return}
  if((!ADM&&(b.dataset.a==="e"||b.dataset.a==="x"))||(!FULLX&&b.dataset.a==="x"))return;
  if(b.dataset.a==="v")detail(a);
  if(b.dataset.a==="l")printLabels([a]);
@@ -902,18 +906,20 @@ function dleft(iso){if(!/^\d{4}-\d{2}-\d{2}$/.test(String(iso||"")))return null;
 function warnItems(a){var o=[];if(a.type==="ISP")return o;[["wt","Warranty"],["mon_wt","Monitor warranty"]].forEach(function(p){var n=dleft(a[p[0]]);if(n!==null&&n<=30)o.push({lab:p[1],date:a[p[0]],days:n})});return o}
 function warnBadge(a){if(a.st==="Scrapped")return"";var w=warnItems(a)[0];if(!w)return"";return"<br><span class='badge' style='color:"+(w.days<0?"var(--dg)":"#d97706")+"'>"+(w.days<0?"Warranty expired":"Warranty ends in "+w.days+" d")+"</span>"}
 /* ISP bills: every month, from 5 days before the Billing Date, a reminder is shown (banner + Smart insights) */
-function ispNext(a){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(a.bd||"");if(!m)return null;var day=+m[3],t0=today0(),y=t0.getFullYear(),mo=t0.getMonth();
- var mk2=function(yy,mm){return new Date(yy,mm,Math.min(day,new Date(yy,mm+1,0).getDate()))};var d=mk2(y,mo);if(d<t0)d=mk2(y,mo+1);return{date:d,days:Math.round((d-t0)/864e5)}}
+function ispNext(a){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(a.bd||"");if(!m)return null;var y0=+m[1],m0=+m[2]-1,day=+m[3],step=a.bt==="Yearly"?12:a.bt==="Quarterly"?3:1,t0=today0();
+ var at=function(k){var mm=m0+k*step,yy=y0+Math.floor(mm/12);mm=((mm%12)+12)%12;return new Date(yy,mm,Math.min(day,new Date(yy,mm+1,0).getDate()))};
+ var k=0,d=at(0);if(d<t0){var mo=(t0.getFullYear()-y0)*12+t0.getMonth()-m0;k=Math.max(0,Math.floor(mo/step));d=at(k);while(d<t0){k++;d=at(k)}}
+ return{date:d,days:Math.round((d-t0)/864e5)}}
 function ispDue(){var l=[];A.forEach(function(a){if(a.type!=="ISP"||a.st==="Deactive"||a.st==="Scrapped")return;var n=ispNext(a);if(n&&n.days<=5)l.push({a:a,days:n.days,date:n.date})});return l.sort(function(x,y){return x.days-y.days})}
 function ispTxt(w){return(w.days===0?"due TODAY":w.days===1?"due TOMORROW":"due in "+w.days+" days")+" ("+w.date.toLocaleDateString("en-GB")+")"}
 var billHide=false;
 function rbill(){var bb=$("billbn");if(!bb){bb=document.createElement("div");bb.id="billbn";$("app").insertBefore(bb,$("app").firstChild)}
  var l=ispDue();if(!l.length||billHide||!FULLX){bb.style.display="none";return}
  bb.style.cssText="margin:10px 0;padding:12px 16px;border-radius:12px;background:#fff7ed;border:1px solid #fdba74;color:#7c2d12";
- bb.innerHTML="<button id='billx' style='float:right'>Hide</button><b>ISP bill reminder</b>"+l.map(function(w){var a=w.a;return"<div style='margin-top:4px'><b>"+esc(a.model||"ISP")+"</b> &middot; Account "+esc(a.sn||"-")+" &middot; "+esc(a.loc||"")+(a.wt?" &middot; Rs "+esc(a.wt):"")+" &mdash; <b style='color:"+(w.days<=1?"#b91c1c":"#c2410c")+"'>"+ispTxt(w)+"</b></div>"}).join("");
+ bb.innerHTML="<button id='billx' style='float:right'>Hide</button><b>ISP bill reminder</b>"+l.map(function(w){var a=w.a;return"<div style='margin-top:4px'><b>"+esc(a.model||"ISP")+"</b> &middot; Account "+esc(a.sn||"-")+" &middot; "+esc(a.bt||"Monthly")+" &middot; "+esc(a.loc||"")+(a.wt?" &middot; Rs "+esc(a.wt):"")+" &mdash; <b style='color:"+(w.days<=1?"#b91c1c":"#c2410c")+"'>"+ispTxt(w)+"</b></div>"}).join("");
  $("billx").onclick=function(){billHide=true;bb.style.display="none"}}
 function warnList(){var l=[];A.forEach(function(a){if(a.st==="Scrapped")return;warnItems(a).forEach(function(w){l.push({a:a,lab:w.lab,date:w.date,days:w.days})})});return l.sort(function(x,y){return x.days-y.days})}
-function rwarn(l){if(!$("wtb"))return;$("wtb").innerHTML=l.slice(0,100).map(function(w){var a=w.a;return"<tr><td class='code'>"+esc(a.code)+"</td><td>"+esc(w.lab)+"<br><span class='stat'>"+esc(a.type+(a.model?" - "+a.model:""))+"</span></td><td>"+esc(a.loc||"")+"<br><span class='stat'>"+esc([a.dept,a.usr].filter(Boolean).join(" · "))+"</span></td><td>"+esc(fiso(w.date))+"</td><td><span class='badge' style='color:"+(w.days<0?"var(--dg)":"#d97706")+"'>"+(w.days<0?"Expired "+(-w.days)+" d ago":w.days===0?"Ends today":"Ends in "+w.days+" d")+"</span></td></tr>"}).join("")||"<tr><td colspan='5' class='stat'>No warranty ending in the next 30 days.</td></tr>"}
+function rwarn(l){if(!$("wtb"))return;$("wtb").innerHTML=l.slice(0,100).map(function(w){var a=w.a;return"<tr><td class='code'>"+esc(a.code)+"</td><td>"+esc(w.lab)+"<br><span class='stat'>"+esc(a.type+(a.model?" - "+a.model:""))+"</span></td><td>"+esc(a.loc||"")+"<br><span class='stat'>"+esc(who(a))+"</span></td><td>"+esc(fiso(w.date))+"</td><td><span class='badge' style='color:"+(w.days<0?"var(--dg)":"#d97706")+"'>"+(w.days<0?"Expired "+(-w.days)+" d ago":w.days===0?"Ends today":"Ends in "+w.days+" d")+"</span></td></tr>"}).join("")||"<tr><td colspan='5' class='stat'>No warranty ending in the next 30 days.</td></tr>"}
 
 /* ---- asset history (admin) ---- */
 var HK={"asset.add":"Added","asset.edit":"Edited","asset.delete":"Deleted","asset.status":"Status","asset.assign":"Assigned","asset.return":"Received back","asset.bulk":"Excel / restore"};
@@ -962,7 +968,7 @@ function rbOpen(code){var a=find(code);if(!a)return;
 document.addEventListener("click",function(e){var b=e.target.closest("button");if(!b||!ADM)return;var a=b.dataset.a,c=b.dataset.c;if(a==="hi")histOpen(c);else if(a==="as")asOpen(c);else if(a==="rb")rbOpen(c)});
 
 /* ---- Employees tab ---- */
-function empMap(){var m={};A.forEach(function(a){var n=String(a.usr||"").trim();if(!n)return;var k=n.toLowerCase();(m[k]=m[k]||{key:k,name:n,list:[]}).list.push(a)});return m}
+function empMap(){var m={};A.forEach(function(a){if(a.type==="ISP")return;var n=String(a.usr||"").trim();if(!n)return;var k=n.toLowerCase();(m[k]=m[k]||{key:k,name:n,list:[]}).list.push(a)});return m}
 function empHtml(e,bc){var rows=e.list.slice().sort(function(x,y){return x.code<y.code?-1:1}).map(function(a){var w=a.wt?fiso(a.wt):"";return[a.code,(a.type||"")+(a.model?" - "+a.model:""),a.sn||"",a.assigned&&a.assigned.at?fdt(a.assigned.at):"",w]});
  return gpBase(e.list[0].company,"ASSETS HELD BY EMPLOYEE","Employee: <b>"+esc(e.name)+"</b>"+(e.list[0].dept?" &nbsp;|&nbsp; Department: "+esc(e.list[0].dept):"")+" &nbsp;|&nbsp; Date: "+esc(fdt(Date.now())),bc)+
  "<table><tr><th>Asset code</th><th>Asset</th><th>Serial no.</th><th>Issued on</th><th>Warranty till</th></tr>"+rows.map(function(r){return"<tr>"+r.map(function(x){return"<td>"+esc(x)+"&nbsp;</td>"}).join("")+"</tr>"}).join("")+"</table><p style='margin-top:8px'>Total assets: <b>"+rows.length+"</b></p><div class='sgs'>"+gpSg("Issued / verified by (IT Department)","IT Department",Date.now())+gpSg("Employee",e.name)+"</div>"}
@@ -1046,7 +1052,7 @@ function saMark(code){if(!SA)return"";var a=find(code)||SAX[code]||SAX[String(co
   SA.extra[a.code]={at:Date.now(),loc:a.loc,aloc:a.aloc,co:a.company};saRender();saSave();return"EXTRA (belongs to "+a.loc+"): "+a.code+" - use \"Add to this audit\" below if it should be counted"}
 function saRender(){if(!SA)return;var n=SA.list.filter(function(a){return SA.found[a.code]}).length,t=SA.list.length;
   $("sa_kp").innerHTML="<div class='kc ok'><b>"+n+"</b><span>Found</span></div><div class='kc "+(t-n?"r":"")+"'><b>"+(t-n)+"</b><span>Not found yet</span></div><div class='kc'><b>"+t+"</b><span>Total in system</span></div><div class='kc w'><b>"+Object.keys(SA.extra).length+"</b><span>Extra (other branch)</span></div>";
-  $("sa_tb").innerHTML=SA.list.slice().sort(function(x,y){return(SA.found[x.code]?1:0)-(SA.found[y.code]?1:0)}).map(function(a){return"<tr><td><input type='checkbox' data-sa='"+esc(a.code)+"' style='width:auto'"+(SA.found[a.code]?" checked":"")+(SA.scanOnly?" disabled":"")+"></td><td class='code'>"+esc(a.code)+"<br><span class='stat'>"+esc((a.type||"")+(a.model?" - "+a.model:""))+"</span></td><td>"+esc(a.aloc||"")+"<br><span class='stat'>"+esc([a.dept,a.usr].filter(Boolean).join(" · "))+(SA.ad[a.code]?" · added to audit":"")+"</span></td></tr>"}).join("");
+  $("sa_tb").innerHTML=SA.list.slice().sort(function(x,y){return(SA.found[x.code]?1:0)-(SA.found[y.code]?1:0)}).map(function(a){return"<tr><td><input type='checkbox' data-sa='"+esc(a.code)+"' style='width:auto'"+(SA.found[a.code]?" checked":"")+(SA.scanOnly?" disabled":"")+"></td><td class='code'>"+esc(a.code)+"<br><span class='stat'>"+esc((a.type||"")+(a.model?" - "+a.model:""))+"</span></td><td>"+esc(a.aloc||"")+"<br><span class='stat'>"+esc(who(a))+(SA.ad[a.code]?" · added to audit":"")+"</span></td></tr>"}).join("");
   var ex=Object.keys(SA.extra);$("sa_ex").innerHTML=ex.length?"<h3 style='margin:14px 0 4px;font-size:15px'>Extra assets scanned (belong to another branch)</h3>"+ex.map(function(c){return"<div class='stat' style='margin:4px 0'>"+esc(c)+" - belongs to "+esc(SA.extra[c].loc||"")+(SA.scanOnly?"":" <button data-sax='"+esc(c)+"'>Add to this audit</button>")+"</div>"}).join(""):""}
 var saRender0=saRender;saRender=function(){saRender0();var so=!!(SA&&SA.scanOnly);["sa_in","sa_add","sa_addb"].forEach(function(i){$(i).style.display=so?"none":""});
  if(so)$("sa_kp").innerHTML="<div class='kc ok'><b>"+SA.list.length+"</b><span>Scanned</span></div><div class='kc w'><b>"+Object.keys(SA.extra).length+"</b><span>Extra (other branch)</span></div>"};
