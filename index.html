@@ -162,7 +162,7 @@ tbody tr{transition:background .12s}tbody tr:hover{background:rgba(37,99,235,.06
 <div class="g">
 <div><label>Company</label><select id="f_company"></select></div>
 <div><label>Product Type</label><select id="f_type"></select></div>
-<div><label>Asset Code (auto)</label><input id="f_code" class="code" readonly></div>
+<div><label>Asset Code (auto - admin can edit)</label><input id="f_code" class="code" readonly></div>
 </div>
 <div class="g" id="base" style="margin-top:10px"></div>
 <div class="g" id="specs" style="margin-top:10px"></div>
@@ -316,6 +316,7 @@ function nextCode(co,t){var p=pre(co)+"-"+T[t][0]+"-",m=0;A.forEach(function(a){
 function urlFor(c){return location.origin+"/a/"+encodeURIComponent(c)}
 function qrSvg(c,cell){try{var q=qrcode(0,"M");q.addData(urlFor(c));q.make();return q.createSvgTag(cell||3,0)}catch(e){return""}}
 function bar(el,code){try{JsBarcode(el,code,{format:"CODE128",height:45,width:2,fontSize:13,margin:4})}catch(e){}}
+$("f_code").addEventListener("input",function(){this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,"");showCode()});
 function showCode(){$("pqr").innerHTML=qrSvg($("f_code").value,3);bar("#pbc",$("f_code").value)}
 function refresh(){showSpecs();
  if(!editId){var co=$("f_company").value,ty=$("f_type").value;
@@ -336,8 +337,14 @@ function save(){if(editId&&!ADM){alert("Only admin can edit assets.");return}if(
  o.acc=getAcc();o.accd=getAccD();o.accOther=$("acc_o").checked?$("acc_ot").value.trim():"";o.cond=getCond();
  if(!o.loc){alert("Branch Location is required.");return}
  if(t==="SIM")o.aloc="";else if(!o.aloc){alert("Asset Location is required.");return}
- if(!editId)o.code=ADM?nextCode(o.company,t):$("f_code").value;
+ var typed=$("f_code").value.trim().toUpperCase();
+ if(FULLX&&typed){if(!/^[A-Z]{2}-[A-Z]{2}-[0-9]{4}$/.test(typed)){alert("Asset Code format must be like SH-DT-0011 (2 letters - 2 letters - 4 digits).");return}
+  if(!editId||typed!==editId){var ex=find(typed);if(ex&&ex.code!==editId){alert("Asset code "+typed+" already exists ("+(ex.type||"")+" - "+(ex.loc||"")+"). Use a different code.");return}}
+  o.code=typed}
+ else if(!editId)o.code=ADM?nextCode(o.company,t):$("f_code").value;
  if(!o.code){alert("Please wait a moment - the asset code is being prepared.");return}
+ if(editId&&FULLX&&o.code!==editId){if(!confirm("Change Asset Code from "+editId+" to "+o.code+"?\n\nThe old printed QR / barcode label of this asset will stop working - print the new label. Existing tickets are moved to the new code."))return;
+  fb.renameAsset(editId,o).then(function(){clearForm();alert("Asset code changed to "+o.code+". Please print the new label.")}).catch(function(e){alert("Could not change code: "+e.message)});return}
  put(o,!editId).then(function(r){clearForm();if(r&&r.code&&$("hf").checked)handover(find(r.code)||r)})}
 function find(c){c=String(c).trim().toLowerCase();return A.filter(function(a){return a.code.toLowerCase()===c})[0]}
 /* Branch filter: lists only the branches of the chosen company (with asset count) */
@@ -578,11 +585,11 @@ function publicView(c){
 var pm=location.pathname.match(/\/a\/([^\/]+)/),pq=new URLSearchParams(location.search).get("a"),pcode=pm?decodeURIComponent(pm[1]):pq;
 if(pcode){publicView(pcode)}else{
  fb.onAuth(function(u,role){
-  if(u){ROOT=(u.email||"").toLowerCase()===ADMIN;ROLE=ROOT?"admin":(role||"user");FULLX=ROOT||ROLE==="full";ADM=FULLX||ROLE==="editor";document.body.classList.toggle("ed",ROLE==="editor");["rs","csv","bk","brm"].forEach(function(id){$(id).style.display=FULLX?"":"none"});["nv_d","nv_t","nv_e","nv_r","nv_l"].forEach(function(id){$(id).style.display=FULLX?"":"none"});$("nv_s").style.display=(FULLX||ROLE==="user")?"":"none";$("nv_u").style.display=ROOT?"":"none";$("bulkb").textContent=ADM?"Bulk Add/Edit (Excel)":"Bulk Add (Excel)";$("nv_a").parentNode.style.display=(ADM||ROLE==="user")?"":"none";$("lg").style.display="none";$("app").style.display="";$("lo").style.display="";$("scanb").style.display="";$("cpw").style.display="";$("cpw").textContent=ROOT?"Reset password (e-mail)":"Change password";$("mode").textContent=uname(u.email)+({admin:" (Admin)",full:" (Full access)",editor:" (Edit only)"}[ROLE]||" (User · add only)");
+  if(u){ROOT=(u.email||"").toLowerCase()===ADMIN;ROLE=ROOT?"admin":(role||"user");FULLX=ROOT||ROLE==="full";ADM=FULLX||ROLE==="editor";$("f_code").readOnly=!FULLX;document.body.classList.toggle("ed",ROLE==="editor");["rs","csv","bk","brm"].forEach(function(id){$(id).style.display=FULLX?"":"none"});["nv_d","nv_t","nv_e","nv_r","nv_l"].forEach(function(id){$(id).style.display=FULLX?"":"none"});$("nv_s").style.display=(FULLX||ROLE==="user")?"":"none";$("nv_u").style.display=ROOT?"":"none";$("bulkb").textContent=ADM?"Bulk Add/Edit (Excel)":"Bulk Add (Excel)";$("nv_a").parentNode.style.display=(ADM||ROLE==="user")?"":"none";$("lg").style.display="none";$("app").style.display="";$("lo").style.display="";$("scanb").style.display="";$("cpw").style.display="";$("cpw").textContent=ROOT?"Reset password (e-mail)":"Change password";$("mode").textContent=uname(u.email)+({admin:" (Admin)",full:" (Full access)",editor:" (Edit only)"}[ROLE]||" (User · add only)");
    AUTHED=true;ME=u.email||"";tab(FULLX?"d":"a");idleReset(true);unsubs.push(fb.watchConfig(function(c){CFG=c||{};fillBranch($("f_loc").value);if(FULLX){syncCfg();bmRender()}},function(){}));
    if(ADM){unsubs.push(fb.watch(function(l){A=l;fillBranch($("f_loc").value);if(!editId)refresh();render();if(!ctrSync){ctrSync=true;fb.syncCounters(l)}},function(e){alert("Could not load assets: "+e.message)}));if(FULLX)watchT()}
    else{A=[];loadMine();refresh()}}
-  else{unsubs.forEach(function(f){try{f()}catch(e){}});unsubs=[];ADM=false;ROOT=false;ROLE="";FULLX=false;AUTHED=false;ctrSync=false;CFG={};window.__sync=0;try{sessionStorage.removeItem("mine_codes")}catch(e){}A=[];TK=[];$("app").style.display="none";$("lo").style.display="none";$("cpw").style.display="none";$("scanb").style.display="none";ME="";saW=false;auW=false;idleReset(true);$("lg").style.display="";try{var lr=sessionStorage.getItem("lo_reason");if(lr){$("lerr").textContent=lr;sessionStorage.removeItem("lo_reason")}}catch(e){}}})}
+  else{$("f_code").readOnly=true;unsubs.forEach(function(f){try{f()}catch(e){}});unsubs=[];ADM=false;ROOT=false;ROLE="";FULLX=false;AUTHED=false;ctrSync=false;CFG={};window.__sync=0;try{sessionStorage.removeItem("mine_codes")}catch(e){}A=[];TK=[];$("app").style.display="none";$("lo").style.display="none";$("cpw").style.display="none";$("scanb").style.display="none";ME="";saW=false;auW=false;idleReset(true);$("lg").style.display="";try{var lr=sessionStorage.getItem("lo_reason");if(lr){$("lerr").textContent=lr;sessionStorage.removeItem("lo_reason")}}catch(e){}}})}
 
 /* ---------- Support tickets ---------- */
 var TK=[],PA=null,TS=["Open","In Progress","Pending from User","Pending for Part","Resolved","Closed"],seenT=null;

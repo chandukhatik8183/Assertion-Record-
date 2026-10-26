@@ -62,6 +62,18 @@ export async function save(o,isNew){
   const ks=await serCheck(d,code);
   await setDoc(doc(db,"assets",code),d);await serPut(ks,code);if(before)await serDrop(before,code,ks);
   audit(before?"asset.edit":"asset.add",code,before?(diffText(before,d)||"Saved (no change)"):"Added "+[d.type,d.model].filter(Boolean).join(" ")+" at "+[d.loc,d.aloc].filter(Boolean).join(" / "));return d}
+// Admin: change an asset code (the code is the document id, so the asset is copied to the new code, tickets / latest-ticket pointer / serial registry are moved, then the old one is deleted)
+export async function renameAsset(oldCode,o){
+  const newCode=o.code;if(!newCode||newCode===oldCode)throw new Error("Nothing to rename.");
+  if((await getDoc(doc(db,"assets",newCode))).exists())throw new Error("Asset code "+newCode+" already exists. Use a different code.");
+  const os=await getDoc(doc(db,"assets",oldCode));if(!os.exists())throw new Error("The old asset "+oldCode+" no longer exists.");
+  const before=os.data(),d={...o,code:newCode};if(before.assigned&&!d.assigned)d.assigned=before.assigned;
+  await setDoc(doc(db,"assets",newCode),d);
+  await serDrop(before,oldCode);await serPut([snKey(d.sn),snKey(d.mon_sn)].filter(Boolean),newCode);
+  try{const ts=await getDocs(query(collection(db,"tickets"),where("assetCode","==",oldCode)));for(const t of ts.docs)await updateDoc(t.ref,{assetCode:newCode})}catch(e){}
+  try{const l=await getDoc(doc(db,"assetLatest",oldCode));if(l.exists()){await setDoc(doc(db,"assetLatest",newCode),l.data());await deleteDoc(doc(db,"assetLatest",oldCode))}}catch(e){}
+  await deleteDoc(doc(db,"assets",oldCode));
+  audit("asset.edit",newCode,"Asset code changed from "+oldCode+" to "+newCode+" (tickets moved to the new code)");return d}
 export const remove=async c=>{let s="",dd=null;try{const x=await getDoc(doc(db,"assets",c));if(x.exists()){const d=x.data();dd=d;s=[d.type,d.model,d.sn&&"SN "+d.sn,d.loc,d.usr].filter(Boolean).join(" | ")}}catch(e){}
   await deleteDoc(doc(db,"assets",c));if(dd)await serDrop(dd,c);audit("asset.delete",c,"Deleted: "+s)};
 export async function restore(list){
