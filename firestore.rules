@@ -30,7 +30,7 @@ service cloud.firestore {
     // What the ADD-ONLY user is allowed to create: a brand new asset with a valid code,
     // a known company / product type / status, and a branch that is in the admin's branch list.
     function newAssetOk(code) {
-      return request.resource.data.keys().hasOnly(['company','type','code','model','sn','loc','aloc','dept','usr','pd','wt','st','rm','cpu','ram','hdd','os','size','res','ports','ip','mac','ntype','sip','smask','sgw','dns1','dns2','bt','bd','ct','amn','amc','cnum','pnum','plan','uemail','desg','cap','batt','mon_model','mon_sn','mon_pd','mon_wt','acc','accd','accOther','cond'])
+      return request.resource.data.keys().hasOnly(['company','type','code','model','sn','loc','aloc','dept','usr','pd','wt','st','rm','cpu','ram','hdd','os','size','res','ports','ip','mac','ntype','sip','smask','sgw','dns1','dns2','bt','bd','ct','amn','amc','cnum','pnum','plan','uemail','desg','reg','ptype','bw','idate','cap','batt','mon_model','mon_sn','mon_pd','mon_wt','acc','accd','accOther','cond'])
         && request.resource.data.keys().hasAll(['code','company','type','loc','aloc','st'])
         && request.resource.data.code == code
         && code.matches('^[A-Z]{2}-[A-Z]{2}-[0-9]{4}$')
@@ -48,6 +48,10 @@ service cloud.firestore {
         okStr('usr', 200) &&
         okStr('dept', 200) &&
         okStr('cnum', 50) &&
+        okStr('reg', 100) &&
+        okStr('ptype', 20) &&
+        okStr('bw', 60) &&
+        okStr('idate', 20) &&
         okStr('pnum', 50) &&
         okStr('plan', 200) &&
         okStr('uemail', 200) &&

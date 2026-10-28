@@ -144,3 +144,6 @@ Dashboard (totals, assets by company/type, latest tickets), digital gate passes 
 
 
 **Bulk Add / Edit template per Product Type** - the Bulk window has a *Product Type of the template* box (it starts with the type chosen in the Assets filter / Add form). The blank template and the "all current assets" file then contain only the columns of that type, with the same headings as the form (for SIM: SIM Vendor Name, Company Number, User Personal Number, Status Active/Deactive, Plan Name, SIM Number, User Name, User Email, User Designation). Upload understands these headings.
+
+
+**ISP new fields** - Register Number / ID, ISP Product Type (Managed / Unmanaged), Bandwidth, Installation Date added; "DSL ID" is now "DSL / Circuit ID". They are also in the Bulk template, the Excel export and the import. **Publish the new `firestore.rules`.**
