@@ -141,3 +141,6 @@ Dashboard (totals, assets by company/type, latest tickets), digital gate passes 
 
 
 **Status on dashboard / filter** - SIM and ISP use *Active / Deactive*. On the Dashboard and in the Assets Status filter, *Active* is counted as **In use**, and *Deactive* has its own **Deactive** card / filter.
+
+
+**Bulk Add / Edit template per Product Type** - the Bulk window has a *Product Type of the template* box (it starts with the type chosen in the Assets filter / Add form). The blank template and the "all current assets" file then contain only the columns of that type, with the same headings as the form (for SIM: SIM Vendor Name, Company Number, User Personal Number, Status Active/Deactive, Plan Name, SIM Number, User Name, User Email, User Designation). Upload understands these headings.

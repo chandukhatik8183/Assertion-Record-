@@ -427,6 +427,7 @@ BL=Object.assign({},L,{acc:"Accessories (separate with ;)",accOther:"Other Acces
 HM={assetcode:"code",producttype:"type",brandmodel:"model",desktopbrandmodel:"model",assetlocation:"aloc",branch:"loc"},IGN={accd:1,accessorydetails:1},DK={pd:1,wt:1,mon_pd:1,mon_wt:1};
 function nz(s){return String(s==null?"":s).toLowerCase().replace(/[^a-z0-9]/g,"")}
 BH.forEach(function(k){HM[nz(k)]=k;HM[nz(BL[k])]=k});
+[SL,IL,DL].forEach(function(o){Object.keys(o).forEach(function(k){HM[nz(o[k])]=k})});
 function ci(list,v){v=String(v).trim().toLowerCase();for(var i=0;i<list.length;i++)if(String(list[i]).toLowerCase()===v)return list[i];return null}
 function sv(x){return Array.isArray(x)?x.join("; "):String(x==null?"":x)}
 function dchk(y,m,d){if(m<1||m>12||d<1||d>31||y<1900||y>2100)return null;var dt=new Date(Date.UTC(y,m-1,d));if(dt.getUTCMonth()!==m-1)return null;return y+"-"+("0"+m).slice(-2)+"-"+("0"+d).slice(-2)}
@@ -451,7 +452,7 @@ function rowPlan(v,n,has,seen,d1904){
  if(old)keys.concat(["acc","accOther","cond"]).forEach(function(k){if(old[k]!==undefined)m[k]=old[k]});
  keys.forEach(function(k){
   if(!has[k])return;var x=v[k]||"";
-  if(k==="st"){if(x){var s=ci(ST,x);if(!s)E.push('Invalid Status "'+x+'" (use: '+ST.join(", ")+")");else m.st=s}return}
+  if(k==="st"){if(x){var s=ci(stFor(ty),x);if(!s)E.push('Invalid Status "'+x+'" (use: '+stFor(ty).join(", ")+")");else m.st=s}return}
   if(DK[k]){if(!x){m[k]="";return}var d=nd(x,d1904);if(d===null)E.push('Invalid date in "'+L[k]+'": '+x+" (use YYYY-MM-DD)");else m[k]=d;return}
   m[k]=x;if(x&&kt.indexOf(k)<0)W.push(L[k])});
  var acc=Array.isArray(m.acc)?m.acc.slice():[];
@@ -467,7 +468,7 @@ function rowPlan(v,n,has,seen,d1904){
  if(E.length)return{n:n,kind:"err",code:code,msg:E.join("; ")};
  var o={company:co,type:ty,code:old?old.code:code};
  keys.forEach(function(k){if(k==="st"||kt.indexOf(k)>-1)o[k]=String(m[k]==null?"":m[k])});
- if(!o.st&&!old)o.st="In Use";
+ if(!o.st&&!old)o.st=stFor(ty)[0];
  o.acc=acc;o.accOther=String(m.accOther||"");o.cond=String(m.cond||"");
  var ad=(old&&old.accd)||{},nad={};acc.forEach(function(a){var q=ak(a);if(ad[q])nad[q]=ad[q]});o.accd=nad;
  var ch=[];
@@ -488,7 +489,7 @@ function bulkPlan(rows){
  out.forEach(function(r){if(r.kind==="new"&&r.code)used[r.code]=1});
  out.forEach(function(r){if(r.kind==="new"){r.p=pre(r.o.company)+"-"+T[r.o.type][0]+"-";if(!r.code&&ADM){r.code=nextCodeB(r.o.company,r.o.type,used);r.o.code=r.code}}});
  return{rows:out,ign:ign}}
-function bulkHelp(){
+function bulkHelp(t){
  var h=[["Topic","Details"],
  ["Add new assets","One row per asset on the 'Assets' sheet. Leave Asset Code EMPTY - the code (for example SH-DT-0007) is created automatically. Required: Company, Product Type, Branch Location, Asset Location."],
  ["Edit existing assets","Download 'all current assets' from the Bulk Add/Edit window, change the cells you want and upload the file again. Do not change Asset Code (it identifies the asset) or Product Type. An empty cell clears that value (Company, Product Type and Status are never cleared). Delete a whole column if you do not want it touched."],
@@ -496,30 +497,33 @@ function bulkHelp(){
  ["Accessories","Separate with ; - allowed: "+ACC.concat("Other").join(", ")+". Accessory serial / purchase / warranty details added through the form are kept as they are."],
  ["Company","Pick from the list: "+CO.map(function(c){return c[0]}).join(", ")],
  ["Branch Location",ADM?"Pick from the dropdown - it shows the branches of the selected Company (full list on the 'Branches' sheet). A branch that is not in the list is accepted after a warning and becomes a new branch.":"Pick the branch from the dropdown - it shows the branches of the selected Company (full list on the 'Branches' sheet). Only admin can add a new branch."],
- ["Status","Pick from the list: "+ST.join(", ")],
+ ["Status","Pick from the list: "+(t?stFor(t):ST).join(", ")],
  ["Condition at Handover","Pick from the list: "+CD.join(", ")],
  ["Column headings","Do not rename the headings. Columns that do not apply to a Product Type are ignored (see below)."],
  ["Safety","Nothing is saved until you press Import on the preview screen. Rows with errors are skipped. Take a Backup (JSON) before a big import."]];
  if(!ADM)h=h.filter(function(r){return r[0]!=="Edit existing assets"});
- TL.forEach(function(t,i){h.push([i?"":"Columns used by each Product Type",t+" ("+T[t][0]+"): "+keysOf(t).filter(function(k){return BK.indexOf(k)<0}).map(function(k){return L[k]}).join(", ")])});
+ if(t)h.splice(2,0,["This template","Only for Product Type: "+t+". Use the same Product Type in every row. Fill the columns you see - they are exactly the fields of the "+t+" form."+(t==="SIM"?" Asset Location is NOT needed for SIM. Status: Active or Deactive.":"")]);
+ (t?[t]:TL).forEach(function(t2,i){h.push([i?"":"Columns used by "+(t?"this":"each")+" Product Type",t2+" ("+T[t2][0]+"): "+keysOf(t2).filter(function(k){return BK.indexOf(k)<0||t2==="SIM"||t2==="ISP"}).map(function(k){return lab(k,t2)}).join(", ")])});
  return h}
 function bulkBranchSheet(){var cos=CO.map(function(c){return c[0]}),ls=cos.map(branchesFor),mx=0;ls.forEach(function(l){if(l.length>mx)mx=l.length});
  var rows=[cos.slice()];for(var i=0;i<mx;i++)rows.push(ls.map(function(l){return l[i]||""}));
  return{sheet:{name:"Branches",rows:rows,widths:cos.map(function(){return 26}),header:true},names:cos.map(function(c,j){var L=String.fromCharCode(65+j);return{name:"br_"+(j+1),ref:"Branches!$"+L+"$2:$"+L+"$"+(Math.max(ls[j].length,1)+1)}})}}
-function bulkSheets(withData){
- var rows=[BH.map(function(k){return BL[k]})];
- if(withData)A.slice().sort(function(a,b){return a.code<b.code?-1:1}).forEach(function(a){rows.push(BH.map(function(k){return sv(a[k])}))});
- var W={code:16,company:18,type:14,model:24,loc:20,aloc:26,rm:28,acc:30,accOther:18,usr:18,dept:16};
- return[{name:"Assets",rows:rows,widths:BH.map(function(k){return W[k]||15}),header:true,textCols:true,freeze:true,validationRows:Math.max(2000,rows.length+500),
-  validations:[{col:BH.indexOf("company"),list:CO.map(function(c){return c[0]})},{col:BH.indexOf("type"),list:TL},{col:BH.indexOf("st"),list:ST},{col:BH.indexOf("cond"),list:CD},{col:BH.indexOf("loc"),formula:'INDIRECT("br_"&MATCH($'+String.fromCharCode(65+BH.indexOf("company"))+'2,Branches!$A$1:$Z$1,0))',warn:true,msg:"This branch is not in the list for the selected company. Continue only if it is a NEW branch."}]},
-  {name:"Instructions",rows:bulkHelp(),widths:[28,110],header:true,wrap:true},bulkBranchSheet().sheet]}
+function bulkSheets(withData,ty){
+ var t=ty&&T[ty]?ty:"",H=BH,lbl=function(k){return BL[k]},EX=["acc","accOther","cond"];
+ if(t){H=["code","company","loc","type"].concat(keysOf(t).filter(function(k){return k!=="loc"}),ACT.indexOf(t)>-1?EX:[]).filter(function(k,i,a){return a.indexOf(k)===i});lbl=function(k){return EX.indexOf(k)>-1?BL[k]:lab(k,t)}}
+ var rows=[H.map(lbl)];
+ if(withData)A.filter(function(a){return !t||a.type===t}).sort(function(a,b){return a.code<b.code?-1:1}).forEach(function(a){rows.push(H.map(function(k){return sv(a[k])}))});
+ var W={code:16,company:18,type:14,model:24,loc:20,aloc:26,rm:28,acc:30,accOther:18,usr:18,dept:16,uemail:28,plan:22,cnum:18,pnum:20,desg:20,sn:20},ix=function(k){return H.indexOf(k)};
+ var V=[{col:ix("company"),list:CO.map(function(c){return c[0]})},{col:ix("type"),list:t?[t]:TL},{col:ix("st"),list:t?stFor(t):ST},{col:ix("cond"),list:CD},{col:ix("loc"),formula:'INDIRECT("br_"&MATCH($'+String.fromCharCode(65+ix("company"))+'2,Branches!$A$1:$Z$1,0))',warn:true,msg:"This branch is not in the list for the selected company. Continue only if it is a NEW branch."}].filter(function(v){return v.col>-1});
+ return[{name:"Assets",rows:rows,widths:H.map(function(k){return W[k]||15}),header:true,textCols:true,freeze:true,validationRows:Math.max(2000,rows.length+500),validations:V},
+  {name:"Instructions",rows:bulkHelp(t),widths:[28,110],header:true,wrap:true},bulkBranchSheet().sheet]}
 function xlOk(){if(typeof XL!=="undefined"&&self.fflate)return true;
  bshow("<h2>Excel module not loaded</h2><p>The files <b>xlsx.js</b> (main folder) and <b>vendor/fflate.min.js</b> are missing on the website, so Excel files cannot be created or read.</p><p>Upload both files to GitHub (same place as index.html and the vendor folder), wait for Vercel to finish deploying, then press Ctrl+F5 and try again.</p><p class='stat'>Check: opening your-site/xlsx.js in the browser should show code, not a 404 page.</p><div class='bar'><button data-b='back'>Back</button></div>");return false}
 function xlGo(f){try{f()}catch(x){bshow("<h2>Could not create the Excel file</h2><p>"+esc(x.message)+"</p><div class='bar'><button data-b='back'>Back</button></div>")}}
 var XLSX_MIME="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",BROWS=null,BNAME="";
 function bshow(h){$("bulkc").innerHTML=h;$("bulk").style.display="block"}
 function bclose(){$("bulk").style.display="none";$("bulkc").innerHTML=""}
-function bmenu(){bshow("<h2>"+(ADM?"Bulk Add / Edit from Excel":"Bulk Add from Excel")+"</h2><ol style='line-height:1.7;padding-left:20px'><li>Download the <b>blank template</b> (to add new assets)"+(ADM?" or <b>all current assets</b> (to edit existing ones)":"")+".</li><li>Fill it in Excel. For new assets leave <b>Asset Code empty</b>"+(ADM?"; for edits keep the Asset Code as it is":"")+".</li><li>Upload the file here (.xlsx or .csv). You will see a preview first - nothing is saved until you confirm.</li></ol><div class='bar'><button data-b='tpl'>Download blank template</button>"+(ADM?"<button data-b='all'>Download all current assets</button>":"")+"<button class='p' data-b='up'>Upload filled file</button><button data-b='x'>Close</button></div>"+(ADM?"":"<p class='stat'>This login can add new assets only. Editing existing assets needs the admin login.</p>"))}
+function bmenu(){bshow("<h2>"+(ADM?"Bulk Add / Edit from Excel":"Bulk Add from Excel")+"</h2><ol style='line-height:1.7;padding-left:20px'><li>Download the <b>blank template</b> (to add new assets)"+(ADM?" or <b>all current assets</b> (to edit existing ones)":"")+".</li><li>Fill it in Excel. For new assets leave <b>Asset Code empty</b>"+(ADM?"; for edits keep the Asset Code as it is":"")+".</li><li>Upload the file here (.xlsx or .csv). You will see a preview first - nothing is saved until you confirm.</li></ol><div style='max-width:340px;margin:6px 0 10px'><label>Product Type of the template</label><select id='bt_type'></select></div><div class='bar'><button data-b='tpl'>Download blank template</button>"+(ADM?"<button data-b='all'>Download all current assets</button>":"")+"<button class='p' data-b='up'>Upload filled file</button><button data-b='x'>Close</button></div>"+(ADM?"":"<p class='stat'>This login can add new assets only. Editing existing assets needs the admin login.</p>"));var bs=$("bt_type");if(bs){opt(bs,TL,"All types (general)");var bd=$("fty").value||$("f_type").value;bs.value=TL.indexOf(bd)>-1?bd:""}}
 function cut(s,n){s=String(s);return s.length>n?s.slice(0,n)+"…":s}
 function bline(r){
  if(r.kind==="new")return"<b style='color:#15803d'>NEW</b> "+esc(r.code||"(code is given automatically)")+" · "+esc(r.o.type)+" · "+esc(r.o.company)+" · "+esc(cut(r.o.loc,30))+(r.nb?" <span class='stat'>(new branch)</span>":"")+(r.warn.length?" <span class='stat'>(ignored for "+esc(r.o.type)+": "+esc(r.warn.join(", "))+")</span>":"");
@@ -549,8 +553,8 @@ $("bulk").addEventListener("click",function(e){var b=e.target.closest("button");
 $("bulkb").onclick=bmenu;
 $("bulk").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||!b.dataset.b)return;var a=b.dataset.b;
  if(a==="x")bclose();else if(a==="back")bmenu();
- else if(a==="tpl"){if(xlOk())xlGo(function(){dl("asset-template.xlsx",XL.write({sheets:bulkSheets(false),names:bulkBranchSheet().names}),XLSX_MIME)})}
- else if(a==="all"){if(ADM&&xlOk())xlGo(function(){dl("sandeep-assets-edit-"+new Date().toISOString().slice(0,10)+".xlsx",XL.write({sheets:bulkSheets(true),names:bulkBranchSheet().names}),XLSX_MIME)})}
+ else if(a==="tpl"){var bt=($("bt_type")||{}).value||"";if(xlOk())xlGo(function(){dl("asset-template"+(bt?"-"+bt.replace(/[^A-Za-z0-9]+/g,"-"):"")+".xlsx",XL.write({sheets:bulkSheets(false,bt),names:bulkBranchSheet().names}),XLSX_MIME)})}
+ else if(a==="all"){var bt2=($("bt_type")||{}).value||"";if(ADM&&xlOk())xlGo(function(){dl("sandeep-assets-edit-"+(bt2?bt2.replace(/[^A-Za-z0-9]+/g,"-")+"-":"")+new Date().toISOString().slice(0,10)+".xlsx",XL.write({sheets:bulkSheets(true,bt2),names:bulkBranchSheet().names}),XLSX_MIME)})}
  else if(a==="up"){if(xlOk())$("bf").click()}
  else if(a==="go"){b.disabled=true;var p=bulkPlan(BROWS),W=p.rows.filter(function(r){return r.kind==="new"||r.kind==="upd"});if(!W.length){bmenu();return}
   var nn=W.filter(function(r){return r.kind==="new"}).length,job;
