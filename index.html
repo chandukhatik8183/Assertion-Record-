@@ -434,6 +434,9 @@ function dchk(y,m,d){if(m<1||m>12||d<1||d>31||y<1900||y>2100)return null;var dt=
 function nd(v,d1904){v=String(v).trim();var m;
  if((m=/^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(v)))return dchk(+m[1],+m[2],+m[3]);
  if((m=/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/.exec(v)))return dchk(+m[3],+m[2],+m[1]);
+ var MN={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,sept:9,oct:10,nov:11,dec:12,january:1,february:2,march:3,april:4,june:6,july:7,august:8,september:9,october:10,november:11,december:12};
+ if((m=/^(\d{1,2})[\s\/.\-,]+([A-Za-z]{3,9})[\s\/.\-,]+(\d{4})$/.exec(v))&&MN[m[2].toLowerCase()])return dchk(+m[3],MN[m[2].toLowerCase()],+m[1]);
+ if((m=/^([A-Za-z]{3,9})[\s\/.\-,]+(\d{1,2})[\s\/.\-,]+(\d{4})$/.exec(v))&&MN[m[1].toLowerCase()])return dchk(+m[3],MN[m[1].toLowerCase()],+m[2]);
  if(/^\d+(\.\d+)?$/.test(v)){var n=parseFloat(v)+(d1904?1462:0);if(n>=20000&&n<80000)return new Date(Date.UTC(1899,11,30)+Math.floor(n)*864e5).toISOString().slice(0,10)}
  return null}
 function nextCodeB(co,t,used){var p=pre(co)+"-"+T[t][0]+"-",m=0;function f(c){if(c.indexOf(p)===0){var k=parseInt(c.slice(p.length),10);if(k>m)m=k}}
@@ -454,7 +457,9 @@ function rowPlan(v,n,has,seen,d1904){
   if(!has[k])return;var x=v[k]||"";
   if(k==="st"){if(x){var s=ci(stFor(ty),x);if(!s)E.push('Invalid Status "'+x+'" (use: '+stFor(ty).join(", ")+")");else m.st=s}return}
   if(k==="ptype"){if(x){var pt=ci(["Managed","Unmanaged"],x);if(!pt)E.push('Invalid ISP Product Type "'+x+'" (use: Managed, Unmanaged)');else m.ptype=pt}else m.ptype="";return}
-  if(DK[k]){if(!x){m[k]="";return}var d=nd(x,d1904);if(d===null)E.push('Invalid date in "'+L[k]+'": '+x+" (use YYYY-MM-DD)");else m[k]=d;return}
+  var na=/^(na|n\/a|nil|none|null|-+|\.+)$/i.test(x);
+  if(ty==="ISP"&&k==="wt"){if(!x||na){m[k]="";return}var amt=x.replace(/rs\.?|inr|\u20b9|,|\s/gi,"");if(!/^\d+(\.\d+)?$/.test(amt))E.push('Invalid Bill Amount "'+x+'" (write a number, for example 1500)');else m[k]=amt;return}
+  if(DK[k]&&!(ty==="ISP"&&k==="pd")){if(!x||na){m[k]="";return}var d=nd(x,d1904);if(d===null)E.push('Invalid date in "'+lab(k,ty)+'": '+x+" (use YYYY-MM-DD, for example 2024-05-17)");else m[k]=d;return}
   m[k]=x;if(x&&kt.indexOf(k)<0)W.push(L[k])});
  var acc=Array.isArray(m.acc)?m.acc.slice():[];
  if(has.acc){acc=[];(v.acc||"").split(/[;,|\n]+/).forEach(function(x){x=x.trim();if(!x)return;var a=ci(ACC.concat("Other"),x);if(!a)E.push('Unknown accessory "'+x+'" (allowed: '+ACC.concat("Other").join(", ")+")");else if(acc.indexOf(a)<0)acc.push(a)})}
