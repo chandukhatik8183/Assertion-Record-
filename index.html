@@ -303,7 +303,7 @@ function getCond(){var r="";document.querySelectorAll(".cnd").forEach(function(c
 function setTicks(a){setTicks0(a);setAccD(a)}
 function setTicks0(a){var s=(a&&a.acc)||[];document.querySelectorAll(".acc").forEach(function(c){c.checked=s.indexOf(c.value)>-1});$("acc_o").checked=s.indexOf("Other")>-1;$("acc_ot").value=(a&&a.accOther)||"";document.querySelectorAll(".cnd").forEach(function(c){c.checked=!!a&&a.cond===c.value})}
 opt($("f_st"),ST);opt($("f_company"),CO.map(function(c){return c[0]}));opt($("f_type"),TL);
-opt($("fco"),CO.map(function(c){return c[0]}),"All companies");opt($("fty"),TL,"All types");opt($("fst"),ST,"All statuses");
+opt($("fco"),CO.map(function(c){return c[0]}),"All companies");opt($("fty"),TL,"All types");opt($("fst"),["In Use","In Stock","Under Repair","Scrapped","Deactive"],"All statuses");
 var ACT=["Desktop","Laptop","All-in-One","Server"];
 function showSpecs(){var t=$("f_type").value;if(!T[t])return;$("accw").style.display=$("condw").style.display=ACT.indexOf(t)>-1?"":"none";SK.forEach(function(k){$("w_"+k).style.display=T[t][1].indexOf(k)>-1?"":"none"});$("monbox").style.display=T[t][1].indexOf("mon_sn")>-1?"":"none";["model","sn","pd","wt","dept","usr"].forEach(function(k){$("w_"+k).querySelector("label").textContent=lab(k,t)});
  var sim=t==="SIM";if(sim!==!!window.__simL){window.__simL=sim;if(sim){["model","cnum","pnum","st","plan","sn","usr","uemail","desg"].forEach(function(k){$("base").appendChild($("w_"+k))})}else{BK.forEach(function(k){if(k!=="loc")$("base").appendChild($("w_"+k))});SK.forEach(function(k){$(MK.indexOf(k)>-1?"monspecs":"specs").appendChild($("w_"+k))})}}
@@ -343,9 +343,10 @@ function save(){if(editId&&!ADM){alert("Only admin can edit assets.");return}if(
   o.code=typed}
  else if(!editId)o.code=ADM?nextCode(o.company,t):$("f_code").value;
  if(!o.code){alert("Please wait a moment - the asset code is being prepared.");return}
- if(editId&&FULLX&&o.code!==editId){if(!confirm("Change Asset Code from "+editId+" to "+o.code+"?\n\nThe old printed QR / barcode label of this asset will stop working - print the new label. Existing tickets are moved to the new code."))return;
+ if(editId&&FULLX&&o.code!==editId){if(!confirm("Change Asset Code from "+editId+" to "+o.code+"?\n\nOld printed QR labels will still open this asset, but please print a new label with the new code. Existing tickets and the history are moved to the new code."))return;
   fb.renameAsset(editId,o).then(function(){clearForm();alert("Asset code changed to "+o.code+". Please print the new label.")}).catch(function(e){alert("Could not change code: "+e.message)});return}
  put(o,!editId).then(function(r){clearForm();if(r&&r.code&&$("hf").checked)handover(find(r.code)||r)})}
+function findAny(c){c=String(c).trim().toLowerCase();return A.filter(function(a){return a.code.toLowerCase()===c||(a.oldCodes||[]).some(function(o){return String(o).toLowerCase()===c})})[0]}
 function find(c){c=String(c).trim().toLowerCase();return A.filter(function(a){return a.code.toLowerCase()===c})[0]}
 /* Branch filter: lists only the branches of the chosen company (with asset count) */
 function fbrSync(c){var sel=$("fbr"),cur=sel.value,m={};A.forEach(function(a){if(a.loc&&(!c||a.company===c))m[a.loc]=(m[a.loc]||0)+1});
@@ -353,7 +354,7 @@ function fbrSync(c){var sel=$("fbr"),cur=sel.value,m={};A.forEach(function(a){if
  if(!m[cur])cur="";if(sel.innerHTML!==h)sel.innerHTML=h;sel.value=cur;return cur}
 function filtered(){
  var q=$("q").value.toLowerCase(),c=$("fco").value,t=$("fty").value,s=$("fst").value,br=fbrSync(c);
- return A.filter(function(a){if(c&&a.company!==c)return false;if(br&&a.loc!==br)return false;if(t&&a.type!==t)return false;if(s&&a.st!==s)return false;return !q||JSON.stringify(a).toLowerCase().indexOf(q)>-1}).sort(function(a,b){return a.code<b.code?-1:1})}
+ return A.filter(function(a){if(c&&a.company!==c)return false;if(br&&a.loc!==br)return false;if(t&&a.type!==t)return false;if(s&&!(s==="In Use"?(a.st==="In Use"||a.st==="Active"):a.st===s))return false;return !q||JSON.stringify(a).toLowerCase().indexOf(q)>-1}).sort(function(a,b){return a.code<b.code?-1:1})}
 function conf(a){if(!T[a.type])return"";var p=T[a.type][1].filter(function(k){return MK.indexOf(k)<0&&k!=="bt"&&k!=="bd"&&k!=="amn"&&k!=="amc"}).map(function(k){return a[k]}).filter(Boolean);if(a.mon_model||a.mon_sn)p.push("Monitor: "+[a.mon_model,a.mon_sn?"SN "+a.mon_sn:""].filter(Boolean).join(" "));return p.join(" | ")}
 function render(){rdash();remp();if(FULLX)try{rbill()}catch(e){}
  var R=filtered();$("cnt").textContent=ADM?R.length+" / "+A.length+" assets":A.length+" asset(s) added in this session";
@@ -577,10 +578,10 @@ function syncCfg(){if(seeding||(CFG.__v||0)>=BRV)return;var seed={};CO.forEach(f
 $("lo").onclick=function(){fb.logout()};
 function publicView(c){
  $("pub").style.display="";$("pc").innerHTML="<p class='stat'>Loading...</p>";
- fb.getOne(c.toUpperCase()).then(function(a){
+ fb.getPublic(c.toUpperCase()).then(function(a){
   if(!a){$("pc").innerHTML="<h2>Asset not found</h2><p>"+esc(c)+"</p>";return}
-  var ks=["company","type","code"].concat(keysOf(a.type)).filter(function(k){return a[k]&&k!=="rm"}),h="<h2>"+esc(a.company)+" – Asset Detail</h2><dl>";
-  ks.forEach(function(k){h+="<dt>"+esc(lab(k,a.type))+"</dt><dd>"+esc(a[k])+"</dd>"});accLines(a).forEach(function(r){h+="<dt>Accessory – "+esc(r[0])+"</dt><dd>"+esc(r[1]||"Issued")+"</dd>"});$("pc").innerHTML=h+"</dl>";PA=a;$("tk").style.display="";showLatest(a)
+  var ks=["company","type","code","model","sn","loc","aloc","st"].filter(function(k){return a[k]}),h="<h2>"+esc(a.company)+" – Asset Detail</h2><dl>";
+  ks.forEach(function(k){h+="<dt>"+esc(lab(k,a.type))+"</dt><dd>"+esc(a[k])+"</dd>"});$("pc").innerHTML=h+"</dl>";PA=a;$("tk").style.display="";showLatest(a)
  }).catch(function(e){$("pc").innerHTML="<h2>Could not load</h2><p>"+esc(e.message)+"</p>"})}
 var pm=location.pathname.match(/\/a\/([^\/]+)/),pq=new URLSearchParams(location.search).get("a"),pcode=pm?decodeURIComponent(pm[1]):pq;
 if(pcode){publicView(pcode)}else{
@@ -879,7 +880,7 @@ function rsmart(T){var el=$("smtb");if(!el)return;
  el.innerHTML=L.slice(0,12).map(function(x){return"<div style='border-left:4px solid "+col[x[0]]+";padding:6px 10px;margin:6px 0;background:#f8fafc;border-radius:4px'><b class='code'>"+esc(x[1])+"</b> "+(x[0]==="i"?x[2]:esc(x[2]))+"</div>"}).join("")||"<p class='stat'>All good - nothing needs your attention right now.</p>"}
 function rdash(){if(!ADM||!$("kp"))return;var wl=warnList(),wsoon=wl.filter(function(x){return x.days>=0}).length,wexp=wl.length-wsoon;rwarn(wl);var T=(typeof TK!=="undefined"&&TK)||[],c={};ST.forEach(function(x){c[x]=0});A.forEach(function(a){c[a.st]=(c[a.st]||0)+1});
  var open=T.filter(isOpen).length,atIT=T.filter(function(t){return t.track&&t.track.rcv&&!t.track.ret}).length,wait=T.filter(function(t){return t.move&&!t.repair&&isOpen(t)}).length;
- var K=[[A.length,"Total assets",""],[c["In Use"],"In use","ok"],[c["In Stock"],"In stock",""],[c["Under Repair"],"Under repair","w"],[open,"Open tickets",open?"w":""],[wait,"Waiting for approval",wait?"r":""],[atIT,"At IT now",atIT?"w":""],[wsoon,"Warranty ends in 30 days",wsoon?"w":""],[wexp,"Warranty expired",wexp?"r":""]];
+ var K=[[A.length,"Total assets",""],[(c["In Use"]||0)+(c["Active"]||0),"In use","ok"],[c["In Stock"],"In stock",""],[c["Under Repair"],"Under repair","w"],[c["Deactive"]||0,"Deactive",""],[open,"Open tickets",open?"w":""],[wait,"Waiting for approval",wait?"r":""],[atIT,"At IT now",atIT?"w":""],[wsoon,"Warranty ends in 30 days",wsoon?"w":""],[wexp,"Warranty expired",wexp?"r":""]];
  $("kp").innerHTML=K.map(function(x){return"<div class='kc "+x[2]+"'><b>"+x[0]+"</b><span>"+x[1]+"</span></div>"}).join("");
  var co={},ty={};A.forEach(function(a){co[a.company]=(co[a.company]||0)+1;ty[a.type]=(ty[a.type]||0)+1});bars("bco",co);bars("bty",ty);
  $("dtb").innerHTML=T.slice().sort(function(a,b){return(b.updated||b.created||0)-(a.updated||a.created||0)}).slice(0,8).map(function(t){var w=tWhere(t);return"<tr><td class='code'>"+esc(ftk(t.id))+"</td><td><b>"+esc(t.assetCode)+"</b><br><span class='stat'>"+esc(t.name)+"</span></td><td><b style='color:"+(w[1]==="ok"?"#16a34a":w[1]==="w"?"#d97706":"inherit")+"'>"+esc(w[0])+"</b></td><td>"+esc(tMode(t))+"</td><td>"+tWork(t)+"</td><td class='stat'>"+esc(fdt(t.updated||t.created))+"</td></tr>"}).join("")||"<tr><td colspan='6' class='stat'>No tickets yet.</td></tr>";rsmart(T)}
@@ -951,7 +952,7 @@ function rwarn(l){if(!$("wtb"))return;$("wtb").innerHTML=l.slice(0,100).map(func
 var HK={"asset.add":"Added","asset.edit":"Edited","asset.delete":"Deleted","asset.status":"Status","asset.assign":"Assigned","asset.return":"Received back","asset.bulk":"Excel / restore"};
 function histOpen(code){
  bshow("<h2>History - "+esc(code)+"</h2><p class='stat'>Loading...</p><div class='bar'><button data-b='x'>Close</button></div>");
- fb.getAudit(code).catch(function(){return[]}).then(function(L){
+ fb.getAudit(code,(find(code)||{}).oldCodes).catch(function(){return[]}).then(function(L){
   var ev=[],a=find(code)||{};
   L.forEach(function(x){if(x.action==="ticket")return;ev.push({at:x.at,k:HK[x.action]||x.action,t:x.detail,by:x.by})});
   TK.filter(function(t){return t.assetCode===code}).forEach(function(t){var id=ftk(t.id).slice(0,9),k=t.track||{};
@@ -1032,7 +1033,7 @@ function scanSay(m){m=String(m||"");if(/^Checking/.test(m))return;var w=/^FOUND/
 function scanHit(txt){idleReset();var c=SC.raw?String(txt).trim():(codeFrom(txt)||String(txt).trim().toUpperCase());if(!c)return;var n=Date.now();if(c===SC.last&&n-SC.lt<2500)return;SC.last=c;SC.lt=n;if(navigator.vibrate)navigator.vibrate(80);scanBeep();
  if(SC.cont){var m=SC.cb?SC.cb(c):"";$("sc_msg").textContent=m||c;scanSay(m||"Scanned")}else{var cb=SC.cb;scanClose();scanSay("Scanned");if(cb)cb(c)}}
 function scanClose(){SC.on=false;clearTimeout(SC.tm);if(SC.stream){SC.stream.getTracks().forEach(function(t){t.stop()});SC.stream=null}$("sc_v").srcObject=null;$("scan").style.display="none";SC.cb=null}
-function scanGo(c){if(ADM){var a=find(c);if(a){tab("a");detail(a)}else alert("Asset "+c+" was not found.")}else location.href="/a/"+encodeURIComponent(c)}
+function scanGo(c){if(ADM){var a=findAny(c);if(a){tab("a");detail(a)}else alert("Asset "+c+" was not found.")}else location.href="/a/"+encodeURIComponent(c)}
 $("scanb").onclick=function(){scanOpen(scanGo,false)};
 /* serial number: type it, or press "Scan label" - the camera reads the barcode / QR on the serial label and fills the field */
 function serChk(id){var el=$(id),v=el.value.trim();if(!v)return;fb.serialOwner(v).then(function(c){if(c&&c!==(editId||"")){alert("Serial number "+v.toUpperCase()+" is already added for asset "+c+".\n\nA serial number can be added only once. Delete that asset first, or enter the correct number.");el.value=""}}).catch(function(){})}
@@ -1165,7 +1166,7 @@ $("bkrs").onclick=function(){$("bkrf").click()};
 $("bkrf").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var d=JSON.parse(r.result);if(!d||d.app!=="asset-tracker")throw 1;var as=d.assets||[],tk=d.tickets||[];
   as.forEach(function(x){if(!x||!x.code)throw 1});tk.forEach(function(x){if(!x||typeof x.id!=="string"||x.id.length<10||typeof x.assetCode!=="string")throw 1});
   if(confirm("Restore this FULL backup ("+(d.date||"")+")?\n\nAssets: "+as.length+"\nTickets: "+tk.length+"\n\nItems with the same code / ticket number will be overwritten. Nothing is deleted."))
-   fb.restore(as).then(function(){return tk.length?fb.restoreTickets(tk,TK):0}).then(function(){alert("Full backup restored.")}).catch(function(x){alert("Restore failed: "+x.message)})
+   fb.restore(as).then(function(){return tk.length?fb.restoreTickets(tk,TK):0}).then(function(){try{fb.syncSerials(as)}catch(e){}alert("Full backup restored.")}).catch(function(x){alert("Restore failed: "+x.message)})
  }catch(x){alert("This is not a full backup file made by this app.")}};r.readAsText(f);e.target.value=""};
 
 /* ================= v4: photos on tickets ================= */

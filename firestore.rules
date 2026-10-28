@@ -58,8 +58,8 @@ service cloud.firestore {
 
     // ---------- ASSETS ----------
     match /assets/{code} {
-      // anyone can read ONE asset (needed for the QR-scan page) - nobody can list them except admin
-      allow get: if true;
+      // Assets can only be read after login (the public QR page gets its safe fields from /api/pub, see api/pub.js)
+      allow get: if isStaff() || isEditor() || isAddOnly();
       allow list: if isStaff() || isEditor();
       // admin: anything. add-only user: only NEW assets that pass newAssetOk (cannot overwrite an existing one)
       allow create: if isStaff() || (isAddOnly() && newAssetOk(code));

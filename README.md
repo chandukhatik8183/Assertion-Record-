@@ -129,3 +129,15 @@ Dashboard (totals, assets by company/type, latest tickets), digital gate passes 
 
 
 **SIM asset type (new)** - Product Type *SIM* (code prefix SM). Fields: *SIM Vendor Name*, *Company Number*, *User Personal Number*, *Status* (Active / Deactive), *Plan Name*, *SIM Number*, *User Name*, *User Email*, *User Designation* (plus Company, Branch Location, Asset Code as always). Asset Location, Department, Purchase Date, Warranty, Remarks and Accessories are not used for SIM. No Handover / Assign for SIM. **Publish the new `firestore.rules`.**
+
+
+**Security fix (public QR page)** - assets can no longer be read without login. The public QR page now gets only safe fields (company, type, model, branch, location, status, serial no. except for ISP / SIM) from `/api/pub`. This needs the same `FIREBASE_SERVICE_ACCOUNT` variable in Vercel that Users & Backup already use. **Publish the new `firestore.rules`.**
+
+
+**Backup fix** - a new backup is written as a separate set of parts and the day's backup is switched to it only when everything is saved (a failed backup can no longer damage the old one). It now also contains `serials` and `assetLatest`, has a checksum (damaged / incomplete backups are reported on download) and writes faster (parallel batches). Old backups stay readable. After a full restore the serial-number registry is rebuilt automatically.
+
+
+**Asset Code change (admin)** - the whole move (asset, serial registry, latest-ticket pointer, tickets) is saved in one batch, so it is all-or-nothing. The old code is kept in the asset (`oldCodes`): the old printed QR / barcode still opens the asset (public page and in-app scan), and the History shows the entries of the old codes too.
+
+
+**Status on dashboard / filter** - SIM and ISP use *Active / Deactive*. On the Dashboard and in the Assets Status filter, *Active* is counted as **In use**, and *Deactive* has its own **Deactive** card / filter.

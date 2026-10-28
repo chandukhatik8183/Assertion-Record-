@@ -21,7 +21,9 @@ export const sendReset=e=>sendPasswordResetEmail(auth,e);
 export const logout=()=>signOut(auth);
 export const onAuth=cb=>onAuthStateChanged(auth,async u=>{let role="";if(u){try{role=(await u.getIdTokenResult()).claims.role||""}catch(e){}}cb(u,role)});
 export const watch=(ok,err)=>onSnapshot(col,s=>ok(s.docs.map(d=>({...d.data(),code:d.id}))),err);
-export const getOne=async c=>{const s=await getDoc(doc(db,"assets",c));return s.exists()?{...s.data(),code:s.id}:null};
+// Public QR page: only safe fields, served by /api/pub (assets can no longer be read without login)
+export const getPublic=async c=>{const r=await fetch("/api/pub?code="+encodeURIComponent(c),{cache:"no-store"});if(r.status===404)return null;if(!r.ok){let m="Could not load";try{m=(await r.json()).error||m}catch(e){}throw new Error(m)}return r.json()};
+export const getOne=async c=>{const s=await getDoc(doc(db,"assets",c));if(s.exists())return{...s.data(),code:s.id};try{const q=await getDocs(query(collection(db,"assets"),where("oldCodes","array-contains",c),limit(1)));if(!q.empty)return{...q.docs[0].data(),code:q.docs[0].id}}catch(e){}return null};
 // ---- Audit log: who did what, when (admin can read, everybody logged-in can only add) ----
 const acol=collection(db,"audit"),clip=(s,n)=>String(s==null?"":s).slice(0,n);
 let LB={};export const setLabels=l=>{LB=l||{}};
@@ -31,7 +33,7 @@ const SKIPD=["code","assigned"];
 function diffText(a,b){const o=[];new Set(Object.keys(a||{}).concat(Object.keys(b||{}))).forEach(k=>{if(SKIPD.includes(k))return;
   const x=JSON.stringify(a&&a[k]==null?"":a[k]),y=JSON.stringify(b&&b[k]==null?"":b[k]);if(x!==y){const v=z=>{z=JSON.parse(z);return Array.isArray(z)?z.join(", "):(typeof z==="object"?"...":String(z))};o.push((LB[k]||k)+": "+(v(x)||"-")+" -> "+(v(y)||"-"))}});return o.join(" | ")}
 export const watchAudit=(ok,err,n)=>onSnapshot(query(acol,orderBy("at","desc"),limit(n||300)),s=>ok(s.docs.map(d=>({...d.data(),id:d.id}))),err);
-export const getAudit=async code=>(await getDocs(query(acol,where("code","==",code)))).docs.map(d=>({...d.data(),id:d.id}));
+export const getAudit=async(code,olds)=>{const l=[code].concat(Array.isArray(olds)?olds:[]).slice(0,30);return(await getDocs(query(acol,l.length>1?where("code","in",l):where("code","==",code)))).docs.map(d=>({...d.data(),id:d.id}))};
 // Admin: change some fields of an asset (assign / return / status ...) and log it
 export const updateAsset=async(code,patch,action,detail)=>{await updateDoc(doc(db,"assets",code),patch);await audit(action,code,detail)};
 // ---- Stock audits (admin) ----
@@ -58,22 +60,32 @@ export async function save(o,isNew){
   let code=o.code;
   if(isNew){const m=/^(.*-)(\d+)$/.exec(code);if(m){let n=+m[2];while((await getDoc(doc(db,"assets",code))).exists()){n++;code=m[1]+String(n).padStart(4,"0")}}}
   let before=null;if(!isNew){try{const s=await getDoc(doc(db,"assets",code));if(s.exists())before=s.data()}catch(e){}}
-  const d={...o,code};if(before&&before.assigned&&!d.assigned)d.assigned=before.assigned;
+  const d={...o,code};if(before&&before.assigned&&!d.assigned)d.assigned=before.assigned;if(before&&before.oldCodes&&!d.oldCodes)d.oldCodes=before.oldCodes;
   const ks=await serCheck(d,code);
   await setDoc(doc(db,"assets",code),d);await serPut(ks,code);if(before)await serDrop(before,code,ks);
   audit(before?"asset.edit":"asset.add",code,before?(diffText(before,d)||"Saved (no change)"):"Added "+[d.type,d.model].filter(Boolean).join(" ")+" at "+[d.loc,d.aloc].filter(Boolean).join(" / "));return d}
-// Admin: change an asset code (the code is the document id, so the asset is copied to the new code, tickets / latest-ticket pointer / serial registry are moved, then the old one is deleted)
+// Admin: change an asset code. The code is the document id, so the asset is moved to the new code in ONE batch (all or nothing):
+// new asset + delete old + serial registry + latest-ticket pointer + the tickets. The old code is kept in "oldCodes", so old printed
+// QR labels still open the asset and the old History (audit log) is still shown.
 export async function renameAsset(oldCode,o){
   const newCode=o.code;if(!newCode||newCode===oldCode)throw new Error("Nothing to rename.");
   if((await getDoc(doc(db,"assets",newCode))).exists())throw new Error("Asset code "+newCode+" already exists. Use a different code.");
   const os=await getDoc(doc(db,"assets",oldCode));if(!os.exists())throw new Error("The old asset "+oldCode+" no longer exists.");
   const before=os.data(),d={...o,code:newCode};if(before.assigned&&!d.assigned)d.assigned=before.assigned;
-  await setDoc(doc(db,"assets",newCode),d);
-  await serDrop(before,oldCode);await serPut([snKey(d.sn),snKey(d.mon_sn)].filter(Boolean),newCode);
-  try{const ts=await getDocs(query(collection(db,"tickets"),where("assetCode","==",oldCode)));for(const t of ts.docs)await updateDoc(t.ref,{assetCode:newCode})}catch(e){}
-  try{const l=await getDoc(doc(db,"assetLatest",oldCode));if(l.exists()){await setDoc(doc(db,"assetLatest",newCode),l.data());await deleteDoc(doc(db,"assetLatest",oldCode))}}catch(e){}
-  await deleteDoc(doc(db,"assets",oldCode));
-  audit("asset.edit",newCode,"Asset code changed from "+oldCode+" to "+newCode+" (tickets moved to the new code)");return d}
+  d.oldCodes=[...new Set([...(before.oldCodes||[]),oldCode])].slice(-10);
+  const ks=await serCheck(d,oldCode);                         // serial number must still be unique
+  const delKs=[];for(const k of [snKey(before.sn),snKey(before.mon_sn)].filter(Boolean)){if(ks.includes(k))continue;try{const x=await getDoc(sdoc(k));if(x.exists()&&x.data().code===oldCode)delKs.push(k)}catch(e){}}
+  const ts=(await getDocs(query(collection(db,"tickets"),where("assetCode","==",oldCode)))).docs;
+  const lat=await getDoc(doc(db,"assetLatest",oldCode));
+  const first=writeBatch(db);let n=0;
+  first.set(doc(db,"assets",newCode),d);first.delete(doc(db,"assets",oldCode));n+=2;
+  ks.forEach(k=>{first.set(sdoc(k),{code:newCode,at:Date.now()});n++});delKs.forEach(k=>{first.delete(sdoc(k));n++});
+  if(lat.exists()){first.set(doc(db,"assetLatest",newCode),lat.data());first.delete(doc(db,"assetLatest",oldCode));n+=2}
+  const rest=ts.slice();for(const t of rest.splice(0,Math.max(0,450-n)))first.update(t.ref,{assetCode:newCode});
+  await first.commit();                                       // asset + serials + latest + first tickets: all or nothing
+  for(let i=0;i<rest.length;i+=450){const b=writeBatch(db);rest.slice(i,i+450).forEach(t=>b.update(t.ref,{assetCode:newCode}));await b.commit()}   // only for assets with more than ~440 tickets
+  audit("asset.edit",newCode,"Asset code changed from "+oldCode+" to "+newCode+" ("+ts.length+" ticket(s) moved)");
+  return d}
 export const remove=async c=>{let s="",dd=null;try{const x=await getDoc(doc(db,"assets",c));if(x.exists()){const d=x.data();dd=d;s=[d.type,d.model,d.sn&&"SN "+d.sn,d.loc,d.usr].filter(Boolean).join(" | ")}}catch(e){}
   await deleteDoc(doc(db,"assets",c));if(dd)await serDrop(dd,c);audit("asset.delete",c,"Deleted: "+s)};
 export async function restore(list){
