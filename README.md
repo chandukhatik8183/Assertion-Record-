@@ -150,3 +150,6 @@ Dashboard (totals, assets by company/type, latest tickets), digital gate passes 
 
 
 **Bulk import fix (ISP)** - for ISP the DSL / Circuit ID is text and Bill Amount is a number (they are no longer read as dates). "NA", "N/A", "-" in a date column means empty. Dates like 17-May-2024 are accepted too.
+
+
+**IT Help page** - `/help.html` (also `/help`): public troubleshooter, no login needed (Temp / %temp% / Prefetch delete, printer head cleaning, shared printer install and its errors, manual IP). Link "IT Help" in the header and on the public QR page. To use REAL screenshots, save them as `help/<topic>-<step>.png` (for example `help/temp-1.png`) in the project; they replace the drawing of that step automatically.
