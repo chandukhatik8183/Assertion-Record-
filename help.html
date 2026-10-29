@@ -3,187 +3,337 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>IT Help – Sandeep Group</title>
+<title>IT Support Center – Sandeep Group</title>
 <style>
-:root{--bg:#f3f6fb;--card:#fff;--tx:#1b2433;--mu:#5b6678;--bd:#dbe3ef;--pr:#1d4ed8;--wa:#fff7e0;--wb:#e0b04a;--ok:#e8f7ee}
-@media(prefers-color-scheme:dark){:root{--bg:#0f1520;--card:#182131;--tx:#e8edf6;--mu:#9aa6bb;--bd:#2a364b;--pr:#6ea0ff;--wa:#3a3115;--wb:#8a6d1e;--ok:#143325}}
-*{box-sizing:border-box}body{margin:0;font:15px/1.55 system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--tx)}
-header{background:linear-gradient(90deg,#1d4ed8,#0ea5e9);color:#fff;padding:18px 16px}
-header h1{margin:0;font-size:20px}header p{margin:4px 0 0;opacity:.92;font-size:13px}
-main{max-width:920px;margin:0 auto;padding:14px}
-.bar{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
-.bar input{flex:1;min-width:200px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);font-size:15px}
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.chip{border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:5px 11px;border-radius:99px;cursor:pointer;font-size:13px}
-.chip.on{background:var(--pr);border-color:var(--pr);color:#fff}
-details{background:var(--card);border:1px solid var(--bd);border-radius:12px;margin:0 0 10px;overflow:hidden}
-summary{cursor:pointer;padding:13px 14px;font-weight:600;list-style:none;display:flex;gap:10px;align-items:center}
-summary::-webkit-details-marker{display:none}summary:after{content:"＋";margin-left:auto;color:var(--mu)}details[open]>summary:after{content:"－"}
-summary small{display:block;font-weight:400;color:var(--mu);font-size:12.5px}
-.ic{font-size:22px}.body{padding:2px 14px 14px}
-.intro{color:var(--mu);margin:0 0 10px}
-.step{display:flex;gap:12px;padding:12px 0;border-top:1px dashed var(--bd)}
-.num{flex:none;width:28px;height:28px;border-radius:50%;background:var(--pr);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
-.st{flex:1;min-width:0}.st p{margin:0 0 8px}
-.pic{border:1px solid var(--bd);border-radius:10px;overflow:hidden;background:#fff;max-width:440px}.pic svg,.pic img{display:block;width:100%;height:auto}
-code,.cmd{font-family:Consolas,monospace;background:rgba(127,140,160,.18);padding:1px 6px;border-radius:5px;word-break:break-all}
-.cp{margin-left:6px;font-size:12px;padding:2px 8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:6px;cursor:pointer}
-.warn{background:var(--wa);border:1px solid var(--wb);border-radius:10px;padding:9px 12px;margin:10px 0 0;font-size:14px}
-.ok{background:var(--ok);border-radius:10px;padding:9px 12px;margin:10px 0 0;font-size:14px}
-.none{display:none;text-align:center;color:var(--mu);padding:30px}
-footer{max-width:920px;margin:0 auto;padding:6px 14px 30px;color:var(--mu);font-size:13px}
+:root{--bg:#f1f5fb;--card:#fff;--tx:#162033;--mu:#5a6a82;--bd:#dde5f0;--pr:#1d4ed8;--pr2:#0ea5e9;--wa:#fff6e0;--wb:#eab84f;--ok:#e7f7ee;--okb:#9ad8b3;--sh:0 1px 2px rgba(16,24,40,.06),0 4px 14px rgba(16,24,40,.06)}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1522;--card:#172033;--tx:#e8edf6;--mu:#9aa8bf;--bd:#27344b;--pr:#7aa7ff;--pr2:#38bdf8;--wa:#3a3115;--wb:#8a6d1e;--ok:#12301f;--okb:#2c6b47;--sh:0 1px 2px rgba(0,0,0,.4)}}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font:15px/1.6 "Segoe UI",system-ui,Roboto,Arial,sans-serif;background:var(--bg);color:var(--tx)}
+.top{background:linear-gradient(110deg,#1e3a8a,#1d4ed8 55%,#0ea5e9);color:#fff;position:sticky;top:0;z-index:20;box-shadow:0 2px 12px rgba(0,0,0,.18)}
+.top .in{max-width:960px;margin:0 auto;padding:12px 16px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:23px}
+.brand h1{margin:0;font-size:19px;line-height:1.2}.brand p{margin:2px 0 0;font-size:12.5px;opacity:.9}
+.brand a{margin-left:auto;color:#fff;font-size:12.5px;text-decoration:none;border:1px solid rgba(255,255,255,.5);padding:5px 11px;border-radius:99px;white-space:nowrap}
+.sb{margin-top:10px;position:relative}
+.sb input{width:100%;padding:11px 14px 11px 40px;border:0;border-radius:12px;font-size:15px;background:#fff;color:#162033;outline:none;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.sb:before{content:"🔍";position:absolute;left:13px;top:9px;font-size:16px}
+main{max-width:960px;margin:0 auto;padding:16px}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 6px}
+.chip{border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:6px 13px;border-radius:99px;cursor:pointer;font-size:13.5px;font-family:inherit}
+.chip b{opacity:.6;font-weight:600;margin-left:3px}.chip.on{background:var(--pr);border-color:var(--pr);color:#fff}.chip.on b{opacity:.85}
+.cnt{color:var(--mu);font-size:13px;margin:8px 2px 12px}
+.guide{background:var(--card);border:1px solid var(--bd);border-left:4px solid var(--pr);border-radius:12px;padding:11px 14px;margin:0 0 14px;font-size:14px;box-shadow:var(--sh)}
+details{background:var(--card);border:1px solid var(--bd);border-radius:14px;margin:0 0 11px;overflow:hidden;box-shadow:var(--sh)}
+details[open]{border-color:var(--pr)}
+summary{cursor:pointer;padding:13px 15px;font-weight:600;list-style:none;display:flex;gap:12px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary:after{content:"";margin-left:auto;width:9px;height:9px;border-right:2px solid var(--mu);border-bottom:2px solid var(--mu);transform:rotate(45deg);transition:.2s;flex:none;margin-top:-3px}
+details[open]>summary:after{transform:rotate(-135deg);margin-top:3px}
+.ic{font-size:21px;width:42px;height:42px;border-radius:12px;background:rgba(29,78,216,.1);display:flex;align-items:center;justify-content:center;flex:none}
+summary small{display:block;font-weight:400;color:var(--mu);font-size:13px;line-height:1.35}
+.tag{display:inline-block;font-size:11px;font-weight:600;padding:1px 8px;border-radius:99px;margin-left:6px;vertical-align:2px;background:rgba(29,78,216,.12);color:var(--pr)}
+.body{padding:0 16px 16px}
+.intro{color:var(--mu);margin:0 0 4px;font-size:14.5px}
+.step{display:flex;gap:13px;padding:14px 0;border-top:1px dashed var(--bd)}
+.num{flex:none;width:30px;height:30px;border-radius:50%;background:var(--pr);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;user-select:none;transition:.15s}
+.step.done .num{background:#16a34a}.step.done .num:before{content:"✓"}.step.done .num span{display:none}
+.step.done .st>p{opacity:.55}
+.st{flex:1;min-width:0}.st>p{margin:3px 0 9px}
+.pic{border:1px solid var(--bd);border-radius:12px;overflow:hidden;background:#fff;max-width:460px;box-shadow:var(--sh)}.pic svg,.pic img{display:block;width:100%;height:auto}
+code{font-family:Consolas,"Cascadia Mono",monospace;font-size:13.5px;background:rgba(100,116,139,.17);padding:1px 7px;border-radius:6px;word-break:break-all}
+.cp{margin-left:6px;font-size:12px;padding:2px 9px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:7px;cursor:pointer;font-family:inherit}
+.warn,.ok{border-radius:11px;padding:10px 13px;margin:11px 0 0;font-size:14px}
+.warn{background:var(--wa);border:1px solid var(--wb)}.ok{background:var(--ok);border:1px solid var(--okb)}
+.hint{font-size:12.5px;color:var(--mu);margin:8px 0 0}
+.none{display:none;text-align:center;color:var(--mu);padding:34px}
+footer{max-width:960px;margin:0 auto;padding:4px 16px 40px;color:var(--mu);font-size:13px}
+#up{position:fixed;right:16px;bottom:18px;width:42px;height:42px;border-radius:50%;border:0;background:var(--pr);color:#fff;font-size:18px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3);display:none}
 a{color:var(--pr)}
+details{scroll-margin-top:150px}@media(max-width:700px){.top{position:static}details{scroll-margin-top:12px}}
+@media print{.top,#up,.chips,.cp{display:none!important}details{break-inside:avoid}}
 </style>
 </head>
 <body>
-<header><h1>🛠️ IT Help – Khud solve karo</h1><p>Sandeep Group · Problem ka solution step-by-step. Topic par click karo, steps upar se neeche follow karo.</p></header>
+<div class="top"><div class="in">
+ <div class="brand"><div class="logo">🛠️</div><div><h1>IT Support Center</h1><p>Sandeep Group · Aam problems ka solution, step-by-step</p></div><a href="/">Asset Tracker</a></div>
+ <div class="sb"><input id="q" type="search" placeholder="Problem likho: printer, internet slow, temp, 0x0000011b, usb …" autocomplete="off"></div>
+</div></div>
 <main>
-<div class="bar"><input id="q" type="search" placeholder="Search karo: temp, printer, 0x0000011b, ip, spooler …" autocomplete="off"></div>
-<div class="chips" id="chips"></div>
-<div id="list"></div>
-<div class="none" id="none">Koi topic nahi mila. Dusra word try karo.</div>
+ <div class="chips" id="chips"></div>
+ <div class="cnt" id="cnt"></div>
+ <div class="guide" id="guide">👉 <b>Kaise use karein:</b> apni problem ka topic kholo → steps ko <b>upar se neeche</b> follow karo. Har step ke baad us ke number par click karke <b>✓ Done</b> kar sakte ho. Laal rang ke box me jo dikhaya hai wahi dabana hai.</div>
+ <div id="list"></div>
+ <div class="none" id="none">Koi topic nahi mila. Dusra word try karo (jaise <b>printer</b>, <b>internet</b>, <b>slow</b>).</div>
 </main>
-<footer>Agar yahan ke steps se problem solve na ho to IT team ko batao – error ka screenshot ya error code (jaise 0x0000011b) saath me bhejo. · <a href="/">Asset Tracker</a></footer>
+<footer>Solve na ho to IT team ko batao – <b>error ka screenshot</b> (Win + Shift + S) ya error code saath bhejo. Is page ke steps sirf aam problems ke liye hain; koi cheez samajh na aaye to khud kuch delete / change mat karo.</footer>
+<button id="up" title="Upar jao">↑</button>
 
 <script>
-/* ---------- small SVG drawing helpers (illustrations of the Windows screens) ---------- */
-var R="#e11d48";
-function svg(b){return '<svg viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Arial,sans-serif"><rect width="420" height="200" fill="#eaf0fa"/>'+b+'</svg>'}
-function win(t,b,x,y,w,h){x=x==null?20:x;y=y==null?12:y;w=w||380;h=h||176;return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="6" fill="#fff" stroke="#8fa0bc"/><rect x="'+x+'" y="'+y+'" width="'+w+'" height="22" rx="6" fill="#dfe8f8"/><text x="'+(x+10)+'" y="'+(y+15)+'" font-size="11" fill="#223">'+t+'</text><text x="'+(x+w-16)+'" y="'+(y+15)+'" font-size="12" fill="#b33">✕</text>'+b}
-function tx(x,y,t,s,c,w){return '<text x="'+x+'" y="'+y+'" font-size="'+(s||11)+'" fill="'+(c||"#223")+'"'+(w?' font-weight="700"':'')+'>'+t+'</text>'}
-function btn(x,y,w,t,hot){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="22" rx="4" fill="#f1f4fa" stroke="'+(hot?R:"#8fa0bc")+'" stroke-width="'+(hot?2.5:1)+'"/>'+tx(x+w/2-t.length*2.9,y+15,t,11,"#223",hot)}
-function box(x,y,w,h){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="5" fill="none" stroke="'+R+'" stroke-width="2.5" stroke-dasharray="6 3"/>'}
-function inp(x,y,w,t,hot){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="22" fill="#fff" stroke="'+(hot?R:"#8fa0bc")+'" stroke-width="'+(hot?2.5:1)+'"/>'+tx(x+6,y+15,t,11,"#0a3")}
-function key(x,y,w,t){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="46" rx="8" fill="#fff" stroke="#6b7a93" stroke-width="2"/>'+tx(x+w/2-t.length*5,y+30,t,t.length>3?15:20,"#223",1)}
-function keys(a){var x=210-a.reduce(function(s,k){return s+k[1]+30},-30)/2,o="";a.forEach(function(k,i){o+=key(x,70,k[1],k[0]);x+=k[1];if(i<a.length-1){o+=tx(x+9,100,"+",20,"#223",1);x+=30}});return svg(o)}
-var KEYWR=keys([["⊞ Win",70],["R",50]]);
-function run(t){return svg(win("Run",tx(40,60,"Type the name of a program, folder, document…",10,"#445")+inp(40,75,280,t,1)+btn(150,150,70,"OK",1)+btn(230,150,70,"Cancel")+btn(310,150,80,"Browse…"),60,20,300,170))}
-function uac(){return svg(win("Folder Access Denied",tx(40,70,"You'll need to provide administrator permission",11)+tx(40,86,"to access this folder.",11)+btn(60,140,110,"Continue",1)+btn(190,140,80,"Cancel"),60,20,300,170))}
-function files(k){var o=win("Temp",'',20,12,380,176),r="";["~DF3A12.tmp","setup_log.txt","chrome_cache.tmp","wct8F1.tmp","report.tmp"].forEach(function(f,i){r+='<rect x="30" y="'+(46+i*24)+'" width="250" height="22" fill="#cfe1ff"/>'+tx(40,62+i*24,"📄 "+f,11)});return svg(o+r+key(300,60,90,k||"Ctrl + A").replace('height="46"','height="40"')+tx(298,125,"keyboard se dabao",10,"#445"))}
-function del(){return svg(win("Temp",'<rect x="30" y="40" width="250" height="110" fill="#cfe1ff"/>'+tx(40,70,"(sab files selected hain)",12,"#335")+key(300,50,90,"Delete")+tx(298,115,"ya permanent delete",10,"#445")+tx(298,129,"ke liye:",10,"#445")+key(300,134,90,"Shift+Del").replace('height="46"','height="34"'),20,12))}
-function skip(){return svg(win("File In Use",tx(40,68,"The action can't be completed because the file",11)+tx(40,84,"is open in another program.",11)+'<rect x="40" y="104" width="12" height="12" fill="#fff" stroke="'+R+'" stroke-width="2.5"/>'+tx(58,115,"✔ Do this for all current items",11)+btn(80,145,70,"Skip",1)+btn(160,145,70,"Try Again"),50,18,320,172)+tx(100,176,"",10))}
-function dp(sel){var o="";[["🖨️","Canon LBP2900"],["🖨️","HP LaserJet 1020"],["🖨️","EPSON L3210"]].forEach(function(p,i){o+=tx(50+i*115,75,p[0],34)+tx(40+i*115,100,p[1],11)});return svg(win("Devices and Printers",o+(sel?'<rect x="262" y="52" width="110" height="60" fill="none" stroke="'+R+'" stroke-width="2.5"/><rect x="300" y="108" width="105" height="58" fill="#fff" stroke="#8fa0bc"/>'+tx(306,124,"Set as default printer",9.5)+tx(306,140,"Printing preferences",9.5,R,1)+tx(306,156,"Printer properties",9.5):'')))}
-function maint(){return svg(win("Printing Preferences",tx(34,52,"Main    Page Setup    ",11)+'<rect x="165" y="38" width="84" height="20" fill="#fff" stroke="'+R+'" stroke-width="2.5"/>'+tx(172,52,"Maintenance",11,"#223",1)+btn(60,85,130,"Nozzle Check")+btn(60,118,130,"Head Cleaning",1)+tx(210,102,"← pehle ye (test print)",10,"#445")+tx(210,135,"← phir ye (cleaning)",10,R,1)+btn(250,150,70,"OK")+btn(330,150,60,"Cancel")))}
-function addp(h){return svg(win("Add Printer",tx(40,56,"Searching for printers…",11,"#445")+tx(40,86,"Canon LBP2900 (192.168.1.20)",11)+(h?'':'')+'<text x="40" y="125" font-size="11" fill="'+R+'" font-weight="700">The printer that I want isn\'t listed</text>'+box(34,110,230,22)+btn(300,150,70,"Next"),20,12))}
-function shared(t){return svg(win("Add Printer – Find a printer by other options",'<circle cx="42" cy="58" r="5" fill="none" stroke="#445"/>'+tx(54,62,"My printer is a little older. Help me find it.",11)+'<circle cx="42" cy="82" r="5" fill="'+R+'"/>'+tx(54,86,"Select a shared printer by name",11,R,1)+inp(54,94,320,t||"\\\\PC-NAME\\PrinterName",1)+'<circle cx="42" cy="134" r="5" fill="none" stroke="#445"/>'+tx(54,138,"Add a printer using an IP address or hostname",11)+btn(300,152,70,"Next"),20,12))}
-function lport(t){return svg(win("Add Printer – Choose a printer port",'<circle cx="42" cy="60" r="5" fill="none" stroke="#445"/>'+tx(54,64,"Use an existing port",11)+'<circle cx="42" cy="84" r="5" fill="'+R+'"/>'+tx(54,88,"Create a new port:  Local Port",11,R,1)+tx(54,118,"Port name:",11)+inp(54,124,320,t||"\\\\PC-NAME\\PrinterName",1)+btn(300,152,70,"Next"),20,12))}
-function ncpa(){return svg(win("Network Connections",tx(60,80,"🖧",38)+tx(48,118,"Ethernet",11)+tx(190,80,"📶",38)+tx(185,118,"Wi-Fi",11)+'<rect x="35" y="55" width="80" height="70" fill="none" stroke="'+R+'" stroke-width="2.5"/><rect x="95" y="112" width="130" height="58" fill="#fff" stroke="#8fa0bc"/>'+tx(102,128,"Disable",10)+tx(102,144,"Status",10)+tx(102,160,"Properties",10,R,1),20,12))}
-function ipv4(){return svg(win("Internet Protocol Version 4 (TCP/IPv4) Properties",'<circle cx="38" cy="46" r="5" fill="none" stroke="#445"/>'+tx(50,50,"Obtain an IP address automatically",10.5)+'<circle cx="38" cy="64" r="5" fill="'+R+'"/>'+tx(50,68,"Use the following IP address:",10.5,R,1)+tx(50,88,"IP address:",10.5)+inp(150,74,150,"192.168.1.50",1)+tx(50,112,"Subnet mask:",10.5)+inp(150,98,150,"255.255.255.0")+tx(50,136,"Default gateway:",10.5)+inp(150,122,150,"192.168.1.1")+tx(50,160,"DNS server:",10.5)+inp(150,146,150,"8.8.8.8")+btn(320,152,70,"OK",1),10,10,400,184))}
-function svc(){return svg(win("Services",tx(36,52,"Name",10,"#445",1)+tx(220,52,"Status",10,"#445",1)+tx(36,76,"Plug and Play",11)+tx(220,76,"Running",11)+'<rect x="30" y="86" width="350" height="22" fill="#cfe1ff" stroke="'+R+'" stroke-width="2.5"/>'+tx(36,102,"Print Spooler",11,"#223",1)+tx(220,102,"Running",11)+'<rect x="150" y="112" width="100" height="56" fill="#fff" stroke="#8fa0bc"/>'+tx(158,128,"Start",10)+tx(158,144,"Stop",10)+tx(158,160,"Restart",10,R,1),20,12))}
-function cmd(l){var o='<rect x="30" y="20" width="360" height="160" rx="6" fill="#111"/><rect x="30" y="20" width="360" height="20" rx="6" fill="#333"/>'+tx(40,34,"Command Prompt",10,"#ddd");l.forEach(function(s,i){o+='<text x="42" y="'+(62+i*18)+'" font-size="11" fill="'+(s[0]==">"?"#fff":"#9bd")+'" font-family="Consolas,monospace">'+s+'</text>'});return svg(o)}
-function reg(){return svg(win("Registry Editor",tx(30,52,"▾ HKEY_LOCAL_MACHINE",10)+tx(42,68,"▾ SYSTEM ▾ CurrentControlSet ▾ Control",10)+'<rect x="52" y="74" width="60" height="16" fill="#cfe1ff" stroke="'+R+'" stroke-width="2"/>'+tx(58,86,"Print",11,"#223",1)+'<rect x="150" y="60" width="230" height="22" fill="#fff" stroke="#8fa0bc"/>'+tx(156,75,"RpcAuthnLevelPrivacyEnabled",10,R,1)+tx(156,100,"Type: REG_DWORD (32-bit)",10)+tx(156,118,"Value data:  0",12,R,1)+btn(280,150,70,"OK",1),20,12))}
-function cred(){return svg(win("Credential Manager",tx(36,54,"Web Credentials        Windows Credentials",11)+'<rect x="150" y="40" width="130" height="20" fill="none" stroke="'+R+'" stroke-width="2.5"/>'+tx(40,95,"Add a Windows credential",11,R,1)+box(34,80,170,22)+tx(40,125,"Internet or network address:  PC-NAME",10)+tx(40,142,"User name: PC-NAME\\user    Password: ••••",10)+btn(300,150,70,"OK"),20,12))}
-function note(i,t){return svg(tx(180,100,i,54)+tx(40,160,t,13,"#334"))}
+/* =====  Windows screen drawings (SVG). Text is auto-fitted so it never leaves its box  ===== */
+var R="#e11d48",MR=382;
+function svg(b){MR=382;return '<svg viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Arial,sans-serif"><defs><filter id="sh" x="-5%" y="-5%" width="110%" height="115%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#1e3a8a" flood-opacity=".28"/></filter><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#dbeafe"/><stop offset="1" stop-color="#e0f2fe"/></linearGradient></defs><rect width="420" height="200" fill="url(#bg)"/>'+b+'</svg>'}
+function tx(x,y,t,s,c,b,m){s=s||11;var mx=(m||MR)-x,w=String(t).length*s*(b?.58:.52),a=(w>mx&&mx>20)?' textLength="'+Math.round(mx)+'" lengthAdjust="spacingAndGlyphs"':'';return '<text x="'+x+'" y="'+y+'" font-size="'+s+'" fill="'+(c||"#1f2937")+'"'+(b?' font-weight="600"':'')+a+'>'+t+'</text>'}
+function txc(x,y,t,s,c,b){return '<text x="'+x+'" y="'+y+'" text-anchor="middle" font-size="'+(s||11)+'" fill="'+(c||"#1f2937")+'"'+(b?' font-weight="600"':'')+'>'+t+'</text>'}
+function win(t,b,x,y,w,h){x=x==null?20:x;y=y==null?10:y;w=w||380;h=h||182;return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="8" fill="#fff" stroke="#b6c3d9" filter="url(#sh)"/><path d="M'+x+' '+(y+24)+'V'+(y+8)+'a8 8 0 0 1 8-8H'+(x+w-8)+'a8 8 0 0 1 8 8V'+(y+24)+'Z" transform="translate(0 '+y+') translate(0 '+(-y)+')" fill="#eef3fb"/>'+tx(x+12,y+16,t,11,"#334155",1,x+w-70)+'<text x="'+(x+w-14)+'" y="'+(y+16)+'" text-anchor="end" font-size="12" fill="#64748b">—   ☐   <tspan fill="#dc2626">✕</tspan></text>'+b}
+function btn(x,y,w,t,hot){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="23" rx="5" fill="'+(hot?"#fff1f3":"#f5f7fb")+'" stroke="'+(hot?R:"#9aa9c2")+'" stroke-width="'+(hot?2.4:1)+'"/>'+txc(x+w/2,y+16,t,11,hot?R:"#1f2937",hot)}
+function box(x,y,w,h){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="6" fill="none" stroke="'+R+'" stroke-width="2.4" stroke-dasharray="6 3"/>'}
+function inp(x,y,w,t,hot){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="23" rx="3" fill="#fff" stroke="'+(hot?R:"#9aa9c2")+'" stroke-width="'+(hot?2.4:1)+'"/>'+tx(x+7,y+16,t,11,"#0a7a3d",0,x+w-6)}
+function key(x,y,w,t,h){h=h||46;return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="9" fill="#fff" stroke="#64748b" stroke-width="2"/><rect x="'+(x+3)+'" y="'+(y+h-8)+'" width="'+(w-6)+'" height="5" rx="2" fill="#e2e8f0"/>'+txc(x+w/2,y+h/2+5,t,t.length>3?14:19,"#1f2937",1)}
+function keys(a){var tot=a.reduce(function(s,k){return s+k[1]+28},-28),x=210-tot/2,o="";a.forEach(function(k,i){o+=key(x,70,k[1],k[0]);x+=k[1];if(i<a.length-1){o+=txc(x+14,100,"+",20,"#334155",1);x+=28}});return svg(o)}
+function dlg(t,lines,btns,hot,w,h,ex){w=w||300;h=h||150;var x=(420-w)/2,y=(200-h)/2,o;MR=x+w-14;o=win(t,'',x,y,w,h);lines.forEach(function(l,i){o+=tx(x+16,y+46+i*17,l,11)});o+=ex?ex(x,y,w,h):"";var bx=x+w-14;btns.slice().reverse().forEach(function(b,i){bx-=82;o+=btn(bx,y+h-34,76,b,(btns.length-1-i)===hot)});return svg(o)}
+function form(t,rows,b,hot,note,w){w=w||380;var x=(420-w)/2,y=14,h=60+rows.length*34+(note?24:0)+34,o;MR=x+w-14;o=win(t,'',x,y,w,h);rows.forEach(function(r,i){o+=tx(x+14,y+54+i*34,r[0],11)+inp(x+130,y+38+i*34,w-146,r[1],r[2])});if(note)o+=tx(x+14,y+60+rows.length*34,note,10.5,"#334155");o+=btn(x+w-90,y+h-34,76,b,hot);return svg(o)}
+function panel(t,rows,hi,menu,mh){var o,y0=46;o=win(t,'');rows.forEach(function(r,i){var y=y0+i*24;if(i===hi)o+='<rect x="28" y="'+(y-14)+'" width="320" height="22" rx="4" fill="#dbeafe"/>'+box(28,y-14,320,22);o+=tx(38,y+2,r,11,"#1f2937",i===hi)});if(menu&&hi!=null){var my=y0+hi*24+8,mh2=menu.length*20+8;o+='<rect x="200" y="'+my+'" width="190" height="'+mh2+'" rx="6" fill="#fff" stroke="#9aa9c2" filter="url(#sh)"/>';menu.forEach(function(m,i){o+=tx(210,my+20+i*20,m,10.5,i===mh?R:"#1f2937",i===mh,386)})}return svg(o)}
+var KEYWR=keys([["⊞ Win",72],["R",52]]);
+function run(t){MR=356;return svg(win("Run",txc(210,60,"Type the name of a program, folder or document,",10,"#475569")+txc(210,74,"and Windows will open it for you.",10,"#475569")+tx(66,106,"Open:",11)+inp(104,90,250,t,1)+btn(120,140,70,"OK",1)+btn(198,140,70,"Cancel")+btn(276,140,80,"Browse…"),50,20,320,158))}
+function uac(){return dlg("Folder Access Denied",["You'll need to provide administrator","permission to access this folder."],["Continue","Cancel"],0,300,140)}
+function skip(){return dlg("File In Use",["The action can't be completed because the","file is open in another program."],["Skip","Try Again"],0,320,160,function(x,y){return '<rect x="'+(x+16)+'" y="'+(y+86)+'" width="13" height="13" rx="2" fill="#fff" stroke="'+R+'" stroke-width="2.4"/>'+tx(x+19,y+97,"✔",11,R,1)+tx(x+36,y+97,"Do this for all current items",11,R,1)})}
+function files(k){var o=win("Temp",''),r="";["~DF3A12.tmp","setup_log.txt","chrome_cache.tmp","wct8F1.tmp","report.tmp"].forEach(function(f,i){r+='<rect x="30" y="'+(40+i*25)+'" width="240" height="22" rx="3" fill="#cfe1ff"/>'+tx(40,56+i*25,"📄 "+f,11,"#1f2937",0,262)});return svg(o+r+key(292,58,92,k||"Ctrl + A",44)+txc(338,120,"keyboard se dabao",10,"#475569"))}
+function del(){return svg(win("Temp",'<rect x="30" y="40" width="240" height="122" rx="3" fill="#cfe1ff"/>'+tx(40,72,"(sab files selected hain)",11,"#334155",0,262)+key(292,44,92,"Delete",42)+txc(338,106,"ya pakka delete:",10,"#475569")+key(292,112,92,"Shift + Del",42)))}
+function dp(sel){var o="";[["Canon LBP2900",0],["HP LaserJet 1020",1],["EPSON L3210",2]].forEach(function(p,i){o+=txc(75+i*115,80,"🖨️",32)+txc(75+i*115,104,p[0],10.5)});return svg(win("Devices and Printers",o+(sel?box(262,48,110,70)+'<rect x="292" y="112" width="112" height="64" rx="6" fill="#fff" stroke="#9aa9c2" filter="url(#sh)"/>'+tx(300,129,"Set as default printer",9.5,"#1f2937",0,402)+tx(300,145,"Printing preferences",9.5,R,1,402)+tx(300,161,"Printer properties",9.5,"#1f2937",0,402):''))) }
+function maint(){return svg(win("Printing Preferences",tx(34,52,"Main",11)+tx(80,52,"Page Setup",11)+'<rect x="158" y="36" width="92" height="22" rx="4" fill="#fff1f3" stroke="'+R+'" stroke-width="2.4"/>'+txc(204,52,"Maintenance",11,R,1)+btn(50,84,140,"Nozzle Check")+btn(50,120,140,"Head Cleaning",1)+tx(202,100,"← pehle ye (test print)",10.5,"#475569")+tx(202,136,"← phir ye (cleaning)",10.5,R,1)+btn(240,158,64,"OK")+btn(312,158,64,"Cancel")))}
+function addp(){return svg(win("Add Printer",tx(36,52,"Searching for printers…",11,"#475569")+tx(36,80,"🖨️  Canon LBP2900 (192.168.1.20)",11)+tx(36,126,"The printer that I want isn't listed",11,R,1)+box(28,110,230,24)+btn(300,158,70,"Next")))}
+function shared(t){return svg(win("Add Printer – Find a printer by other options",'<circle cx="40" cy="58" r="5" fill="none" stroke="#475569"/>'+tx(54,62,"My printer is a little older. Help me find it.",11)+'<circle cx="40" cy="84" r="5.5" fill="'+R+'"/>'+tx(54,88,"Select a shared printer by name",11,R,1)+inp(54,96,320,t||"\\\\PC-NAME\\PrinterName",1)+'<circle cx="40" cy="140" r="5" fill="none" stroke="#475569"/>'+tx(54,144,"Add a printer using an IP address or hostname",11)+btn(306,160,66,"Next")))}
+function lport(t){return svg(win("Add Printer – Choose a printer port",'<circle cx="40" cy="58" r="5" fill="none" stroke="#475569"/>'+tx(54,62,"Use an existing port",11)+'<circle cx="40" cy="84" r="5.5" fill="'+R+'"/>'+tx(54,88,"Create a new port:   Local Port",11,R,1)+tx(54,118,"Port name:",11)+inp(54,124,320,t||"\\\\PC-NAME\\PrinterName",1)+btn(306,160,66,"Next")))}
+function ncpa(){return svg(win("Network Connections",txc(80,86,"🖧",34)+txc(80,118,"Ethernet",11)+txc(200,86,"📶",34)+txc(200,118,"Wi-Fi",11)+box(36,56,88,74)+'<rect x="108" y="120" width="130" height="62" rx="6" fill="#fff" stroke="#9aa9c2" filter="url(#sh)"/>'+tx(118,137,"Disable",10.5)+tx(118,153,"Status",10.5)+tx(118,169,"Properties",10.5,R,1)))}
+function ipv4(){return svg(win("Internet Protocol Version 4 (TCP/IPv4) Properties",'<circle cx="40" cy="48" r="5" fill="none" stroke="#475569"/>'+tx(52,52,"Obtain an IP address automatically",10.5)+'<circle cx="40" cy="66" r="5.5" fill="'+R+'"/>'+tx(52,70,"Use the following IP address:",10.5,R,1)+tx(52,92,"IP address:",10.5)+inp(160,78,160,"192.168.1.50",1)+tx(52,116,"Subnet mask:",10.5)+inp(160,102,160,"255.255.255.0")+tx(52,140,"Default gateway:",10.5)+inp(160,126,160,"192.168.1.1")+tx(52,164,"DNS server:",10.5)+inp(160,150,160,"8.8.8.8")+btn(328,158,64,"OK",1),10,8,400,188))}
+function svc(a){a=a||"Print Spooler";return svg(win("Services",tx(36,50,"Name",10,"#475569",1)+tx(250,50,"Status",10,"#475569",1)+tx(36,74,"Plug and Play",11)+tx(250,74,"Running",11)+'<rect x="30" y="84" width="344" height="22" rx="3" fill="#dbeafe"/>'+box(30,84,344,22)+tx(36,100,a,11,"#1f2937",1,240)+tx(250,100,"Running",11)+'<rect x="150" y="112" width="104" height="62" rx="6" fill="#fff" stroke="#9aa9c2" filter="url(#sh)"/>'+tx(160,129,"Start",10.5)+tx(160,145,"Stop",10.5)+tx(160,161,"Restart",10.5,R,1)))}
+function cmd(l){var o='<rect x="24" y="14" width="372" height="174" rx="8" fill="#0f172a" filter="url(#sh)"/><path d="M24 36V22a8 8 0 0 1 8-8H388a8 8 0 0 1 8 8V36Z" fill="#1e293b"/>'+tx(36,29,"Command Prompt",10,"#cbd5e1",0,380);l.forEach(function(s,i){o+='<text x="38" y="'+(58+i*18)+'" font-size="11" fill="'+(s[0]===">"?"#fff":"#7dd3fc")+'" font-family="Consolas,monospace"'+(s.length*6.6>336?' textLength="336" lengthAdjust="spacingAndGlyphs"':'')+'>'+s.replace(/</g,"&lt;")+'</text>'});return svg(o)}
+function reg(){return svg(win("Registry Editor",tx(30,50,"▾ HKEY_LOCAL_MACHINE",10)+tx(42,66,"▾ SYSTEM  ▾ CurrentControlSet  ▾ Control",10)+'<rect x="52" y="72" width="62" height="17" rx="3" fill="#dbeafe"/>'+box(52,72,62,17)+tx(58,85,"Print",11,"#1f2937",1)+'<rect x="146" y="58" width="232" height="24" rx="3" fill="#fff" stroke="#9aa9c2"/>'+tx(152,74,"RpcAuthnLevelPrivacyEnabled",10,R,1,372)+tx(152,102,"Type: REG_DWORD (32-bit)",10)+tx(152,122,"Value data:   0",12,R,1)+btn(298,156,70,"OK",1)))}
+function cred(){return svg(win("Credential Manager",tx(36,52,"Web Credentials",11)+'<rect x="150" y="36" width="140" height="22" rx="4" fill="#fff1f3" stroke="'+R+'" stroke-width="2.4"/>'+txc(220,52,"Windows Credentials",11,R,1)+tx(36,92,"Add a Windows credential",11,R,1)+box(28,76,178,22)+tx(36,124,"Internet or network address:   PC-NAME",10.5)+tx(36,142,"User name:  PC-NAME\\user      Password:  ••••••",10.5)+btn(300,158,70,"OK")))}
+function note(i,t){return svg(txc(210,96,i,56)+txc(210,160,t,13,"#334155",1))}
+/* new generic scenes */
+function taskm(){return panel("Task Manager",["Google Chrome                         CPU 45%    RAM 1.8 GB","Microsoft Excel (Not responding)   CPU 0%     RAM 420 MB","Windows Explorer                       CPU 1%     RAM 90 MB"],1,["End task","Resources values","Go to details"],0)}
+function startup(){return panel("Task Manager – Startup apps",["Microsoft Teams              Enabled     High","OneDrive                        Enabled     Medium","Spotify                          Enabled     High"],2,["Disable","Open file location","Properties"],0)}
+function pm(){return panel("Project  (Win + P)",["PC screen only","Duplicate","Extend","Second screen only"],1)}
+function snd(){return panel("Sound – Playback",["Speakers  (Realtek Audio)     Not default","Headphones                           Ready","HDMI Output                          Ready"],0,["Set as Default Device","Test","Properties"],0)}
+function dsk(){return panel("Disk Management",["Disk 0   (C:)   NTFS   Healthy","Disk 1   USB DRIVE   (no drive letter)   Healthy"],1,["Change Drive Letter and Paths…","Open","Format…"],0)}
+function dev(){return panel("Device Manager",["Keyboards","Mice and other pointing devices","   HID-compliant mouse","Universal Serial Bus controllers"],2,["Update driver","Uninstall device","Properties"],1)}
+function cln(){return form("Disk Cleanup for (C:)",[["Delete these files:","☑ Temporary files   ☑ Recycle Bin",1]],"OK",1,"Pehle Temporary files aur Recycle Bin tick karo.")}
+function mapd(){return form("Map Network Drive",[["Drive:","Z:"],["Folder:","\\\\SERVER\\Shared",1]],"Finish",1,"☑ Reconnect at sign-in",360)}
+function clr(){return form("Clear browsing data",[["Time range:","All time",1],["Delete:","☑ Cached images and files"]],"Clear data",1,"Cookies ki tick se websites se logout ho jaoge.",360)}
+function tmd(){return dlg("Date and Time",["Date and Time    Additional Clocks    Internet Time"],["Change settings…"],0,340,150,function(x,y,w){return '<rect x="'+(x+212)+'" y="'+(y+32)+'" width="86" height="20" rx="3" fill="none" stroke="'+R+'" stroke-width="2.4"/>'+tx(x+16,y+80,"Time zone:  (UTC+05:30) Chennai, Kolkata, Mumbai, New Delhi",10,R,1)})}
+function rec(){return panel("Document Recovery",["Report_v2.docx   [Original]","Report_v2   [Recovered]   (jyada nayi)"],1,["Open","Save As…","Close"],1)}
+function sec(){return panel("Ctrl + Alt + Del  menu",["Lock","Switch user","Sign out","Change a password","Task Manager"],3)}
 
-/* ---------- content ---------- */
-function G(t){return t} // helper for readability
+/* =====  Topics  ===== */
 var T=[
-{id:"temp",ic:"🧹",cat:"Cleanup",t:"Temp folder delete karna (C:\\Windows\\Temp)",s:"PC slow ho ya disk full ho",k:"temp delete clean slow",
- intro:"Windows ki system temp files delete hoti hain. Koi bhi program band karke ye karo. Ye safe hai.",
- st:[{p:"Keyboard par <b>Windows key + R</b> ek saath dabao. <b>Run</b> box khulega.",i:KEYWR},
- {p:"Box me <code>temp</code> likho aur <b>OK</b> / Enter dabao.",c:"temp",i:run("temp")},
- {p:"Agar <b>Folder Access Denied</b> aaye to <b>Continue</b> dabao.",i:uac()},
- {p:"Folder me click karke <b>Ctrl + A</b> dabao (sab files select ho jayengi).",i:files("Ctrl + A")},
- {p:"<b>Delete</b> key dabao (Recycle Bin me jayengi). Pakka hatana ho to <b>Shift + Delete</b>.",i:del()},
- {p:"Agar <b>File In Use</b> aaye to <b>Do this for all current items</b> tick karo aur <b>Skip</b> dabao. Jo files use me hain wo apne aap rah jayengi, bas.",i:skip()}],
- w:"Sirf <b>temp</b> folder ke andar ki files delete karo, folder khud nahi. Kisi aur folder me ye mat karo."},
-{id:"pctemp",ic:"🗑️",cat:"Cleanup",t:"%temp% delete karna (User Temp)",s:"Aapke login ki temporary files",k:"%temp% user temp delete clean",
- intro:"Ye aapke apne user account ki temp files hain. Isse bhi PC halka hota hai.",
+/* ---------- PC ---------- */
+{id:"slowpc",ic:"🐢",cat:"PC",t:"Computer slow chal raha hai",s:"Hang hota hai, program der se khulte hain",k:"slow pc hang speed performance dheema",
+ intro:"Ye steps order me karo. Har step ke baad dekho speed theek hui ya nahi.",
+ st:[{p:"Sabse pehle <b>Start → Power → Restart</b> karo (Shut down nahi). 1–2 hafte se PC band nahi hua to ye akela hi kaafi hota hai.",i:note("🔄","Start → Power → Restart")},
+ {p:"<b>Ctrl + Shift + Esc</b> dabao (Task Manager). Jo program bahut CPU / Memory le raha hai (lal ya peela) use select karke <b>End task</b> karo.",i:taskm()},
+ {p:"Task Manager ke <b>Startup apps</b> tab me jo faltu program hain (Spotify, Teams…) un par right-click → <b>Disable</b>. Isse PC chalu hote hi halka rahega.",i:startup()},
+ {p:"Temp files saaf karo: <b>Win + R</b> → <code>%temp%</code> → sab select karke delete (topic: <b>%temp% delete karna</b>).",c:"%temp%",i:run("%temp%")},
+ {p:"C drive me jagah check karo (<b>This PC</b>). Laal bar ho to topic <b>C drive full hai</b> follow karo.",i:note("💽","C: drive laal = jagah kam")},
+ {p:"Windows Security me <b>Quick scan</b> chalao: Start → <code>Windows Security</code> → Virus & threat protection → <b>Quick scan</b>.",i:note("🛡️","Quick scan")}],
+ w:"Bahut purana PC (4 GB RAM se kam) ho to ye steps zyada fark nahi daalenge – IT ko batao."},
+{id:"hang",ic:"🧊",cat:"PC",t:"Program ya screen hang ho gayi (Not Responding)",s:"Click karne par kuch nahi hota",k:"hang freeze not responding stuck end task",
+ st:[{p:"1–2 minute <b>ruko</b>. Kabhi kabhi program bas kaam kar raha hota hai.",i:note("⏳","Pehle 1–2 minute ruko")},
+ {p:"<b>Ctrl + Shift + Esc</b> dabao. Jis program ke aage <b>Not responding</b> likha ho use select karke <b>End task</b> karo.",i:taskm()},
+ {p:"Program dobara kholo. Word / Excel ho to file wapas aa jati hai – topic <b>Word / Excel file save nahi hui</b> dekho.",i:rec()},
+ {p:"Agar poori screen, mouse aur keyboard hi band hain to <b>Power button 10 second</b> daba kar rakho, PC band hoga, 30 second baad dobara chalao.",i:note("⏻","Power button 10 second")}],
+ w:"Power button se band karne par jo file save nahi thi wo ud sakti hai. Pehle End task try karo."},
+{id:"diskfull",ic:"💽",cat:"PC",t:"C drive full hai / jagah kam hai",s:"“Low disk space” ka message",k:"disk full c drive space cleanup cleanmgr storage",
+ st:[{p:"<b>Win + R</b> dabao.",i:KEYWR},
+ {p:"<code>cleanmgr</code> likho aur <b>OK</b> dabao. Drive <b>C:</b> chuno.",c:"cleanmgr",i:run("cleanmgr")},
+ {p:"<b>Temporary files</b>, <b>Recycle Bin</b>, <b>Temporary Internet Files</b> par tick karo → <b>OK</b> → <b>Delete Files</b>.",i:cln()},
+ {p:"<b>Downloads</b> folder kholo, jo bade purane files (video, setup) ki zaroorat nahi unhe delete karo ya D drive / pen drive me daal do.",i:note("📥","Downloads folder saaf karo")},
+ {p:"<b>Start → Settings → Apps</b> me jo software kabhi use nahi hota use <b>Uninstall</b> karo.",i:note("🧩","Settings → Apps → Uninstall")}],
+ w:"Office ki zaroori file (Tally data, Excel) bina IT se pooche delete mat karo."},
+{id:"datetime",ic:"🕒",cat:"PC",t:"Date / Time galat dikh raha hai",s:"Ghadi peeche ya aage ho gayi",k:"date time clock timezone galat timedate.cpl",
+ st:[{p:"<b>Win + R</b> dabao.",i:KEYWR},
+ {p:"<code>timedate.cpl</code> likho aur <b>OK</b> dabao.",c:"timedate.cpl",i:run("timedate.cpl")},
+ {p:"<b>Date and Time</b> tab me <b>Change time zone</b> par jao aur <b>(UTC+05:30) Chennai, Kolkata, Mumbai, New Delhi</b> chuno.",i:tmd()},
+ {p:"<b>Internet Time</b> tab → <b>Change settings…</b> → <b>Update now</b> dabao → <b>OK</b>.",i:tmd()}],
+ w:"Baar-baar time galat ho jaye to motherboard ki battery khatam ho sakti hai – IT ko batao."},
+{id:"screenshot",ic:"📸",cat:"PC",t:"Screenshot kaise lein (IT ko bhejne ke liye)",s:"Error dikhana ho to",k:"screenshot snip win shift s print screen",
+ st:[{p:"<b>Windows + Shift + S</b> ek saath dabao. Screen halki dhundhli ho jayegi.",i:keys([["⊞ Win",64],["Shift",64],["S",44]])},
+ {p:"Mouse se jis hisse ka photo lena hai use drag karke select karo.",i:note("🖱️","Drag karke select karo")},
+ {p:"Ab <b>WhatsApp / Email</b> me jaakar <b>Ctrl + V</b> dabao – photo paste ho jayegi aur bhej do.",i:keys([["Ctrl",64],["V",44]])}]},
+{id:"pwd",ic:"🔑",cat:"PC",t:"Windows ka password badalna",s:"Password yaad hai par naya rakhna hai",k:"password change windows ctrl alt del login",
+ st:[{p:"<b>Ctrl + Alt + Delete</b> ek saath dabao.",i:keys([["Ctrl",60],["Alt",56],["Del",56]])},
+ {p:"<b>Change a password</b> chuno.",i:sec()},
+ {p:"Purana password, phir naya password do baar daalo → <b>Enter</b>.",i:note("🔐","Old → New → Confirm")}],
+ w:"Password bhool gaye ho to khud reset mat karo – IT team se contact karo."},
+/* ---------- Internet / Network ---------- */
+{id:"nonet",ic:"📶",cat:"Internet",t:"Internet nahi chal raha / bahut slow hai",s:"Websites nahi khul rahin",k:"internet not working slow wifi lan dns ping ipconfig flushdns",
+ intro:"Pehle dekho sirf aapka PC dikkat me hai ya sab ka internet band hai. Sab ka band ho to IT ko batao.",
+ st:[{p:"<b>LAN cable</b> dono taraf theek se lagi hai? Wi-Fi me taskbar ka <b>Wi-Fi icon</b> check karo (✈️ Airplane mode band ho).",i:note("🔌","Cable / Wi-Fi icon check")},
+ {p:"<b>Win + R</b> → <code>cmd</code> → Enter. Phir <code>ping 8.8.8.8</code> likho. <b>Reply from…</b> aaye = internet hai (DNS issue). <b>Timed out</b> = internet / network band.",c:"ping 8.8.8.8",i:cmd(["> ping 8.8.8.8","Reply from 8.8.8.8: bytes=32 time=18ms","Reply from 8.8.8.8: bytes=32 time=17ms","","> ping google.com","Ping request could not find host google.com."])},
+ {p:"Network refresh karo, ye commands ek-ek karke likho aur Enter dabao: <code>ipconfig /release</code>, <code>ipconfig /renew</code>, <code>ipconfig /flushdns</code>.",c:"ipconfig /flushdns",i:cmd(["> ipconfig /release","> ipconfig /renew","> ipconfig /flushdns","Successfully flushed the DNS Resolver Cache."])},
+ {p:"<b>Win + R</b> → <code>ncpa.cpl</code> → apne connection par right-click → <b>Disable</b>, 10 second baad dobara right-click → <b>Enable</b>.",c:"ncpa.cpl",i:ncpa()},
+ {p:"Phir bhi nahi chale to PC <b>Restart</b> karo. Ab bhi problem ho to IT ko batao: kaun si websites / kitne PC me problem hai.",i:note("🔄","Restart, phir IT ko batao")}]},
+{id:"manualip",ic:"🔌",cat:"Internet",t:"Network setting manually (IP address daalna)",s:"Windows + R → ncpa.cpl",k:"network ip address manual ncpa.cpl static dns gateway",
+ intro:"IP, Subnet, Gateway aur DNS ki sahi value IT se pooch lo. Neeche ki values sirf example hain.",
  st:[{p:"<b>Windows key + R</b> dabao.",i:KEYWR},
- {p:"Box me <code>%temp%</code> likho aur <b>OK</b> dabao.",c:"%temp%",i:run("%temp%")},
- {p:"Folder khulne par <b>Ctrl + A</b> dabao – sab files select.",i:files("Ctrl + A")},
- {p:"<b>Delete</b> dabao (ya <b>Shift + Delete</b>).",i:del()},
- {p:"<b>File In Use</b> aaye to <b>Do this for all current items</b> tick karke <b>Skip</b> dabao.",i:skip()},
- {p:"Last me Desktop ke <b>Recycle Bin</b> par right-click → <b>Empty Recycle Bin</b>.",i:note("♻️","Recycle Bin → Empty Recycle Bin")}],
- w:"Delete se pehle Word / Excel / Tally ki file save karke band kar do."},
-{id:"prefetch",ic:"⚡",cat:"Cleanup",t:"Prefetch delete karna",s:"C:\\Windows\\Prefetch",k:"prefetch delete clean",
- intro:"Prefetch me Windows ke program-start ki purani files hoti hain. Delete karna safe hai, Windows khud nayi bana leta hai.",
- st:[{p:"<b>Windows key + R</b> dabao.",i:KEYWR},
- {p:"Box me <code>prefetch</code> likho aur <b>OK</b> dabao.",c:"prefetch",i:run("prefetch")},
- {p:"<b>Continue</b> dabao (administrator permission).",i:uac()},
- {p:"<b>Ctrl + A</b> dabao, phir <b>Delete</b> dabao.",i:files("Ctrl + A")},
- {p:"<b>Skip</b> aaye to <b>Do this for all current items</b> tick karke <b>Skip</b>.",i:skip()}],
- w:"Prefetch delete karne ke baad pehli baar program thoda der se khul sakta hai – ye normal hai."},
+ {p:"<code>ncpa.cpl</code> likho aur <b>OK</b> dabao. <b>Network Connections</b> khulega.",c:"ncpa.cpl",i:run("ncpa.cpl")},
+ {p:"Jo connection use ho raha hai (LAN ke liye <b>Ethernet</b>, WiFi ke liye <b>Wi-Fi</b>) us par <b>right-click → Properties</b>.",i:ncpa()},
+ {p:"List me <b>Internet Protocol Version 4 (TCP/IPv4)</b> par double-click karo.",i:ipv4()},
+ {p:"<b>Use the following IP address</b> chuno. <b>IP address</b>, <b>Subnet mask</b>, <b>Default gateway</b> aur <b>DNS</b> daalo → <b>OK</b> → <b>OK</b>.",i:ipv4()},
+ {p:"Check: <b>Win + R</b> → <code>cmd</code> → <code>ipconfig</code>. Phir printer / server ka IP <code>ping 192.168.1.20</code> karo. <b>Reply from…</b> aaye to connection theek hai.",c:"ipconfig",i:cmd(["> ipconfig","IPv4 Address . . : 192.168.1.50","Subnet Mask . . . : 255.255.255.0","Default Gateway . : 192.168.1.1","","> ping 192.168.1.20","Reply from 192.168.1.20: bytes=32"])}],
+ w:"Galat IP daalne se internet band ho sakta hai, aur kisi dusre PC ka IP daal diya to <b>IP conflict</b> aata hai. Wapas jaane ke liye <b>Obtain an IP address automatically</b> chuno."},
+{id:"mapdrive",ic:"🗂️",cat:"Internet",t:"Network drive (shared folder) map karna",s:"Server ka folder apne PC me Z: drive ki tarah",k:"map network drive shared folder server z drive",
+ st:[{p:"<b>Win + E</b> dabao (File Explorer) → left me <b>This PC</b>.",i:keys([["⊞ Win",72],["E",52]])},
+ {p:"Upar <b>… (three dots) → Map network drive</b> (Windows 10 me <b>Computer</b> tab → <b>Map network drive</b>).",i:note("🗂️","… → Map network drive")},
+ {p:"<b>Drive</b> me koi letter (jaise Z:) chuno. <b>Folder</b> me <code>\\\\SERVER\\Shared</code> likho (IT se sahi path pooch lo). <b>Reconnect at sign-in</b> tick karo → <b>Finish</b>.",c:"\\\\SERVER\\Shared",i:mapd()},
+ {p:"User-name password maange to <b>us server ka login</b> daalo aur <b>Remember my credentials</b> tick karo.",i:cred()}]},
+{id:"chrome",ic:"🌐",cat:"Internet",t:"Browser (Chrome) slow ya website sahi se nahi khul rahi",s:"Cache saaf karna",k:"chrome browser slow cache cookies clear website not loading",
+ st:[{p:"Chrome me <b>Ctrl + Shift + Delete</b> dabao.",i:keys([["Ctrl",60],["Shift",72],["Del",56]])},
+ {p:"<b>Time range</b> me <b>All time</b> chuno. <b>Cached images and files</b> par tick karo.",i:clr()},
+ {p:"<b>Clear data</b> dabao. Chrome band karke dobara kholo.",i:clr()},
+ {p:"Phir bhi problem ho to dusra browser (Edge) me wahi website kholkar dekho. Edge me chale to Chrome ka extension problem kar raha ho sakta hai.",i:note("🧪","Edge me try karo")}],
+ w:"Cookies ki tick lagane se aap websites se logout ho jaoge – password yaad rakho."},
+/* ---------- Printer ---------- */
+{id:"notprint",ic:"🖨️",cat:"Printer",t:"Printer print nahi kar raha (pehle ye check karo)",s:"Job bhejne ke baad bhi kuch nahi nikalta",k:"printer not printing offline pending queue default",
+ st:[{p:"Printer <b>ON</b> hai? Power aur USB / LAN cable lagi hai? Paper aur ink / toner hai? Display par error light to nahi?",i:note("🔌","Power, cable, paper, ink")},
+ {p:"<b>Win + R</b> → <code>control printers</code>. Apne printer par <b>right-click → Set as default printer</b> karo. (Galat printer par print bhej rahe ho sakte ho.)",c:"control printers",i:dp(1)},
+ {p:"Printer ka naam <b>Offline</b> dikhe to right-click → <b>See what's printing</b> → menu <b>Printer</b> → <b>Use Printer Offline</b> ka tick hatao.",i:dp(1)},
+ {p:"Queue me atki hui jobs ho to topic <b>Print Spooler restart</b> follow karo.",i:svc()},
+ {p:"Shared printer ho to host PC ON hona chahiye. Phir bhi nahi chale to printer ko <b>OFF → 30 second → ON</b> karo aur PC restart karo.",i:note("🔄","Printer OFF/ON + PC restart")}]},
+{id:"jam",ic:"📄",cat:"Printer",t:"Paper jam (kagaz phans gaya)",s:"Printer “Paper jam” dikha raha hai",k:"paper jam stuck printer kagaz",
+ st:[{p:"Printer ko <b>band karo</b> (OFF) aur power plug nikaal do.",i:note("⏻","Printer OFF + plug nikalo")},
+ {p:"Paper tray aur <b>peeche ka cover</b> kholo. Phansa hua kagaz <b>dhire dhire, usi direction me</b> kheencho jis taraf se paper jata hai.",i:note("📄","Dhire dhire kheencho")},
+ {p:"Kagaz ka koi <b>chhota tukda</b> andar na rah jaye – torch se andar dekho. Sab cover band karo.",i:note("🔦","Torch se andar check")},
+ {p:"Printer ON karo aur test page print karo. Kagaz seedha, bina fata hua aur tray me sahi lagao.",i:dp(1)}],
+ w:"Laser printer ke andar ka hissa (fuser) garam hota hai – band karke 10 minute ruko. Zor se mat kheencho."},
 {id:"headclean",ic:"🖨️",cat:"Printer",t:"Printer Head Cleaning (Control Panel se)",s:"Print light aa rahi ho, lines ya color missing ho",k:"printer head cleaning nozzle control panel inkjet epson canon",
  intro:"Ye Inkjet printer (Epson / Canon / HP / Brother) ke liye hai. Laser printer me head cleaning nahi hoti. Printer ON ho aur A4 paper lagi ho.",
  st:[{p:"<b>Windows key + R</b> dabao.",i:KEYWR},
- {p:"Box me <code>control printers</code> likho aur <b>OK</b> dabao. <b>Devices and Printers</b> khulega.",c:"control printers",i:run("control printers")},
+ {p:"<code>control printers</code> likho aur <b>OK</b> dabao. <b>Devices and Printers</b> khulega.",c:"control printers",i:run("control printers")},
  {p:"Apne printer par <b>right-click</b> karo → <b>Printing preferences</b> chuno.",i:dp(1)},
  {p:"<b>Maintenance</b> (kisi me <b>Utility</b>) tab kholo. Pehle <b>Nozzle Check</b> dabao aur test page print karo.",i:maint()},
- {p:"Agar print me lines / color gayab hain to <b>Head Cleaning</b> dabao → <b>Start</b>. 1–2 minute rukna, printer awaz karega.",i:maint()},
- {p:"Cleaning ke baad dobara <b>Nozzle Check</b> print karo. Theek na ho to cleaning <b>max 2–3 baar</b> karo, har baar 5 minute gap ke saath.",i:note("✅","Nozzle check saaf aaye = ho gaya")}],
+ {p:"Agar print me lines / color gayab hain to <b>Head Cleaning</b> dabao → <b>Start</b>. 1–2 minute ruko, printer awaz karega.",i:maint()},
+ {p:"Cleaning ke baad dobara <b>Nozzle Check</b> print karo. Theek na ho to cleaning <b>max 2–3 baar</b> karo, har baar 5 minute gap ke saath.",i:note("✅","Nozzle check saaf = ho gaya")}],
  w:"Cleaning me ink kharch hoti hai. Baar-baar mat karo. 3 baar me bhi theek na ho to IT ko batao (head blocked ho sakta hai)."},
 {id:"sharep",ic:"🌐",cat:"Printer",t:"Shared Printer install karna",s:"Dusre PC se connected printer apne PC me lagana",k:"shared printer install add network share",
  intro:"Jis PC se printer connected hai uska naam (ya IP) pata hona chahiye, jaise <b>PC-NAME</b> ya <b>192.168.1.20</b>. IT se pooch lo.",
  st:[{p:"<b>Tarika 1 (sabse aasaan):</b> <b>Windows key + R</b> dabao.",i:KEYWR},
- {p:"Box me <code>\\\\PC-NAME</code> likho (PC-NAME ki jagah us PC ka naam ya IP, jaise <code>\\\\192.168.1.20</code>) aur <b>OK</b> dabao. Agar user-name password maange to us PC ka login daalo.",c:"\\\\PC-NAME",i:run("\\\\PC-NAME")},
- {p:"Shared printer ke icon par <b>double-click</b> karo. Driver apne aap install hoga, bas ho gaya. Test page print karke dekho.",i:dp(0)},
- {p:"<b>Tarika 2 (agar Tarika 1 na chale):</b> <b>Win + R</b> → <code>control printers</code> → upar <b>Add a printer</b> dabao.",c:"control printers",i:run("control printers")},
- {p:"Jab search ho jaye to <b>The printer that I want isn't listed</b> par click karo.",i:addp()},
- {p:"<b>Select a shared printer by name</b> chuno. Box me <code>\\\\PC-NAME\\PrinterName</code> likho (ya <b>Browse</b> karo) → <b>Next</b> → <b>Next</b> → <b>Finish</b>.",i:shared()},
- {p:"Printer par <b>right-click → Set as default printer</b> karo aur ek test page print karo.",i:dp(1)}],
- w:"Error aaye (jaise <b>0x0000011b</b>, <b>0x00000709</b>, <b>0x00000bcb</b>) to neeche <b>Shared Printer errors</b> wale topics dekho."},
-{id:"manualip",ic:"🔌",cat:"Network",t:"Network setting manually (IP address daalna)",s:"Windows + R → ncpa.cpl",k:"network ip address manual ncpa.cpl static dns gateway",
- intro:"IP, Subnet, Gateway aur DNS ki sahi value IT se pooch lo. Neeche ki values sirf example hain.",
- st:[{p:"<b>Windows key + R</b> dabao.",i:KEYWR},
- {p:"Box me <code>ncpa.cpl</code> likho aur <b>OK</b> dabao. <b>Network Connections</b> khulega.",c:"ncpa.cpl",i:run("ncpa.cpl")},
- {p:"Jo connection use ho raha hai (LAN ke liye <b>Ethernet</b>, WiFi ke liye <b>Wi-Fi</b>) us par <b>right-click → Properties</b>.",i:ncpa()},
- {p:"List me <b>Internet Protocol Version 4 (TCP/IPv4)</b> par double-click karo.",i:ipv4()},
- {p:"<b>Use the following IP address</b> chuno. <b>IP address</b>, <b>Subnet mask</b>, <b>Default gateway</b> aur <b>DNS</b> daalo → <b>OK</b> → <b>OK</b>.",i:ipv4()},
- {p:"Check: <b>Win + R</b> → <code>cmd</code> → <code>ipconfig</code> likho, aur printer / server ka IP <code>ping 192.168.1.20</code> karke dekho. <b>Reply from…</b> aaye to connection theek hai.",c:"ipconfig",i:cmd(["> ipconfig","IPv4 Address . . : 192.168.1.50","Subnet Mask . . . : 255.255.255.0","Default Gateway . : 192.168.1.1","","> ping 192.168.1.20","Reply from 192.168.1.20: bytes=32"])}],
- w:"Galat IP daalne se internet band ho sakta hai, aur kisi dusre PC ke IP se match hua to <b>IP conflict</b> aata hai. Wapas jaane ke liye <b>Obtain an IP address automatically</b> chuno."},
+ {p:"<code>\\\\PC-NAME</code> likho (PC-NAME ki jagah us PC ka naam ya IP, jaise <code>\\\\192.168.1.20</code>) aur <b>OK</b> dabao. User-name password maange to us PC ka login daalo.",c:"\\\\PC-NAME",i:run("\\\\PC-NAME")},
+ {p:"Shared printer ke icon par <b>double-click</b> karo. Driver apne aap install hoga. Test page print karke dekho.",i:dp(0)},
+ {p:"<b>Tarika 2 (Tarika 1 na chale to):</b> <b>Win + R</b> → <code>control printers</code> → upar <b>Add a printer</b>.",c:"control printers",i:run("control printers")},
+ {p:"Search ke baad <b>The printer that I want isn't listed</b> par click karo.",i:addp()},
+ {p:"<b>Select a shared printer by name</b> chuno. Box me <code>\\\\PC-NAME\\PrinterName</code> likho (ya <b>Browse</b>) → <b>Next</b> → <b>Next</b> → <b>Finish</b>.",i:shared()},
+ {p:"Printer par <b>right-click → Set as default printer</b> karo aur test page print karo.",i:dp(1)}],
+ w:"Error aaye (<b>0x0000011b</b>, <b>0x00000709</b>, <b>0x00000bcb</b>) to <b>Printer error</b> wale topics dekho."},
+/* ---------- Printer errors ---------- */
 {id:"e11b",ic:"⛔",cat:"Printer error",t:"Error 0x0000011b – Windows cannot connect to the printer",s:"Windows update ke baad shared printer connect nahi hota",k:"0x0000011b 11b cannot connect printer operation failed rpc",
  intro:"Ye error Windows security update ke baad aata hai. Fix us PC par karna hai jisse <b>printer physically connected</b> hai (host PC). Registry me badlav hai, IT ke saath karo.",
  st:[{p:"<b>Host PC</b> par <b>Windows key + R</b> dabao.",i:KEYWR},
  {p:"<code>regedit</code> likho → <b>OK</b> → <b>Yes</b>.",c:"regedit",i:run("regedit")},
  {p:"Is raste par jao: <code>HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Print</code>",c:"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Print",i:reg()},
- {p:"Khali jagah par right-click → <b>New → DWORD (32-bit) Value</b>. Naam rakho <code>RpcAuthnLevelPrivacyEnabled</code>. Double-click karke <b>Value data = 0</b> → <b>OK</b>.",c:"RpcAuthnLevelPrivacyEnabled",i:reg()},
+ {p:"Khali jagah right-click → <b>New → DWORD (32-bit) Value</b>. Naam rakho <code>RpcAuthnLevelPrivacyEnabled</code>. Double-click karke <b>Value data = 0</b> → <b>OK</b>.",c:"RpcAuthnLevelPrivacyEnabled",i:reg()},
  {p:"Host PC <b>Restart</b> karo. Phir dusre PC se shared printer dobara add karo.",i:note("🔄","Restart → printer dobara add")},
- {p:"Phir bhi na chale to <b>Local Port tarika</b> try karo (neeche topic: <b>Printer Local Port se add karna</b>).",i:note("➡️","Local Port tarika")}],
+ {p:"Phir bhi na chale to topic <b>Printer Local Port se add karna</b> try karo.",i:note("➡️","Local Port tarika")}],
  w:"Registry me sirf upar bataya hua change karo. Kuch aur delete / change mat karo."},
-{id:"lport",ic:"🧩",cat:"Printer error",t:"Printer Local Port se add karna (0x00000709 / 0x0000011b / 0x00000bcb ka solution)",s:"Jab normal add na ho",k:"0x00000709 709 local port manual add printer bcb driver",
- intro:"Ye sabse kaam karne wala tarika hai jab shared printer normal tarike se add na ho. Pehle printer ka driver us brand ki site se download karke install kar lo (agar 0x00000bcb aa raha ho).",
+{id:"lport",ic:"🧩",cat:"Printer error",t:"Printer Local Port se add karna (0x00000709 / 0x0000011b / 0x00000bcb ka solution)",s:"Jab normal tarike se add na ho",k:"0x00000709 709 local port manual add printer bcb driver",
+ intro:"Ye sabse kaam karne wala tarika hai jab shared printer normal tarike se add na ho. Pehle printer ka driver us brand ki site se download karke install kar lo (0x00000bcb ke liye zaroori).",
  st:[{p:"<b>Win + R</b> → <code>control printers</code> → <b>Add a printer</b> → <b>The printer that I want isn't listed</b>.",c:"control printers",i:addp()},
  {p:"<b>Add a local printer or network printer with manual settings</b> chuno → <b>Next</b>.",i:note("🖨️","Add a local printer… manual settings")},
  {p:"<b>Create a new port</b> chuno, Type of port me <b>Local Port</b> → <b>Next</b>.",i:lport("")},
- {p:"<b>Port name</b> me <code>\\\\PC-NAME\\PrinterName</code> likho (PC-NAME aur printer ka share-name sahi daalna) → <b>OK</b>.",c:"\\\\PC-NAME\\PrinterName",i:lport()},
- {p:"List me se printer ka <b>Manufacturer</b> aur <b>Model</b> chuno. Na mile to <b>Have Disk…</b> se downloaded driver select karo → <b>Next</b> → <b>Finish</b>.",i:note("💽","Manufacturer + Model chuno")},
+ {p:"<b>Port name</b> me <code>\\\\PC-NAME\\PrinterName</code> likho (PC ka naam aur printer ka share-name sahi daalna) → <b>OK</b>.",c:"\\\\PC-NAME\\PrinterName",i:lport()},
+ {p:"List se printer ka <b>Manufacturer</b> aur <b>Model</b> chuno. Na mile to <b>Have Disk…</b> se downloaded driver select karo → <b>Next</b> → <b>Finish</b>.",i:note("💽","Manufacturer + Model chuno")},
  {p:"<b>Print a test page</b> dabake check karo.",i:dp(1)}]},
-{id:"espool",ic:"🔁",cat:"Printer error",t:"Print Spooler restart / Printing queue atak gayi (0x00000002, 0x00000003, print nahi ho raha)",s:"Print job pending ya error",k:"spooler restart queue stuck pending 0x00000002 0x00000003 offline",
- intro:"Jab print atak jaye ya printer add karte waqt 0x00000002 / 0x00000003 aaye to spooler restart karo.",
+{id:"espool",ic:"🔁",cat:"Printer error",t:"Print Spooler restart / queue atak gayi (0x00000002, 0x00000003)",s:"Print job pending ya error",k:"spooler restart queue stuck pending 0x00000002 0x00000003 offline",
+ intro:"Print atak jaye ya printer add karte waqt 0x00000002 / 0x00000003 aaye to spooler restart karo.",
  st:[{p:"<b>Win + R</b> → <code>services.msc</code> → <b>OK</b>.",c:"services.msc",i:run("services.msc")},
  {p:"List me <b>Print Spooler</b> par right-click → <b>Restart</b>.",i:svc()},
- {p:"Queue ab bhi atki ho to: <b>Print Spooler → Stop</b>. Phir <b>Win + R</b> → <code>C:\\Windows\\System32\\spool\\PRINTERS</code> kholo, andar ki sab files delete karo (folder nahi).",c:"C:\\Windows\\System32\\spool\\PRINTERS",i:run("C:\\Windows\\System32\\spool\\PRINTERS")},
- {p:"Wapas <b>services.msc</b> me <b>Print Spooler → Start</b>. Ab dobara print karo.",i:svc()},
- {p:"Printer <b>Offline</b> dikh raha ho to <b>control printers</b> me printer par right-click → <b>See what's printing</b> → menu <b>Printer</b> → <b>Use Printer Offline</b> ka tick hatao.",i:dp(1)}]},
-{id:"eaccess",ic:"🔒",cat:"Printer error",t:"Error – Access is denied / Username password maang raha hai",s:"Shared printer par permission nahi",k:"access denied password credential permission shared printer",
+ {p:"Queue ab bhi atki ho to pehle <b>Print Spooler → Stop</b>. Phir <b>Win + R</b> → <code>C:\\Windows\\System32\\spool\\PRINTERS</code> kholo aur andar ki sab files delete karo (folder nahi).",c:"C:\\Windows\\System32\\spool\\PRINTERS",i:run("C:\\Windows\\System32\\spool\\PRINTERS")},
+ {p:"Wapas <b>services.msc</b> me <b>Print Spooler → Start</b>. Ab dobara print karo.",i:svc()}]},
+{id:"eaccess",ic:"🔒",cat:"Printer error",t:"Error – Access is denied / username password maang raha hai",s:"Shared printer par permission nahi",k:"access denied password credential permission shared printer",
  intro:"Host PC ka login (username + password) is PC ko batana padta hai.",
  st:[{p:"<b>Win + R</b> → <code>control keymgr.dll</code> → <b>OK</b>. (Credential Manager khulega.)",c:"control keymgr.dll",i:run("control keymgr.dll")},
  {p:"<b>Windows Credentials</b> → <b>Add a Windows credential</b>.",i:cred()},
- {p:"<b>Internet or network address</b> me host PC ka naam ya IP, <b>User name</b> me <code>PC-NAME\\username</code>, aur uska password daalo → <b>OK</b>.",i:cred()},
+ {p:"<b>Internet or network address</b> me host PC ka naam ya IP, <b>User name</b> me <code>PC-NAME\\username</code> aur uska password daalo → <b>OK</b>.",i:cred()},
  {p:"Dobara <code>\\\\PC-NAME</code> kholo (Win + R) aur printer add karo.",c:"\\\\PC-NAME",i:run("\\\\PC-NAME")},
- {p:"<b>Host PC</b> par bhi check karo: <b>control printers</b> → printer right-click → <b>Printer properties → Sharing</b> tab me <b>Share this printer</b> tick hona chahiye.",i:dp(1)}]},
-{id:"enet",ic:"📡",cat:"Printer error",t:"Error 0x80070035 – Network path not found / PC ka naam nahi mil raha",s:"\\\\PC-NAME kholne par error",k:"0x80070035 network path not found pc name ip ping",
+ {p:"<b>Host PC</b> par bhi check karo: <b>control printers</b> → printer right-click → <b>Printer properties → Sharing</b> me <b>Share this printer</b> tick hona chahiye.",i:dp(1)}]},
+{id:"enet",ic:"📡",cat:"Printer error",t:"Error 0x80070035 – Network path not found",s:"\\\\PC-NAME kholne par error",k:"0x80070035 network path not found pc name ip ping",
  intro:"Matlab aapka PC host PC ko dhundh nahi paa raha.",
  st:[{p:"PC ke naam ki jagah <b>IP address</b> use karo: <b>Win + R</b> → <code>\\\\192.168.1.20</code>.",c:"\\\\192.168.1.20",i:run("\\\\192.168.1.20")},
- {p:"Connection check: <b>Win + R</b> → <code>cmd</code> → <code>ping 192.168.1.20</code>. <b>Request timed out</b> aaye to dono PC ek hi network / switch par nahi hain ya host PC band hai.",c:"ping 192.168.1.20",i:cmd(["> ping 192.168.1.20","Request timed out.","Request timed out."])},
- {p:"Host PC par: <b>Win + R</b> → <code>control /name Microsoft.NetworkAndSharingCenter</code> → <b>Change advanced sharing settings</b> → <b>Turn on network discovery</b> aur <b>Turn on file and printer sharing</b> ✔.",c:"control /name Microsoft.NetworkAndSharingCenter",i:note("🔍","Network discovery + File & printer sharing ON")},
- {p:"Host PC ka <b>Windows Firewall</b> ya antivirus block kar raha ho to IT se allow karwao. IP badalta rahe to host PC ko <b>static IP</b> do (upar wala <b>Network setting manually</b> topic).",i:note("🛡️","Firewall check")}]}
+ {p:"Connection check: <b>Win + R</b> → <code>cmd</code> → <code>ping 192.168.1.20</code>. <b>Request timed out</b> aaye to dono PC ek network par nahi hain ya host PC band hai.",c:"ping 192.168.1.20",i:cmd(["> ping 192.168.1.20","Request timed out.","Request timed out."])},
+ {p:"Host PC par: <b>Win + R</b> → <code>control /name Microsoft.NetworkAndSharingCenter</code> → <b>Change advanced sharing settings</b> → <b>Network discovery</b> aur <b>File and printer sharing</b> ON karo.",c:"control /name Microsoft.NetworkAndSharingCenter",i:note("🔍","Network discovery + Printer sharing ON")},
+ {p:"Firewall / antivirus block kar raha ho to IT se allow karwao. IP badalta rahe to host PC ko <b>static IP</b> do (topic <b>Network setting manually</b>).",i:note("🛡️","Firewall check")}]},
+/* ---------- Hardware ---------- */
+{id:"nodisp",ic:"🖥️",cat:"Hardware",t:"Monitor par display nahi aa raha (No Signal)",s:"Screen kaali hai ya “No Signal”",k:"monitor no display no signal black screen cable hdmi vga",
+ st:[{p:"Monitor ka <b>power light</b> jal raha hai? Power cable lagi hai? Monitor ka <b>Input / Source</b> button dabake sahi input (HDMI / VGA) chuno.",i:note("🖥️","Power + Input source")},
+ {p:"Display cable (HDMI / VGA) dono taraf <b>nikaal ke dobara kass ke</b> lagao. VGA me side ke screws kasso.",i:note("🔌","Cable dobara lagao")},
+ {p:"Do monitor lage hon ya laptop ho to <b>Win + P</b> dabao aur <b>Duplicate</b> chuno.",i:pm()},
+ {p:"Screen kaali par PC chal raha ho to <b>Win + Ctrl + Shift + B</b> dabao (graphics refresh).",i:keys([["⊞ Win",56],["Ctrl",52],["Shift",64],["B",42]])},
+ {p:"Dusri cable ya dusra monitor try karo. Phir bhi nahi aaye to IT ko batao.",i:note("🔁","Dusri cable / monitor try")}]},
+{id:"nosound",ic:"🔊",cat:"Hardware",t:"Awaz (sound) nahi aa rahi",s:"Speaker / headphone se awaz nahi",k:"sound audio no volume speaker headphone mute",
+ st:[{p:"Taskbar ke <b>speaker icon</b> par click karo. Mute na ho aur volume upar ho. Speaker ka apna switch / volume bhi dekho.",i:note("🔈","Mute + volume check")},
+ {p:"Speaker icon par <b>right-click → Sound settings</b> → <b>Output</b> me sahi device (Speakers / Headphones) chuno.",i:snd()},
+ {p:"Abhi bhi nahi: <b>Win + R</b> → <code>services.msc</code> → <b>Windows Audio</b> par right-click → <b>Restart</b>.",c:"services.msc",i:svc("Windows Audio")},
+ {p:"Cable / 3.5 mm jack dusre port me lagake dekho. PC restart karo.",i:note("🎧","Port badal ke dekho")}]},
+{id:"usb",ic:"💾",cat:"Hardware",t:"Pen drive / USB detect nahi ho raha",s:"This PC me drive nahi dikh rahi",k:"usb pen drive not detected disk management drive letter",
+ st:[{p:"Pen drive <b>dusre USB port</b> me lagao (PC ke peeche wale port zyada bharosemand hote hain). Dusre PC me bhi try karo.",i:note("🔌","Dusra USB port")},
+ {p:"<b>Win + R</b> → <code>diskmgmt.msc</code> → <b>OK</b>. Neeche list me pen drive dikhe par letter na ho to uspar right-click → <b>Change Drive Letter and Paths…</b> → <b>Add</b> → letter chuno.",c:"diskmgmt.msc",i:dsk()},
+ {p:"Agar <b>Unallocated / RAW</b> likha ho aur data ki zaroorat ho to <b>Format mat karo</b> – IT ko do.",i:note("⚠️","RAW = Format mat karo")}],
+ w:"<b>Format</b> karne se pen drive ka sara data hamesha ke liye mit jata hai."},
+{id:"kbm",ic:"⌨️",cat:"Hardware",t:"Keyboard ya Mouse kaam nahi kar raha",s:"Click / type nahi ho raha",k:"keyboard mouse not working usb wireless battery device manager",
+ st:[{p:"Cable ya <b>wireless receiver</b> ko <b>dusre USB port</b> me lagao. Wireless ho to <b>battery</b> badlo aur switch ON karo.",i:note("🔋","USB port + battery")},
+ {p:"Mouse na chale to keyboard se: <b>Win + R</b> → <code>devmgmt.msc</code> → Enter (Device Manager).",c:"devmgmt.msc",i:run("devmgmt.msc")},
+ {p:"<b>Keyboards</b> ya <b>Mice</b> me device par right-click → <b>Uninstall device</b> → PC <b>Restart</b>. Windows driver khud dobara laga lega.",i:dev()},
+ {p:"Dusra keyboard / mouse lagake check karo. Naya chale to purana kharab hai.",i:note("🔁","Dusra device try karo")}]},
+/* ---------- Office ---------- */
+{id:"officerec",ic:"📝",cat:"Office",t:"Word / Excel file save nahi hui ya program band ho gaya",s:"File wapas kaise layein",k:"word excel recover unsaved file crash autorecover safe mode",
+ st:[{p:"Word / Excel dobara kholo. Left side me <b>Document Recovery</b> ka panel aaye to jo file nayi ho (<b>Recovered</b>) use chuno → <b>Save As…</b> se naye naam se save karo.",i:rec()},
+ {p:"Panel na aaye to: <b>File → Info → Manage Document</b> (Excel me <b>Manage Workbook</b>) → <b>Recover Unsaved Documents</b> / <b>Workbooks</b>.",i:note("📝","File → Info → Recover Unsaved")},
+ {p:"Program baar-baar band ho raha ho to <b>Win + R</b> me <code>excel /safe</code> (ya <code>winword /safe</code>) likho aur Enter dabao. Safe mode me chale to koi add-in problem kar raha hai.",c:"excel /safe",i:run("excel /safe")},
+ {p:"Aage se <b>Ctrl + S</b> badi aadat bana lo, aur <b>File → Options → Save</b> me AutoRecover har 5 minute rakho.",i:keys([["Ctrl",60],["S",44]])}]},
+{id:"outlook",ic:"📧",cat:"Office",t:"Outlook khul nahi raha / mail send-receive nahi ho rahi",s:"Outlook hang ya “cannot start”",k:"outlook not opening mail send receive hang safe mode mailbox full",
+ st:[{p:"Outlook poora band karo (<b>Ctrl + Shift + Esc</b> me Outlook ho to <b>End task</b>).",i:taskm()},
+ {p:"<b>Win + R</b> → <code>outlook /safe</code> → Enter. Safe mode me khul jaye to ek add-in problem kar raha hai (IT ko batao).",c:"outlook /safe",i:run("outlook /safe")},
+ {p:"Mail na aa rahi ho to <b>F9</b> dabao (Send / Receive). Neeche <b>Working Offline</b> likha ho to <b>Send / Receive → Work Offline</b> ko band karo.",i:keys([["F9",52]])},
+ {p:"<b>Mailbox full</b> ka message aaye to <b>Deleted Items</b> aur bade attachment wali purani mails delete karo.",i:note("🗑️","Deleted Items khali karo")}]},
+/* ---------- Cleanup ---------- */
+{id:"temp",ic:"🧹",cat:"Cleanup",t:"Temp folder delete karna (C:\\Windows\\Temp)",s:"PC slow ho ya disk full ho",k:"temp delete clean slow",
+ intro:"Windows ki system temp files delete hoti hain. Koi bhi program band karke ye karo. Ye safe hai.",
+ st:[{p:"Keyboard par <b>Windows key + R</b> ek saath dabao. <b>Run</b> box khulega.",i:KEYWR},
+ {p:"Box me <code>temp</code> likho aur <b>OK</b> / Enter dabao.",c:"temp",i:run("temp")},
+ {p:"<b>Folder Access Denied</b> aaye to <b>Continue</b> dabao.",i:uac()},
+ {p:"Folder me click karke <b>Ctrl + A</b> dabao (sab files select).",i:files("Ctrl + A")},
+ {p:"<b>Delete</b> dabao (Recycle Bin me jayengi). Pakka hatana ho to <b>Shift + Delete</b>.",i:del()},
+ {p:"<b>File In Use</b> aaye to <b>Do this for all current items</b> tick karke <b>Skip</b> dabao. Jo files use me hain wo rah jayengi, koi dikkat nahi.",i:skip()}],
+ w:"Sirf <b>temp</b> folder ke andar ki files delete karo, folder khud nahi."},
+{id:"pctemp",ic:"🗑️",cat:"Cleanup",t:"%temp% delete karna (User Temp)",s:"Aapke login ki temporary files",k:"%temp% user temp delete clean",
+ intro:"Ye aapke apne user account ki temp files hain. Isse bhi PC halka hota hai.",
+ st:[{p:"<b>Windows key + R</b> dabao.",i:KEYWR},
+ {p:"<code>%temp%</code> likho aur <b>OK</b> dabao.",c:"%temp%",i:run("%temp%")},
+ {p:"Folder khulne par <b>Ctrl + A</b> dabao – sab files select.",i:files("Ctrl + A")},
+ {p:"<b>Delete</b> dabao (ya <b>Shift + Delete</b>).",i:del()},
+ {p:"<b>File In Use</b> aaye to <b>Do this for all current items</b> tick karke <b>Skip</b> dabao.",i:skip()},
+ {p:"Last me Desktop ke <b>Recycle Bin</b> par right-click → <b>Empty Recycle Bin</b>.",i:note("♻️","Recycle Bin → Empty")}],
+ w:"Delete se pehle Word / Excel / Tally ki file save karke band kar do."},
+{id:"prefetch",ic:"⚡",cat:"Cleanup",t:"Prefetch delete karna",s:"C:\\Windows\\Prefetch",k:"prefetch delete clean",
+ intro:"Prefetch me Windows ke program-start ki purani files hoti hain. Delete karna safe hai, Windows khud nayi bana leta hai.",
+ st:[{p:"<b>Windows key + R</b> dabao.",i:KEYWR},
+ {p:"<code>prefetch</code> likho aur <b>OK</b> dabao.",c:"prefetch",i:run("prefetch")},
+ {p:"<b>Continue</b> dabao (administrator permission).",i:uac()},
+ {p:"<b>Ctrl + A</b> dabao, phir <b>Delete</b> dabao.",i:files("Ctrl + A")},
+ {p:"<b>Skip</b> aaye to <b>Do this for all current items</b> tick karke <b>Skip</b>.",i:skip()}],
+ w:"Prefetch delete ke baad pehli baar program thoda der se khul sakta hai – ye normal hai."}
 ];
-var CATS=["Sab"].concat(T.reduce(function(a,x){if(a.indexOf(x.cat)<0)a.push(x.cat);return a},[]));
-var cur="Sab",q="";
+/* =====  page logic  ===== */
+var CATS=["Sab","PC","Internet","Printer","Printer error","Hardware","Office","Cleanup"],cur="Sab",q="";
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;")}
-function render(){var h="",n=0;T.forEach(function(x){var hay=(x.t+" "+x.s+" "+x.k+" "+x.cat+" "+x.intro).toLowerCase();if(cur!=="Sab"&&x.cat!==cur)return;if(q&&hay.indexOf(q)<0)return;n++;
- h+='<details id="'+x.id+'"'+(location.hash==="#"+x.id||(q&&n===1)?" open":"")+'><summary><span class="ic">'+x.ic+'</span><span>'+x.t+'<small>'+x.s+'</small></span></summary><div class="body">'+(x.intro?'<p class="intro">'+x.intro+'</p>':'');
- x.st.forEach(function(s,i){h+='<div class="step"><div class="num">'+(i+1)+'</div><div class="st"><p>'+s.p+(s.c?' <button class="cp" data-c="'+esc(s.c)+'">Copy</button>':'')+'</p><div class="pic" data-img="help/'+x.id+'-'+(i+1)+'.png">'+s.i+'</div></div></div>'});
+function matches(x){var hay=(x.t+" "+x.s+" "+x.k+" "+x.cat+" "+(x.intro||"")).toLowerCase();return(cur==="Sab"||x.cat===cur)&&(!q||q.split(/\s+/).every(function(w){return hay.indexOf(w)>-1}))}
+function render(){var h="",n=0,open=location.hash.slice(1);
+ T.forEach(function(x){if(!matches(x))return;n++;
+ h+='<details id="'+x.id+'"'+(open===x.id||(q&&n===1)?" open":"")+'><summary><span class="ic">'+x.ic+'</span><span>'+x.t+' <span class="tag">'+x.cat+'</span><small>'+x.s+' · '+x.st.length+' steps</small></span></summary><div class="body">'+(x.intro?'<p class="intro">'+x.intro+'</p>':'');
+ x.st.forEach(function(s,i){h+='<div class="step"><div class="num"><span>'+(i+1)+'</span></div><div class="st"><p>'+s.p+(s.c?' <button class="cp" data-c="'+esc(s.c)+'">Copy</button>':'')+'</p><div class="pic" data-img="help/'+x.id+'-'+(i+1)+'.png">'+s.i+'</div></div></div>'});
  h+=(x.w?'<div class="warn">⚠️ '+x.w+'</div>':'')+'<div class="ok">✅ Solve na ho to IT team ko batao – error ka screenshot / code saath bhejo.</div></div></details>'});
  document.getElementById("list").innerHTML=h;document.getElementById("none").style.display=n?"none":"block";
- /* real screenshots: put help/<topic>-<step>.png (for example help/temp-1.png) – it replaces the drawing automatically */
+ document.getElementById("cnt").textContent=n+" solution"+(n===1?"":"s")+(q||cur!=="Sab"?" mile":" – apni problem ka topic chuno");
+ /* real screenshots: save a PNG as help/<topic>-<step>.png (example: help/temp-1.png). It replaces the drawing of that step automatically. */
  document.querySelectorAll(".pic").forEach(function(p){var im=new Image();im.onload=function(){p.innerHTML="";p.appendChild(im)};im.alt="Step";im.src=p.dataset.img})}
-function chips(){document.getElementById("chips").innerHTML=CATS.map(function(c){return '<button class="chip'+(c===cur?" on":"")+'" data-cat="'+c+'">'+c+'</button>'}).join("")}
-document.getElementById("chips").onclick=function(e){var c=e.target.dataset.cat;if(c){cur=c;chips();render()}};
+function chips(){document.getElementById("chips").innerHTML=CATS.map(function(c){var n=T.filter(function(x){return c==="Sab"||x.cat===c}).length;return '<button class="chip'+(c===cur?" on":"")+'" data-cat="'+c+'">'+c+'<b>'+n+'</b></button>'}).join("")}
+document.getElementById("chips").onclick=function(e){var b=e.target.closest("[data-cat]");if(b){cur=b.dataset.cat;chips();render()}};
 document.getElementById("q").oninput=function(){q=this.value.trim().toLowerCase();render()};
-document.getElementById("list").onclick=function(e){var c=e.target.dataset&&e.target.dataset.c;if(c){var b=e.target;(navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).catch(function(){var t=document.createElement("textarea");t.value=c;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove()}).finally(function(){b.textContent="Copied ✓";setTimeout(function(){b.textContent="Copy"},1500)})}};
+document.getElementById("list").onclick=function(e){var t=e.target,c=t.dataset&&t.dataset.c;
+ if(c){(navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).catch(function(){var a=document.createElement("textarea");a.value=c;document.body.appendChild(a);a.select();document.execCommand("copy");a.remove()}).finally(function(){t.textContent="Copied ✓";setTimeout(function(){t.textContent="Copy"},1500)});return}
+ var n=t.closest&&t.closest(".num");if(n)n.parentNode.classList.toggle("done")};
+var up=document.getElementById("up");up.onclick=function(){scrollTo({top:0})};addEventListener("scroll",function(){up.style.display=scrollY>600?"block":"none"});
 chips();render();
 </script>
 </body>
