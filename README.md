@@ -147,3 +147,6 @@ Dashboard (totals, assets by company/type, latest tickets), digital gate passes 
 
 
 **ISP new fields** - Register Number / ID, ISP Product Type (Managed / Unmanaged), Bandwidth, Installation Date added; "DSL ID" is now "DSL / Circuit ID". They are also in the Bulk template, the Excel export and the import. **Publish the new `firestore.rules`.**
+
+
+**Bulk import fix (ISP)** - for ISP the DSL / Circuit ID is text and Bill Amount is a number (they are no longer read as dates). "NA", "N/A", "-" in a date column means empty. Dates like 17-May-2024 are accepted too.
