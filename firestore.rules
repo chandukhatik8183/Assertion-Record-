@@ -176,6 +176,18 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // IT Support Center (help.html): real screenshots shown on the steps. Everybody can read, only the admin can add / change / delete.
+    match /helpshots/{id} {
+      allow read: if true;
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['topic','step','img','at'])
+        && request.resource.data.topic is string && request.resource.data.topic.size() <= 40
+        && request.resource.data.step is int
+        && request.resource.data.img is string && request.resource.data.img.size() <= 400000
+        && request.resource.data.img.matches('^data:image/(jpeg|png|webp);base64,.*');
+      allow delete: if isAdmin();
+    }
+
     // ---------- SERIAL NUMBER REGISTRY (one serial number = one asset) ----------
     match /serials/{id} {
       allow get: if request.auth != null;

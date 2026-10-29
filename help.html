@@ -336,13 +336,39 @@ document.getElementById("list").onclick=function(e){var t=e.target,c=t.dataset&&
  if(c){(navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).catch(function(){var a=document.createElement("textarea");a.value=c;document.body.appendChild(a);a.select();document.execCommand("copy");a.remove()}).finally(function(){t.textContent="Copied ✓";setTimeout(function(){t.textContent="Copy"},1500)});return}
  var n=t.closest&&t.closest(".num");if(n)n.parentNode.classList.toggle("done")};
 var up=document.getElementById("up");up.onclick=function(){scrollTo({top:0})};addEventListener("scroll",function(){up.style.display=scrollY>600?"block":"none"});
-/* ===== EDIT MODE (open help.html?edit=1): put your OWN Windows screenshots on the steps ===== */
-var EDIT=/[?&]edit/.test(location.search);
-if(EDIT){var eb=document.getElementById("edbar");eb.style.display="block";eb.innerHTML="<b>✏️ Edit mode – asli screenshot lagao.</b><br>1) Windows par jo screen dikhani hai use kholo → <b>Win + Shift + S</b> se uska photo lo.<br>2) Neeche us step ke <b>dotted box</b> par click karo → <b>Ctrl + V</b> (photo yahin dikhegi).<br>3) <b>Download</b> dabao – file ka sahi naam (jaise <span class=fn>temp-2.png</span>) apne aap aayega. Sab files ko project ke <b>help</b> folder me daalo aur GitHub par upload karo. Jis step ka photo nahi daloge uski drawing hi dikhti rahegi.";}
-function addEditors(){if(!EDIT)return;document.querySelectorAll(".pic").forEach(function(p){var n=p.dataset.img,e=document.createElement("div");e.className="ed";e.tabIndex=0;e.innerHTML='📋 Click karo, phir <b>Ctrl+V</b> &nbsp;<span class="fn">'+n.split("/")[1]+'</span> <button disabled>Download</button>';e._pic=p;p.parentNode.appendChild(e)})}
-document.addEventListener("paste",function(ev){var e=ev.target.closest&&ev.target.closest(".ed");if(!e)return;var it=[].slice.call(ev.clipboardData.items).filter(function(i){return i.type.indexOf("image")===0})[0];if(!it)return;ev.preventDefault();var b=it.getAsFile();e._blob=b;var u=URL.createObjectURL(b),im=new Image();im.alt="Step";im.src=u;e._pic.innerHTML="";e._pic.appendChild(im);var d=e.querySelector("button");d.disabled=false;d.textContent="Download";d.onclick=function(){var a=document.createElement("a");a.href=u;a.download=e._pic.dataset.img.split("/")[1];document.body.appendChild(a);a.click();a.remove()}});
-var _r=render;render=function(){_r();addEditors()};
 chips();render();
+</script>
+<script type="module">
+/* ===== IT Support Center: admin "Edit" button - paste / choose your own Windows screenshot for any step. Saved online, everybody sees it. ===== */
+import * as fb from "./fb.js";
+var ADMIN=false,EDIT=false,SHOTS={},LOADED={},$=function(i){return document.getElementById(i)};
+var bar=$("edbar"),btn=document.createElement("button");btn.id="edbtn";btn.textContent="✏️ Edit";btn.title="Admin: screenshots lagao";
+btn.style.cssText="margin-left:8px;font:inherit;font-size:12.5px;color:#fff;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.5);padding:5px 11px;border-radius:99px;cursor:pointer;white-space:nowrap";
+document.querySelector(".brand").appendChild(btn);
+function say(m){bar.style.display="block";bar.innerHTML=m}
+function shrink(file){return new Promise(function(ok){var r=new FileReader();r.onerror=function(){ok(null)};r.onload=function(){var im=new Image();im.onerror=function(){ok(null)};im.onload=function(){var mx=1100;for(var i=0;i<8;i++){var k=Math.min(1,mx/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));var g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);var q=.85,u=c.toDataURL("image/jpeg",q);while(u.length>300000&&q>.4){q-=.1;u=c.toDataURL("image/jpeg",q)}if(u.length<=300000){ok(u);return}mx=Math.round(mx*.75)}ok(null)};im.src=r.result};r.readAsDataURL(file)})}
+function showShot(p,u){var im=new Image();im.alt="Step";im.onload=function(){p.innerHTML="";p.appendChild(im)};im.src=u}
+function applyShots(){document.querySelectorAll(".pic").forEach(function(p){var m=/help\/(.+)-(\d+)\.png$/.exec(p.dataset.img||"");if(!m)return;var u=(SHOTS[m[1]]||{})[m[2]];if(u)showShot(p,u)})}
+function loadTopic(id){if(!id||LOADED[id])return;LOADED[id]=1;fb.helpShots(id).then(function(o){SHOTS[id]=o;applyShots();addEditors()}).catch(function(){LOADED[id]=0})}
+function loadOpen(){document.querySelectorAll("details[open]").forEach(function(d){loadTopic(d.id)})}
+function addEditors(){document.querySelectorAll(".ed").forEach(function(e){e.remove()});if(!EDIT)return;
+ document.querySelectorAll(".pic").forEach(function(p){var m=/help\/(.+)-(\d+)\.png$/.exec(p.dataset.img||"");if(!m)return;var id=m[1],n=+m[2],has=!!(SHOTS[id]||{})[n],e=document.createElement("div");e.className="ed";e.tabIndex=0;
+  e.innerHTML='<span>📋 Yaha click karo → <b>Ctrl+V</b></span> <label class="edf" style="cursor:pointer;text-decoration:underline">ya file chuno<input type="file" accept="image/*" style="display:none"></label> <span class="edm"></span>'+(has?' <button class="edd">Hatao</button>':'');
+  var msg=e.querySelector(".edm");
+  function save(file){msg.textContent="Save ho raha hai…";shrink(file).then(function(u){if(!u){msg.textContent="Ye photo use nahi ho saki.";return}return fb.helpShotSave(id,n,u).then(function(){(SHOTS[id]=SHOTS[id]||{})[n]=u;showShot(p,u);msg.textContent="✓ Save ho gaya (sabko dikhega)";if(!e.querySelector(".edd")){var d=document.createElement("button");d.className="edd";d.textContent="Hatao";e.appendChild(d)}})}).catch(function(x){msg.textContent="Save nahi hua: "+(x&&x.message||x)})}
+  e.addEventListener("paste",function(ev){var it=[].slice.call(ev.clipboardData.items).filter(function(i){return i.type.indexOf("image")===0})[0];if(!it)return;ev.preventDefault();save(it.getAsFile())});
+  e.querySelector("input").onchange=function(){if(this.files[0])save(this.files[0]);this.value=""};
+  e.addEventListener("click",function(ev){if(ev.target.classList.contains("edd")){if(!confirm("Ye screenshot hata kar purani drawing wapas laye?"))return;msg.textContent="…";fb.helpShotDel(id,n).then(function(){delete SHOTS[id][n];e.querySelector(".edd").remove();msg.textContent="Hata diya";p.innerHTML=p._orig||p.innerHTML;if(p._orig)p.setAttribute("data-x","1")}).catch(function(x){msg.textContent="Nahi hata: "+x.message})}});
+  p.parentNode.appendChild(e)})}
+var _r=window.render;window.render=function(){_r();document.querySelectorAll(".pic").forEach(function(p){p._orig=p.innerHTML});applyShots();addEditors();loadOpen()};
+$("list").addEventListener("toggle",function(e){if(e.target.open)loadTopic(e.target.id)},true);
+function setEdit(on){EDIT=on;btn.textContent=on?"✅ Edit band karo":"✏️ Edit";if(on){say("<b>✏️ Edit mode.</b> Windows par screen kholo → <b>Win + Shift + S</b> se photo lo → neeche kisi step ke <b>dotted box</b> par click karke <b>Ctrl + V</b>. Photo online save ho jaati hai aur sabko dikhti hai. Jis step me photo nahi, usme drawing hi dikhegi.")}else bar.style.display="none";addEditors()}
+btn.onclick=function(){if(EDIT){setEdit(false);return}
+ if(ADMIN){setEdit(true);return}
+ var pw=prompt("Admin password (techpoint.chandu@gmail.com):");if(!pw)return;
+ fb.login(fb.ADMIN_EMAIL,pw).then(function(){ADMIN=true;setEdit(true)}).catch(function(){alert("Password galat hai ya admin login nahi ho paya.")})};
+fb.onAuth(function(u){ADMIN=!!u&&u.email===fb.ADMIN_EMAIL});
+loadOpen();
 </script>
 </body>
 </html>

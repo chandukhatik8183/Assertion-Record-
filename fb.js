@@ -44,18 +44,20 @@ export const putStockAudit=(id,o)=>setDoc(doc(scol,id),o);
 export const delStockAudit=id=>deleteDoc(doc(scol,id));
 export const watchStockAudits=(ok,err,me)=>onSnapshot(me?query(scol,where("by","==",me),limit(50)):query(scol,orderBy("at","desc"),limit(50)),s=>{const l=s.docs.map(d=>({...d.data(),id:d.id}));if(me)l.sort((x,y)=>(y.at||0)-(x.at||0));ok(l)},err);
 // ---- Serial numbers: one serial number can belong to ONE asset only (registry collection "serials") ----
-const snKey=v=>{v=String(v||"").trim().toUpperCase();return(!v||/^(NA|N\/A|NIL|NONE|NULL|-+|\.+)$/.test(v))?"":v};
+const snKey=v=>{v=String(v||"").trim().toUpperCase();return(!v||/^(NA|N\/A|NIL|NONE|NULL|TBD|UNKNOWN|-+|\.+)$|PENDING/.test(v))?"":v};
+// which fields must be unique: ISP = Account Number (sn), SIM = Company Number (cnum), everything else = Serial No. (+ Monitor Serial No.)
+const dupKeys=o=>(o.type==="ISP"?[snKey(o.sn)]:o.type==="SIM"?[snKey(o.cnum)]:[snKey(o.sn),snKey(o.mon_sn)]).filter(Boolean);
 const sdoc=k=>doc(db,"serials",encodeURIComponent(k));
 // returns the code of the asset that really owns this serial number, or null
-export async function serialOwner(v){const k=snKey(v);if(!k)return null;try{const s=await getDoc(sdoc(k));if(!s.exists())return null;const c=s.data().code,x=await getDoc(doc(db,"assets",c));if(!x.exists())return null;const d=x.data();return(snKey(d.sn)===k||snKey(d.mon_sn)===k)?c:null}catch(e){return null}}
-async function serCheck(o,code){const ks=[snKey(o.sn),snKey(o.mon_sn)].filter(Boolean);
-  if(ks.length===2&&ks[0]===ks[1])throw new Error("Serial No. and Monitor Serial No. cannot be the same ("+ks[0]+").");
-  for(const k of ks){const c=await serialOwner(k);if(c&&c!==code)throw new Error("Serial number "+k+" is already added for asset "+c+".\nA serial number can be added only once. Delete that asset first, or enter the correct serial number.")}
+export async function serialOwner(v){const k=snKey(v);if(!k)return null;try{const s=await getDoc(sdoc(k));if(!s.exists())return null;const c=s.data().code,x=await getDoc(doc(db,"assets",c));if(!x.exists())return null;const d=x.data();return dupKeys(d).includes(k)?c:null}catch(e){return null}}
+async function serCheck(o,code){const ks=dupKeys(o);
+  if(o.type!=="ISP"&&o.type!=="SIM"&&ks.length===2&&ks[0]===ks[1])throw new Error("Serial No. and Monitor Serial No. cannot be the same ("+ks[0]+").");
+  for(const k of ks){const c=await serialOwner(k);if(c&&c!==code)throw new Error(""+(o.type==="ISP"?"Account Number ":o.type==="SIM"?"Company Number ":"Serial number ")+k+" is already added for asset "+c+".\nIt can be added only once. Delete that asset first, or enter the correct serial number.")}
   return ks}
 async function serPut(ks,code){for(const k of ks){try{await setDoc(sdoc(k),{code,at:Date.now()})}catch(e){}}}
-async function serDrop(o,code,keep){for(const k of [snKey(o.sn),snKey(o.mon_sn)].filter(Boolean)){if(keep&&keep.includes(k))continue;try{const s=await getDoc(sdoc(k));if(s.exists()&&s.data().code===code)await deleteDoc(sdoc(k))}catch(e){}}}
+async function serDrop(o,code,keep){for(const k of dupKeys(o)){if(keep&&keep.includes(k))continue;try{const s=await getDoc(sdoc(k));if(s.exists()&&s.data().code===code)await deleteDoc(sdoc(k))}catch(e){}}}
 // admin: register serial numbers of assets that were added before this rule existed
-export async function syncSerials(list){for(const a of list){for(const k of [snKey(a.sn),snKey(a.mon_sn)].filter(Boolean)){try{const s=await getDoc(sdoc(k));if(!s.exists())await setDoc(sdoc(k),{code:a.code,at:Date.now()})}catch(e){}}}}
+export async function syncSerials(list){for(const a of list){for(const k of dupKeys(a)){try{const s=await getDoc(sdoc(k));if(!s.exists())await setDoc(sdoc(k),{code:a.code,at:Date.now()})}catch(e){}}}}
 export async function save(o,isNew){
   let code=o.code;
   if(isNew){const m=/^(.*-)(\d+)$/.exec(code);if(m){let n=+m[2];while((await getDoc(doc(db,"assets",code))).exists()){n++;code=m[1]+String(n).padStart(4,"0")}}}
@@ -74,7 +76,7 @@ export async function renameAsset(oldCode,o){
   const before=os.data(),d={...o,code:newCode};if(before.assigned&&!d.assigned)d.assigned=before.assigned;
   d.oldCodes=[...new Set([...(before.oldCodes||[]),oldCode])].slice(-10);
   const ks=await serCheck(d,oldCode);                         // serial number must still be unique
-  const delKs=[];for(const k of [snKey(before.sn),snKey(before.mon_sn)].filter(Boolean)){if(ks.includes(k))continue;try{const x=await getDoc(sdoc(k));if(x.exists()&&x.data().code===oldCode)delKs.push(k)}catch(e){}}
+  const delKs=[];for(const k of dupKeys(before)){if(ks.includes(k))continue;try{const x=await getDoc(sdoc(k));if(x.exists()&&x.data().code===oldCode)delKs.push(k)}catch(e){}}
   const ts=(await getDocs(query(collection(db,"tickets"),where("assetCode","==",oldCode)))).docs;
   const lat=await getDoc(doc(db,"assetLatest",oldCode));
   const first=writeBatch(db);let n=0;
@@ -170,3 +172,9 @@ async function api(path,action,data){const u=auth.currentUser;if(!u)throw new Er
   if(!r.ok)throw new Error(r.status===404?"Server function not found - deploy this folder on Vercel (api/"+path+".js).":(j.error||"Server error "+r.status));return j}
 export const usersApi=(a,d)=>api("users",a,d);
 export const backupApi=(a,d)=>api("backup",a,d);
+
+// ---- IT Support Center (help.html): real screenshots on the steps. Anybody can read, only the admin can add / remove ----
+const hcol=collection(db,"helpshots");
+export const helpShots=async topic=>{const o={};(await getDocs(query(hcol,where("topic","==",topic)))).docs.forEach(d=>{const x=d.data();if(typeof x.img==="string")o[x.step]=x.img});return o};
+export const helpShotSave=(topic,step,img)=>setDoc(doc(hcol,topic+"-"+step),{topic,step,img,at:Date.now()});
+export const helpShotDel=(topic,step)=>deleteDoc(doc(hcol,topic+"-"+step));
