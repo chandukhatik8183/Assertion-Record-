@@ -34,7 +34,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasAll(['code','company','type','loc','aloc','st'])
         && request.resource.data.code == code
         && code.matches('^[A-Z]{2}-[A-Z]{2}-[0-9]{4}$')
-        && request.resource.data.company in ['Sandeep Hyundai','Sandeep Kia','Sandeep Bajaj','Sandeep Bajaj Chetak','Sandeep Ford','Sandeep SG Associates','Sandeep STPL','SMPL Finance','Sandeep SMAVL (BKT)']
+        && request.resource.data.company is string && request.resource.data.company.size() > 0 && request.resource.data.company.size() <= 40
         && request.resource.data.type in ['Desktop','Laptop','All-in-One','Monitor','Networking','Server','Printer','Biometric','Mobile','Tablet','ISP','SIM','UPS']
         && request.resource.data.st in ['In Use','In Stock','Under Repair','Scrapped','Active','Deactive']
         && request.resource.data.loc is string

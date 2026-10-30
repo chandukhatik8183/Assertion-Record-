@@ -121,6 +121,7 @@ const cfgRef=doc(db,"config","branches");
 export const watchConfig=(ok,err)=>onSnapshot(cfgRef,s=>ok(s.exists()?s.data():{}),err);
 export const seedBranches=(seed,v)=>{const o={__v:v};Object.keys(seed).forEach(c=>{if(seed[c].length)o[c]=arrayUnion(...seed[c])});return setDoc(cfgRef,o,{merge:true})};
 export const addBranch=(co,b)=>setDoc(cfgRef,{[co]:arrayUnion(b)},{merge:true});
+export const addCompany=e=>setDoc(cfgRef,{__co:arrayUnion(e)},{merge:true});   // e = "Company Name|XX"
 export const removeBranch=(co,b)=>setDoc(cfgRef,{[co]:arrayRemove(b)},{merge:true});
 
 // ---- Asset codes without listing all assets (counters = "last number used" hint, never trusted blindly) ----
