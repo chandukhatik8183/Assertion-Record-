@@ -445,10 +445,9 @@ function rowPlan(v,n,has,seen,d1904){
  var E=[],W=[],code=(v.code||"").toUpperCase().replace(/\s+/g,""),old=code?find(code):null,co=null,ty=null;
  if(v.company){co=ci(CO.map(function(c){return c[0]}),v.company);if(!co)E.push('Unknown Company "'+v.company+'"')}else if(old)co=old.company;else E.push("Company is required");
  if(v.type){ty=ci(Object.keys(T),v.type);if(!ty)E.push('Unknown Product Type "'+v.type+'"')}else if(old)ty=old.type;else E.push("Product Type is required");
- if(old){if(!ADM)E.push("Only admin can edit existing assets");if(ty&&old.type!==ty)E.push("Product Type of an existing asset cannot be changed")}
+ if(old){if(!ADM)E.push("Only admin can edit existing assets");if(co&&old.company!==co)E.push("Company of an existing asset cannot be changed (Asset Code "+old.code+" belongs to "+old.company+")");if(ty&&old.type!==ty)E.push("Product Type of an existing asset cannot be changed")}
  else if(ty&&TL.indexOf(ty)<0)E.push(ty+" cannot be added on its own (add it as part of a Desktop)");
- if(code&&!old&&!ADM)E.push("Leave Asset Code empty to add a new asset (only admin can use asset codes)");
- else if(code&&!old&&co&&ty&&T[ty]&&(!/^[A-Z]{2}-[A-Z]{2}-\d{4}$/.test(code)||code.indexOf(pre(co)+"-"+T[ty][0]+"-")!==0))E.push('Asset Code "'+code+'" does not exist. Leave it blank to add a new asset.');
+ if(code&&!old)E.push('Asset Code "'+code+'" does not exist. Leave Asset Code EMPTY for a new asset - the code is created automatically (company / product type wise) and Asset Codes cannot be typed or changed from Excel.');
  if(code){if(seen[code])E.push("Asset Code "+code+" is repeated in this file (also row "+seen[code]+")");else seen[code]=n}
  if(E.length||!co||!ty||!T[ty])return{n:n,kind:"err",code:code,msg:E.join("; ")};
  var m={},keys=BK.concat(SK),kt=keysOf(ty);
@@ -498,7 +497,7 @@ function bulkPlan(rows){
 function bulkHelp(t){
  var h=[["Topic","Details"],
  ["Add new assets","One row per asset on the 'Assets' sheet. Leave Asset Code EMPTY - the code (for example SH-DT-0007) is created automatically. Required: Company, Product Type, Branch Location, Asset Location."],
- ["Edit existing assets","Download 'all current assets' from the Bulk Add/Edit window, change the cells you want and upload the file again. Do not change Asset Code (it identifies the asset) or Product Type. An empty cell clears that value (Company, Product Type and Status are never cleared). Delete a whole column if you do not want it touched."],
+ ["Edit existing assets","Download 'all current assets' from the Bulk Add/Edit window, change the cells you want and upload the file again. Do not change Asset Code (it identifies the asset - codes can never be changed from Excel) or Product Type or Company. An empty cell clears that value (Company, Product Type and Status are never cleared). Delete a whole column if you do not want it touched."],
  ["Dates","Write dates as YYYY-MM-DD (2025-04-30) or DD/MM/YYYY (30/04/2025)."],
  ["Accessories","Separate with ; - allowed: "+ACC.concat("Other").join(", ")+". Accessory serial / purchase / warranty details added through the form are kept as they are."],
  ["Company","Pick from the list: "+CO.map(function(c){return c[0]}).join(", ")],
@@ -564,7 +563,7 @@ $("bulk").addEventListener("click",function(e){var b=e.target.closest("button");
  else if(a==="up"){if(xlOk())$("bf").click()}
  else if(a==="go"){b.disabled=true;var p=bulkPlan(BROWS),W=p.rows.filter(function(r){return r.kind==="new"||r.kind==="upd"});if(!W.length){bmenu();return}
   var nn=W.filter(function(r){return r.kind==="new"}).length,job;
-  if(ADM)job=fb.restore(W.map(function(r){return r.o})).then(function(){var q=Promise.resolve();W.forEach(function(r){if(r.nb)q=q.then(function(){return fb.addBranch(r.o.company,r.nb)})});return q.then(function(){return fb.bumpCounters(W.map(function(r){return r.code}))})});
+  if(ADM)job=Promise.all(W.filter(function(r){return r.kind==="new"}).map(function(r){return fb.getOne(r.code).then(function(x){if(x)throw new Error("Asset Code "+r.code+" was just taken by another asset. Reload the page and upload again.")})})).then(function(){return fb.restore(W.map(function(r){return r.o}))}).then(function(){var q=Promise.resolve();W.forEach(function(r){if(r.nb)q=q.then(function(){return fb.addBranch(r.o.company,r.nb)})});return q.then(function(){return fb.bumpCounters(W.map(function(r){return r.code}))})});
   else job=fb.bulkCreate(W.map(function(r){return{p:r.p,o:r.o}})).then(function(codes){rememberMine(codes)});
   job.then(function(){bshow("<h2>Import complete</h2><p>"+nn+" asset(s) added, "+(W.length-nn)+" updated.</p><div class='bar'><button class='p' data-b='x'>Close</button></div>")})
    .catch(function(x){bshow("<h2>Import failed</h2><p>"+esc(x.message)+"</p><div class='bar'><button data-b='back'>Back</button></div>")})}});
