@@ -1,0 +1,211 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- who is who ----------
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == "techpoint.chandu@gmail.com";
+    }
+    // add-only users are created by the admin in the app (Users tab); the server gives them the claim role = "user"
+    function isAddOnly() {
+      return request.auth != null && ('role' in request.auth.token) && request.auth.token.role == "user"
+        && request.auth.token.email.matches('.*@assets[.]local');
+    }
+
+    // roles set by the admin in the Users tab (server gives the claim): user = add only, editor = edit only, full = everything except users / backup
+    function hasRole(x) {
+      return request.auth != null && ('role' in request.auth.token) && request.auth.token.role == x
+        && request.auth.token.email.matches('.*@assets[.]local');
+    }
+    function isFull() { return hasRole("full"); }
+    function isEditor() { return hasRole("editor"); }
+    function isStaff() { return isAdmin() || isFull(); }
+
+    // optional text field: if present it must be a short string
+    function okStr(k, n) {
+      return !(k in request.resource.data)
+        || (request.resource.data[k] is string && request.resource.data[k].size() <= n);
+    }
+
+    // What the ADD-ONLY user is allowed to create: a brand new asset with a valid code,
+    // a known company / product type / status, and a branch that is in the admin's branch list.
+    function newAssetOk(code) {
+      return request.resource.data.keys().hasOnly(['company','type','code','model','sn','loc','aloc','dept','usr','pd','wt','st','rm','cpu','ram','hdd','os','size','res','ports','ip','mac','ntype','sip','smask','sgw','dns1','dns2','bt','bd','ct','amn','amc','cnum','pnum','plan','uemail','desg','reg','ptype','bw','idate','cap','batt','mon_model','mon_sn','mon_pd','mon_wt','acc','accd','accOther','cond'])
+        && request.resource.data.keys().hasAll(['code','company','type','loc','aloc','st'])
+        && request.resource.data.code == code
+        && code.matches('^[A-Z]{2}-[A-Z]{2}-[0-9]{4}$')
+        && request.resource.data.company is string && request.resource.data.company.size() > 0 && request.resource.data.company.size() <= 40
+        && request.resource.data.type in ['Desktop','Laptop','All-in-One','Monitor','Networking','Server','Printer','Biometric','Mobile','Tablet','ISP','SIM','UPS']
+        && request.resource.data.st in ['In Use','In Stock','Under Repair','Scrapped','Active','Deactive']
+        && request.resource.data.loc is string
+        && request.resource.data.loc.size() <= 80
+        && request.resource.data.loc in get(/databases/$(database)/documents/config/branches).data[request.resource.data.company]
+        && request.resource.data.aloc is string && request.resource.data.aloc.size() <= 200
+        && (!('acc' in request.resource.data) || (request.resource.data.acc is list && request.resource.data.acc.size() <= 20))
+        && (!('accd' in request.resource.data) || (request.resource.data.accd is map && request.resource.data.accd.size() <= 20))
+        && okStr('model', 200) &&
+        okStr('sn', 200) &&
+        okStr('usr', 200) &&
+        okStr('dept', 200) &&
+        okStr('cnum', 50) &&
+        okStr('reg', 100) &&
+        okStr('ptype', 20) &&
+        okStr('bw', 60) &&
+        okStr('idate', 20) &&
+        okStr('pnum', 50) &&
+        okStr('plan', 200) &&
+        okStr('uemail', 200) &&
+        okStr('desg', 200) &&
+        okStr('rm', 500) &&
+        okStr('accOther', 200);
+    }
+
+    // ---------- ASSETS ----------
+    match /assets/{code} {
+      // Assets can only be read after login (the public QR page gets its safe fields from /api/pub, see api/pub.js)
+      allow get: if isStaff() || isEditor() || isAddOnly();
+      allow list: if isStaff() || isEditor();
+      // admin: anything. add-only user: only NEW assets that pass newAssetOk (cannot overwrite an existing one)
+      allow create: if isStaff() || (isAddOnly() && newAssetOk(code));
+      // ONLY admin can edit or delete
+      allow delete: if isStaff();
+      // admin: anything. Anyone: ONLY Under Repair -> In Use, and only after IT has sent the asset back (ticket has track.ret)
+      allow update: if isStaff() || isEditor() || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['st'])
+        && request.resource.data.st == 'In Use' && resource.data.st == 'Under Repair'
+        && get(/databases/$(database)/documents/tickets/$(get(/databases/$(database)/documents/assetLatest/$(code)).data.ticketId)).data.track.ret is number);
+    }
+
+    // ---------- Branch list per company (admin edits, add-only user can only read) ----------
+    match /config/{doc} {
+      allow get: if isStaff() || isEditor() || isAddOnly();
+      allow write: if isStaff();
+    }
+
+    // ---------- Next-code hints (SK-DT -> last used number) ----------
+    match /counters/{pfx} {
+      allow get: if isStaff() || isEditor() || isAddOnly();
+      allow write: if isStaff() || (isAddOnly()
+        && pfx.matches('^[A-Z]{2}-[A-Z]{2}$')
+        && request.resource.data.keys().hasOnly(['n'])
+        && request.resource.data.n is int
+        && request.resource.data.n >= 1 && request.resource.data.n <= 9999
+        && (resource == null || request.resource.data.n > resource.data.n));
+    }
+
+    // ---------- TICKETS ----------
+    match /tickets/{id} {
+      // Anyone who scans the QR can raise a ticket for a REAL asset (strict checks).
+      // Admin can also create any ticket (needed for Restore).
+      allow create: if isStaff() || (request.resource.data.keys().hasOnly(['id','assetCode','assetType','assetLoc','company','name','dept','mobile','category','priority','issue','status','notes','created','move','photos'])
+        && request.resource.data.id == id
+        && id.size() >= 10 && id.size() <= 40
+        && request.resource.data.assetCode is string
+        && exists(/databases/$(database)/documents/assets/$(request.resource.data.assetCode))
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 80
+        && request.resource.data.dept is string && request.resource.data.dept.size() <= 60
+        && request.resource.data.mobile is string && request.resource.data.mobile.size() <= 15
+        && request.resource.data.assetType is string && request.resource.data.assetType.size() <= 60
+        && request.resource.data.assetLoc is string && request.resource.data.assetLoc.size() <= 250
+        && request.resource.data.company is string && request.resource.data.company.size() <= 80
+        && request.resource.data.category is string && request.resource.data.category.size() <= 40
+        && request.resource.data.priority is string && request.resource.data.priority.size() <= 20
+        && request.resource.data.notes is string && request.resource.data.notes.size() == 0
+        && request.resource.data.created is number
+        && request.resource.data.issue is string
+        && request.resource.data.issue.size() >= 5 && request.resource.data.issue.size() <= 1000
+        && request.resource.data.status == 'Open'
+        // optional photos (small compressed JPEG data-URLs, max 3)
+        && (!('photos' in request.resource.data) || (request.resource.data.photos is list
+          && request.resource.data.photos.size() >= 1 && request.resource.data.photos.size() <= 3
+          && request.resource.data.photos[0] is string && request.resource.data.photos[0].size() <= 160000
+          && (request.resource.data.photos.size() < 2 || (request.resource.data.photos[1] is string && request.resource.data.photos[1].size() <= 160000))
+          && (request.resource.data.photos.size() < 3 || (request.resource.data.photos[2] is string && request.resource.data.photos[2].size() <= 160000))))
+        // optional asset-movement request (where the asset is sent, with whom, when)
+        && (!('move' in request.resource.data) || (request.resource.data.move is map
+          && request.resource.data.move.keys().hasOnly(['dest','carrier','at'])
+          && request.resource.data.move.dest is string && request.resource.data.move.dest.size() >= 2 && request.resource.data.move.dest.size() <= 150
+          && request.resource.data.move.carrier is string && request.resource.data.move.carrier.size() >= 2 && request.resource.data.move.carrier.size() <= 80
+          && request.resource.data.move.at is number)));
+
+      // Only someone who knows the long random ticket id can read that one ticket
+      allow get: if true;
+
+      // ONLY admin can see the ticket list or delete
+      allow list, delete: if isStaff();
+
+      // Admin can update anything. The ticket owner may ONLY add one feedback, and only after it is Resolved.
+      allow update: if isStaff() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['feedback'])
+        && resource.data.status == 'Resolved'
+        && !('feedback' in resource.data)
+        && request.resource.data.feedback.keys().hasOnly(['rating','comment','at'])
+        && request.resource.data.feedback.rating is int
+        && request.resource.data.feedback.rating >= 1 && request.resource.data.feedback.rating <= 5
+        && request.resource.data.feedback.comment is string && request.resource.data.feedback.comment.size() <= 500
+        && request.resource.data.feedback.at is number)
+        // The ticket owner (QR page) confirms the asset came back from IT - only once, only after IT sent it back
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['urcv'])
+        && resource.data.track.ret is number
+        && !('urcv' in resource.data)
+        && request.resource.data.urcv.keys().hasOnly(['at','name'])
+        && request.resource.data.urcv.at is number
+        && request.resource.data.urcv.name is string && request.resource.data.urcv.name.size() <= 80);
+    }
+
+    // ---------- Pointer: asset code -> its newest ticket (QR page shows the latest ticket) ----------
+    match /assetLatest/{code} {
+      allow get: if true;
+      allow create, update: if isStaff() || (request.resource.data.keys().hasOnly(['ticketId','at'])
+        && request.resource.data.ticketId is string
+        && getAfter(/databases/$(database)/documents/tickets/$(request.resource.data.ticketId)).data.assetCode == code
+        && getAfter(/databases/$(database)/documents/tickets/$(request.resource.data.ticketId)).data.created == request.resource.data.at);
+      allow delete: if isStaff();
+    }
+
+    // ---------- AUDIT LOG: every logged-in user can only ADD a line about himself; only admin can read; nobody can change or delete ----------
+    match /audit/{id} {
+      allow create: if (isStaff() || isEditor() || isAddOnly())
+        && request.resource.data.keys().hasOnly(['at','by','action','code','detail'])
+        && request.resource.data.by == request.auth.token.email
+        && request.resource.data.at is number
+        && request.resource.data.action is string && request.resource.data.action.size() <= 40
+        && request.resource.data.code is string && request.resource.data.code.size() <= 40
+        && request.resource.data.detail is string && request.resource.data.detail.size() <= 600;
+      allow read: if isStaff();
+      allow update, delete: if false;
+    }
+
+    // IT Support Center (help.html): real screenshots shown on the steps. Everybody can read, only the admin can add / change / delete.
+    match /helpshots/{id} {
+      allow read: if true;
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['topic','step','img','at'])
+        && request.resource.data.topic is string && request.resource.data.topic.size() <= 40
+        && request.resource.data.step is int
+        && request.resource.data.img is string && request.resource.data.img.size() <= 400000
+        && request.resource.data.img.matches('^data:image/(jpeg|png|webp);base64,.*');
+      allow delete: if isAdmin();
+    }
+
+    // ---------- SERIAL NUMBER REGISTRY (one serial number = one asset) ----------
+    match /serials/{id} {
+      allow get: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.keys().hasOnly(['code','at'])
+        && request.resource.data.code is string && request.resource.data.code.size() < 40;
+      allow update, delete: if isStaff() || isEditor();
+    }
+
+    // ---------- STOCK AUDITS (staff: all; add-only user: only his own SCAN-ONLY audits) ----------
+    match /stockaudits/{id} {
+      allow read: if isStaff() || (isAddOnly() && resource.data.by == request.auth.token.email);
+      allow create: if isStaff() || (isAddOnly() && request.resource.data.by == request.auth.token.email && request.resource.data.scanOnly == true);
+      allow update: if isStaff() || (isAddOnly() && resource.data.by == request.auth.token.email && request.resource.data.by == request.auth.token.email && request.resource.data.scanOnly == true);
+      allow delete: if isStaff();
+    }
+
+    // Daily backups are written/read only by the server (api/backup.js) - closed to the browser.
+
+    // everything else is closed
+  }
+}
