@@ -211,7 +211,7 @@ tbody tr{transition:background .12s}tbody tr:hover{background:rgba(37,99,235,.06
 <section><h2>Users</h2><div class="tw"><table style="min-width:620px"><thead><tr><th>Username / name</th><th>Role</th><th>Status</th><th>Last login</th><th></th></tr></thead><tbody id="utb"></tbody></table></div></section>
 <section><h2>Daily backups</h2><p class="stat">A full backup (assets, tickets, audit log, settings) is taken automatically every night at 2:00 AM and the last 30 are kept. Each backup downloads as <b>one single file</b>; use <b>Restore full backup (file)</b> to bring everything back. Backups are stored safely in your Firebase database (collection <b>backups</b>).</p><div class="bar"><button class="p" id="bkn">Backup now</button><button id="bkrs">Restore full backup (file)</button><input type="file" id="bkrf" accept=".json" style="display:none"><span class="stat" id="bkm"></span></div><div class="tw" style="margin-top:8px"><table style="min-width:560px"><thead><tr><th>Date</th><th>Contains</th><th>Size</th><th>Download</th></tr></thead><tbody id="bktb"></tbody></table></div></section></div>
 </main>
-<main id="lg" style="display:none"><section style="max-width:380px;margin:30px auto"><h2>Login</h2><label>Username or e-mail</label><input id="le" autocomplete="username" autocapitalize="none" spellcheck="false"><label style="margin-top:8px">Password</label><input id="lp" type="password" autocomplete="current-password"><div class="bar"><button class="p" id="lb">Login</button></div><div class="stat" id="lerr" style="margin-top:8px"></div><div class="stat" style="margin-top:10px"><a href="#" id="forgot">Forgot password?</a></div></section></main>
+<main id="lg" style="display:none"><section style="max-width:380px;margin:30px auto"><h2>Login</h2><div id="lmode" style="display:flex;gap:8px;margin:8px 0 4px"><button type="button" id="lm_a" class="p" style="flex:1">Asset Tracker</button><button type="button" id="lm_t" style="flex:1">Transport (Courier ERP)</button></div><div class="stat" id="lmhint" style="margin-bottom:6px">Asset Tracker users</div><label>Username or e-mail</label><input id="le" autocomplete="username" autocapitalize="none" spellcheck="false"><label style="margin-top:8px">Password</label><input id="lp" type="password" autocomplete="current-password"><div class="bar"><button class="p" id="lb">Login</button></div><div class="stat" id="lerr" style="margin-top:8px"></div><div class="stat" style="margin-top:10px"><a href="#" id="forgot">Forgot password?</a></div></section></main>
 <main id="pub" style="display:none"><section id="pc"></section><p style="text-align:center;margin:10px 0"><a href="/help.html">🛠️ IT Help – Printer / PC ki problem ka solution</a></p>
 <section id="tkst" style="display:none"><h2>Status of your latest ticket</h2><div id="tkview"></div></section>
 <section id="tk" style="display:none"><h2>Report an issue with this asset</h2><div id="tkf"><div class="g">
@@ -583,7 +583,7 @@ $("bf").onchange=function(e){var f=e.target.files[0];e.target.value="";if(!f)ret
  rd.readAsArrayBuffer(f)};
 /* BULK-END */
 clearForm();render();
-$("lb").onclick=function(){$("lerr").textContent="";fb.login($("le").value.trim(),$("lp").value).catch(function(e){$("lerr").textContent="Login failed: "+(/invalid-credential|wrong-password|user-not-found|invalid-email|user-disabled/.test(e.code||"")?"wrong username / password, or the account is disabled.":e.message)})};
+$("lb").onclick=function(){$("lerr").textContent="";if(window.__LM==="tp")return window.__tpLogin();fb.login($("le").value.trim(),$("lp").value).catch(function(e){$("lerr").textContent="Login failed: "+(/invalid-credential|wrong-password|user-not-found|invalid-email|user-disabled/.test(e.code||"")?"wrong username / password, or the account is disabled.":e.message)})};
 $("lp").addEventListener("keydown",function(e){if(e.key==="Enter")$("lb").click()});
 function mineCodes(){try{return JSON.parse(sessionStorage.getItem("mine_codes")||"[]")}catch(e){return[]}}
 function rememberMine(codes){try{var l=mineCodes();codes.forEach(function(c){if(l.indexOf(c)<0)l.push(c)});sessionStorage.setItem("mine_codes",JSON.stringify(l))}catch(e){}loadMine()}
@@ -601,6 +601,7 @@ function publicView(c){
 var pm=location.pathname.match(/\/a\/([^\/]+)/),pq=new URLSearchParams(location.search).get("a"),pcode=pm?decodeURIComponent(pm[1]):pq;
 if(pcode){publicView(pcode)}else{
  fb.onAuth(function(u,role){
+  if(window.__tpBusy)return;if(u&&/@transport\.local$/i.test(u.email||"")){location.replace("/transport");return}
   if(u){ROOT=(u.email||"").toLowerCase()===ADMIN;ROLE=ROOT?"admin":(role||"user");FULLX=ROOT||ROLE==="full";ADM=FULLX||ROLE==="editor";$("f_code").readOnly=!FULLX;document.body.classList.toggle("ed",ROLE==="editor");["rs","csv","bk","brm"].forEach(function(id){$(id).style.display=FULLX?"":"none"});["nv_d","nv_t","nv_e","nv_r","nv_l"].forEach(function(id){$(id).style.display=FULLX?"":"none"});$("nv_s").style.display=(FULLX||ROLE==="user")?"":"none";$("nv_u").style.display=ROOT?"":"none";$("bulkb").textContent=ADM?"Bulk Add/Edit (Excel)":"Bulk Add (Excel)";$("nv_a").parentNode.style.display=(ADM||ROLE==="user")?"":"none";$("lg").style.display="none";$("app").style.display="";$("lo").style.display="";$("scanb").style.display="";$("cpw").style.display="";$("cpw").textContent=ROOT?"Reset password (e-mail)":"Change password";$("mode").textContent=uname(u.email)+({admin:" (Admin)",full:" (Full access)",editor:" (Edit only)"}[ROLE]||" (User · add only)");
    AUTHED=true;ME=u.email||"";tab(FULLX?"d":"a");idleReset(true);unsubs.push(fb.watchConfig(function(c){CFG=c||{};applyCO();fillBranch($("f_loc").value);if(FULLX){syncCfg();bmRender()}},function(){}));
    if(ADM){unsubs.push(fb.watch(function(l){A=l;fillBranch($("f_loc").value);if(!editId)refresh();render();if(!ctrSync){ctrSync=true;fb.syncCounters(l)}},function(e){alert("Could not load assets: "+e.message)}));if(FULLX)watchT()}
@@ -1202,6 +1203,19 @@ function idleReset(force){var n=Date.now();if(!force&&n-lastAct<1500&&$("idlew")
  idleT=setTimeout(function(){$("idlew").style.display="none";try{if(SA)saSave(true)}catch(e){}var rs="Auto logout: you were logged out because there was no activity on this page for 3 minutes (at "+new Date().toLocaleTimeString()+"). Please login again.";try{sessionStorage.setItem("lo_reason",rs)}catch(e){}fb.logout().then(function(){$("lerr").textContent=rs})},IDLE_MS)}
 ["mousemove","keydown","touchstart","click","scroll"].forEach(function(ev){document.addEventListener(ev,function(){idleReset()},{passive:true})});
 fb.setLabels(L);
+</script>
+<script type="module">
+import * as fb from "/fb.js";
+var $=function(i){return document.getElementById(i)};
+window.__LM="asset";
+function setMode(m){window.__LM=m;var tp=m==="tp";$("lm_a").className=tp?"":"p";$("lm_t").className=tp?"p":"";
+ $("lmhint").textContent=tp?"Transport (Courier ERP) users - separate accounts from Asset Tracker":"Asset Tracker users";$("lerr").textContent=""}
+$("lm_a").onclick=function(){setMode("asset")};$("lm_t").onclick=function(){setMode("tp")};
+window.__tpLogin=function(){var m=$("lerr"),b=$("lb");m.textContent="";window.__tpBusy=true;b.disabled=true;
+ fb.loginTp($("le").value.trim(),$("lp").value).then(function(){location.href="/transport"}).catch(function(e){
+  window.__tpBusy=false;b.disabled=false;
+  m.textContent="Login failed: "+(e&&e.code==="not-transport"?"this account is not a Transport user. Choose Asset Tracker.":/invalid-credential|wrong-password|user-not-found|invalid-email|user-disabled/.test((e&&e.code)||"")?"wrong username / password, or the account is disabled.":(e&&e.message)||"error")})};
+fb.onAuth(function(u){var l=$("lo");if(u&&(u.email||"").toLowerCase()===fb.ADMIN_EMAIL&&!$("tpgo")&&l){var a=document.createElement("button");a.id="tpgo";a.textContent="Transport";a.style.cssText="padding:2px 8px;margin-left:6px";a.onclick=function(){location.href="/transport"};l.parentNode.insertBefore(a,l)}else if(!u&&$("tpgo"))$("tpgo").remove()});
 </script>
 </body>
 </html>

@@ -5,6 +5,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/transport",
+      "destination": "/transport.html"
+    },
+    {
       "source": "/help",
       "destination": "/help.html"
     }

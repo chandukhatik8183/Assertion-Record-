@@ -179,3 +179,7 @@ const hcol=collection(db,"helpshots");
 export const helpShots=async topic=>{const o={};(await getDocs(query(hcol,where("topic","==",topic)))).docs.forEach(d=>{const x=d.data();if(typeof x.img==="string")o[x.step]=x.img});return o};
 export const helpShotSave=(topic,step,img)=>setDoc(doc(hcol,topic+"-"+step),{topic,step,img,at:Date.now()});
 export const helpShotDel=(topic,step)=>deleteDoc(doc(hcol,topic+"-"+step));
+
+// ---- Transport (Courier ERP) login: separate accounts (@transport.local, claim tp=true). Owner e-mail may also open it. ----
+export async function loginTp(e,p){const em=String(e).includes("@")?String(e).trim():slug(e)+"@transport.local";const c=await signInWithEmailAndPassword(auth,em,p);const t=await c.user.getIdTokenResult();
+  if(!(t.claims.tp===true||(c.user.email||"").toLowerCase()===ADMIN_EMAIL)){await signOut(auth);const x=new Error("not-transport");x.code="not-transport";throw x}return c.user}

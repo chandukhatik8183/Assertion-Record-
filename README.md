@@ -153,3 +153,17 @@ Dashboard (totals, assets by company/type, latest tickets), digital gate passes 
 
 
 **IT Help page** - `/help.html` (also `/help`): public troubleshooter, no login needed (Temp / %temp% / Prefetch delete, printer head cleaning, shared printer install and its errors, manual IP). Link "IT Help" in the header and on the public QR page. To use REAL screenshots, save them as `help/<topic>-<step>.png` (for example `help/temp-1.png`) in the project; they replace the drawing of that step automatically.
+
+
+## Transport (Courier ERP) merged in this site (Hinglish)
+- **Login page par 2 option:** `Asset Tracker` | `Transport (Courier ERP)`. Jo option chuna us ka app khulta hai. Transport ka alag page: `/transport`.
+- **Dono ke users alag:** Asset users = `username@assets.local`. Transport users = `username@transport.local` (alag Firebase accounts). Ek app ka user dusre me login nahi kar sakta.
+- **Transport data alag collections me:** `tp_companies, tp_branches, tp_employees, tp_parcels, tp_vehicles, tp_activity_logs`.
+- **Owner (techpoint.chandu@gmail.com)** dono me ja sakta hai: Asset login ke baad header me **Transport** button, ya Transport option se login. Pehla Transport Super Admin owner hi banata hai.
+
+### Setup (ek baar)
+1. Naya `firestore.rules` Firebase me **Publish** karein (Transport rules add hue hain).
+2. Vercel me `FIREBASE_SERVICE_ACCOUNT` pehle se hona chahiye (Users tab wala). Naya `api/tp-users.js` upload ke baad **Redeploy**.
+3. Owner se login karke `/transport` kholein > **Admin Settings**: pehle Company, Branch banayein, phir Employee add karein (Employee ID = login username, password min 8). Pehla employee **Super Admin** banayein.
+4. Ab wo Super Admin Transport option se login karke baaki employees (password ke saath) khud bana sakta hai.
+- Transport ka daily auto-backup abhi nahi hai (Asset ka hai). Firebase console se export ya backup add karwa sakte hain.

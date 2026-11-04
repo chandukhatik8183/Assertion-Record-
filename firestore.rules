@@ -2,6 +2,18 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ---------- TRANSPORT (Courier ERP): separate accounts (@transport.local, claim tp=true), own collections tp_* ----------
+    function isTp() {
+      return request.auth != null && request.auth.token.tp == true && request.auth.token.email.matches('.*@transport[.]local');
+    }
+    function isTpSuper() { return isTp() && request.auth.token.tprole == 'super_admin'; }
+    match /{coll}/{id} {
+      allow read: if coll.matches('^tp_.*') && (isTp() || isAdmin());
+      // master data (employees / companies / branches): Transport Super Admin or owner only
+      allow write: if coll.matches('^tp_.*') && (isAdmin() || isTpSuper()
+        || (isTp() && !(coll in ['tp_employees', 'tp_companies', 'tp_branches'])));
+    }
+
     // ---------- who is who ----------
     function isAdmin() {
       return request.auth != null && request.auth.token.email == "techpoint.chandu@gmail.com";

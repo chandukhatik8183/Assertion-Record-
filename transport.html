@@ -1,0 +1,1495 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sandeep Motors Courier ERP</title>
+<meta name="description" content="Sandeep Motors Group - Courier and Transport ERP with QR scanning and live parcel tracking.">
+<meta name="theme-color" content="#0b5a7a">
+<link rel="icon" href="transport-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="transport-icon.svg">
+<link rel="manifest" href="transport.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.camwrap{position:relative;width:100%;max-width:440px;aspect-ratio:1/1;background:#000;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.camwrap video{width:100%;height:100%;object-fit:cover;display:block}
+.camwrap .frame{position:absolute;inset:18%;border:3px solid rgba(255,255,255,.9);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.35);pointer-events:none}
+.camwrap .line{position:absolute;left:18%;right:18%;top:50%;height:2px;background:#ff4d4f;opacity:.85;pointer-events:none}
+</style>
+<style>
+/* Layout: sticky signage-style header with route tabs; one content column (max 1180px); cards only for panels, flat tables inside them. */
+:root{
+  --bg:#edf0f3; --surface:#ffffff; --surface-2:#f5f7f9; --ink:#17202b; --ink-2:#4b5868; --line:#d6dde5;
+  --accent:#0b5a7a; --accent-ink:#ffffff; --accent-soft:#d9eaf1;
+  --pending:#8a5a00; --pending-bg:#fbefd0; --transit:#5436a8; --transit-bg:#e8e2f8; --received:#17693c; --received-bg:#d8f0e1;
+  --danger:#b42318; --danger-bg:#fde6e3;
+  --bar-p:#e0a21b; --bar-t:#7a5fd0; --bar-r:#2a9d5c; --bar-h:#1f9e94; --hub:#0f6b66; --hub-bg:#d6efec;
+  --font-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --font-body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e141b; --surface:#16202a; --surface-2:#1b2733; --ink:#e7edf3; --ink-2:#9db0c2; --line:#2a3846;
+  --accent:#55b6dc; --accent-ink:#05222f; --accent-soft:#16313e;
+  --pending:#f0b94a; --pending-bg:#3a2e10; --transit:#b6a4f2; --transit-bg:#2a2347; --received:#62d08f; --received-bg:#123524;
+  --danger:#ff8d80; --danger-bg:#3d1a17;
+  --bar-p:#d9a233; --bar-t:#8f78e0; --bar-r:#3cb572; --bar-h:#3cb5aa; --hub:#6fd6cc; --hub-bg:#123a37; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e141b; --surface:#16202a; --surface-2:#1b2733; --ink:#e7edf3; --ink-2:#9db0c2; --line:#2a3846;
+  --accent:#55b6dc; --accent-ink:#05222f; --accent-soft:#16313e;
+  --pending:#f0b94a; --pending-bg:#3a2e10; --transit:#b6a4f2; --transit-bg:#2a2347; --received:#62d08f; --received-bg:#123524;
+  --danger:#ff8d80; --danger-bg:#3d1a17;
+  --bar-p:#d9a233; --bar-t:#8f78e0; --bar-r:#3cb572; --bar-h:#3cb5aa; --hub:#6fd6cc; --hub-bg:#123a37; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--font-body);min-height:100vh}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--surface);z-index:10}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--font-display);font-weight:700;letter-spacing:.02em;text-transform:uppercase;margin:0;text-wrap:balance;line-height:1.1}
+h1{font-size:30px} h2{font-size:20px} h3{font-size:16px}
+button,input,select,textarea{font:inherit;color:inherit}
+.mono{font-family:var(--font-mono);font-size:13px;letter-spacing:.01em}
+.muted{color:var(--ink-2)}
+small{font-size:12.5px}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 20px;padding-block:12px 6px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand-mark{font-family:var(--font-display);font-weight:700;font-size:22px;letter-spacing:.06em;background:var(--accent);color:var(--accent-ink);padding:2px 9px;border-radius:4px}
+.brand-name{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:.07em;text-transform:uppercase;line-height:1.05}
+.brand-sub{font-size:12.5px;color:var(--ink-2)}
+.who{display:flex;flex-direction:column;gap:2px;min-width:0;max-width:100%}
+.who label{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.who select{max-width:100%}
+.who-meta{font-size:12.5px;color:var(--ink-2)}
+.tabs{display:flex;gap:2px;overflow-x:auto;padding-bottom:0}
+.tabs a{white-space:nowrap;padding:9px 14px;text-decoration:none;color:var(--ink-2);font-weight:600;border-bottom:3px solid transparent}
+.tabs a:hover{color:var(--ink)}
+.tabs a[aria-current="page"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabs a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+main{padding-block:22px 60px;display:flex;flex-direction:column;gap:18px}
+.view{display:flex;flex-direction:column;gap:18px;min-width:0}
+.head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px}
+.banner{border:1px solid var(--line);background:var(--surface);border-left:4px solid var(--accent);padding:10px 14px;border-radius:6px;font-size:14px}
+.banner.warn{border-left-color:var(--bar-p)} .banner.bad{border-left-color:var(--danger)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.card-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px}
+.inline{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
+
+/* controls */
+input,select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 10px;min-height:38px;width:100%;min-width:0}
+textarea{resize:vertical}
+select:disabled,input:disabled{background:var(--surface-2);color:var(--ink-2);cursor:not-allowed}
+input[type=checkbox]{width:auto;min-height:0}
+[aria-invalid="true"]{border-color:var(--danger)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:8px 14px;min-height:38px;font-weight:600;cursor:pointer}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.sm{min-height:30px;padding:3px 10px;font-size:13px}
+.btn.danger{color:var(--danger)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px 16px}
+.grid .wide{grid-column:1/-1}
+.f{display:flex;flex-direction:column;gap:5px;min-width:0}
+.f label,.lbl{font-size:12.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}
+.fe{color:var(--danger);min-height:0}
+.fe:empty{display:none}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:18px}
+.lock{font-size:12px;font-weight:600;background:var(--accent-soft);color:var(--accent);padding:2px 9px;border-radius:999px}
+.actions{display:flex;flex-wrap:wrap;gap:10px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:7px 14px;font-weight:600;cursor:pointer;color:var(--ink-2)}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.chk{display:inline-flex;gap:7px;align-items:center;font-size:14px}
+
+/* tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.tile .k{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.tile .n{font-family:var(--font-display);font-weight:700;font-size:38px;line-height:1.05;font-variant-numeric:tabular-nums}
+.tile .s{font-size:12.5px;color:var(--ink-2)}
+.tile.p .n{color:var(--pending)} .tile.t .n{color:var(--transit)} .tile.r .n{color:var(--received)}
+
+/* tables */
+.tbl{overflow-x:auto;min-width:0}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th{font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2);text-align:left;padding:8px 10px;border-bottom:2px solid var(--line);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:hover{background:var(--surface-2)}
+td.num,th.num{text-align:right}
+td .sub{display:block;font-size:12.5px;color:var(--ink-2)}
+.empty{padding:22px 10px;text-align:center;color:var(--ink-2)}
+.rowbtns{display:flex;gap:6px;flex-wrap:nowrap}
+a.docket,button.docket{font-family:var(--font-mono);font-size:13px;color:var(--accent);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.pill{display:inline-block;font-size:12.5px;font-weight:600;padding:2px 10px;border-radius:999px;white-space:nowrap}
+.pill.p{background:var(--pending-bg);color:var(--pending)} .pill.t{background:var(--transit-bg);color:var(--transit)} .pill.r{background:var(--received-bg);color:var(--received)}
+.pill.on{background:var(--received-bg);color:var(--received)} .pill.off{background:var(--danger-bg);color:var(--danger)}
+.pill.demo{background:var(--surface-2);color:var(--ink-2);border:1px solid var(--line)}
+.bar{display:flex;height:10px;min-width:120px;border-radius:3px;overflow:hidden;background:var(--surface-2);border:1px solid var(--line)}
+.bar i{display:block;height:100%}
+.bar .bp{background:var(--bar-p)} .bar .bt{background:var(--bar-t)} .bar .br{background:var(--bar-r)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--ink-2)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+
+/* admin subnav */
+.sub-tabs{display:flex;flex-wrap:wrap;gap:6px}
+.sub-tabs button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 16px;font-weight:600;cursor:pointer;color:var(--ink-2)}
+.sub-tabs button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+/* modal */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(10,16,22,.55);display:flex;align-items:flex-start;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));overflow-y:auto}
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:10px;width:min(680px,100%);padding:18px;display:flex;flex-direction:column;gap:16px;margin-block:auto}
+.dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px 16px;margin:0}
+.dl dt{font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+.dl dd{margin:0}
+.route{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:12px}
+.route .arrow{font-family:var(--font-display);font-size:22px;color:var(--accent)}
+.route b{display:block}
+@media (max-width:520px){.route{grid-template-columns:1fr}.route .arrow{transform:rotate(90deg);justify-self:start}}
+.tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.tl li{display:grid;grid-template-columns:14px 1fr;gap:10px}
+.tl li::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--accent);margin-top:6px}
+.tl .when{font-size:12.5px;color:var(--ink-2)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:max(18px,env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;z-index:60;max-width:calc(100% - 32px);font-weight:500;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+
+/* route, scan, vehicle */
+.pill.h{background:var(--hub-bg);color:var(--hub)}
+.tile.h .n{color:var(--hub)}
+.bar .bh{background:var(--bar-h)}
+.banner.ok{border-left-color:var(--bar-r)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+label.btn{display:inline-flex;align-items:center;cursor:pointer}
+.scanbar{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.scanbar .f{flex:1 1 260px}
+.where{font-size:17px;font-weight:600;min-width:0}
+.vstate{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+.qrbox{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px;display:inline-block;line-height:0;max-width:100%}
+.qrbox svg{display:block;max-width:100%;height:auto}
+.stops{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.stops li{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:start;padding:8px 0;position:relative}
+.stops li::before{content:"";width:12px;height:12px;border-radius:50%;border:2px solid var(--line);background:var(--surface);margin:5px 0 0 3px;z-index:1}
+.stops li::after{content:"";position:absolute;left:8px;top:24px;bottom:-8px;width:2px;background:var(--line)}
+.stops li:last-child::after{display:none}
+.stops li.done::before{background:var(--received);border-color:var(--received)}
+.stops li.done::after{background:var(--received)}
+.stops li.here::before{background:var(--hub);border-color:var(--hub);box-shadow:0 0 0 4px var(--hub-bg)}
+.stops li.next::before{border-color:var(--transit);background:var(--transit-bg)}
+.stops .sub{display:block;font-size:12.5px;color:var(--ink-2)}
+.stops .rowbtns{align-self:center}
+.hint{font-size:13px;color:var(--ink-2);margin:0}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:rise .16s ease-out}@keyframes rise{from{transform:translateY(8px);opacity:.4}to{transform:none;opacity:1}}}
+</style>
+</head>
+<body style="visibility:hidden">
+<header class="top">
+  <div class="wrap top-in">
+    <div class="brand">
+      <span class="brand-mark">SMG</span>
+      <div><div class="brand-name">Sandeep Motors Group</div><div class="brand-sub">Courier &amp; Transport ERP</div></div>
+    </div>
+    <div class="who">
+      <label>Signed in</label>
+      <div id="whoName" style="font-weight:600">Loading…</div>
+      <div class="inline" style="gap:8px;margin-top:2px"><button class="btn sm" id="logoutBtn" type="button">Logout</button><a class="btn sm" id="homeLink" href="/" hidden style="text-decoration:none">Asset Tracker</a></div>
+      <div class="who-meta" id="whoMeta"></div>
+    </div>
+  </div>
+  <nav class="wrap tabs" id="tabs" aria-label="Sections">
+    <a href="#dashboard" data-v="dashboard">Dashboard</a>
+    <a href="#entry" data-v="entry">Parcel Entry</a>
+    <a href="#parcels" data-v="parcels">Parcels</a>
+    <a href="#scan" data-v="scan">Scan &amp; Track</a>
+    <a href="#vehicles" data-v="vehicles">Vehicles</a>
+    <a href="#reports" data-v="reports">Reports</a>
+    <a href="#admin" data-v="admin" id="tab-admin">Admin Settings</a>
+  </nav>
+</header>
+
+<main class="wrap">
+  <div class="banner warn" id="banner" hidden></div>
+
+  <!-- DASHBOARD -->
+  <section class="view" id="v-dashboard" hidden>
+    <div class="head">
+      <h1 id="dashTitle">Dashboard</h1>
+      <div class="inline"><span class="lbl">Count parcels by</span>
+        <div class="seg" role="group" aria-label="Count parcels by">
+          <button type="button" data-dir="sent" aria-pressed="true">Sending side</button>
+          <button type="button" data-dir="received" aria-pressed="false">Receiving side</button>
+        </div>
+      </div>
+    </div>
+    <div class="tiles" id="tiles"></div>
+    <div class="card"><div class="card-head"><h2>Vehicles right now</h2></div><div class="tbl" id="vehLive"></div></div>
+    <div class="card">
+      <div class="card-head"><h2>Company-wise parcels</h2>
+        <div class="legend"><span style="--c:var(--bar-p)">Pending</span><span style="--c:var(--bar-t)">In transit</span><span style="--c:var(--bar-h)">At branch</span><span style="--c:var(--bar-r)">Received</span></div></div>
+      <div class="tbl" id="coTable"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Branch-wise parcels</h2>
+        <div class="inline">
+          <select id="dashCo" aria-label="Filter branches by company" style="width:auto;max-width:100%"></select>
+          <label class="chk"><input type="checkbox" id="dashOnly" checked> Only branches with parcels</label>
+        </div>
+      </div>
+      <div class="tbl" id="brTable"></div>
+    </div>
+  </section>
+
+  <!-- PARCEL ENTRY -->
+  <section class="view" id="v-entry" hidden>
+    <div class="head"><h1>Parcel Entry</h1><span class="muted">Cross-company transfers are allowed. Branch lists load from the database.</span></div>
+    <div class="banner" id="entryOk" hidden></div>
+    <form id="entryForm" novalidate>
+      <div class="two" id="parties"></div>
+      <div class="card" style="margin-top:18px" id="routeCard">
+        <div class="card-head"><h2>Route</h2><span class="muted">Leave the middle empty for a direct trip</span></div>
+        <ol class="stops" id="viaList"></ol>
+        <div class="grid">
+          <div class="f"><label for="via-company">Add transit stop: company</label><select id="via-company"></select></div>
+          <div class="f"><label for="via-branch">Branch</label><select id="via-branch" disabled></select></div>
+          <div class="f" style="justify-content:flex-end"><button class="btn" type="button" id="via-add">Add stop</button></div>
+        </div>
+        <small class="fe" id="via-e"></small>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <div class="card-head"><h2>Parcel details</h2></div>
+        <div class="grid">
+          <div class="f"><label for="p-type">Parcel type</label>
+            <select id="p-type"><option>Documents</option><option>Spare parts</option><option>Accessories</option><option>Cash / Cheque</option><option>Keys</option><option>Samples</option><option>Other</option></select><small class="fe" id="p-type-e"></small></div>
+          <div class="f"><label for="p-pkgs">Packages</label><input id="p-pkgs" type="number" min="1" max="999" step="1" value="1" inputmode="numeric"><small class="fe" id="p-pkgs-e"></small></div>
+          <div class="f"><label for="p-weight">Weight (kg)</label><input id="p-weight" type="number" min="0.01" max="2000" step="0.01" inputmode="decimal" placeholder="e.g. 2.5"><small class="fe" id="p-weight-e"></small></div>
+          <div class="f wide"><label for="p-contents">Contents</label><input id="p-contents" type="text" maxlength="200" placeholder="e.g. Brake pads, 4 sets" autocomplete="off"><small class="fe" id="p-contents-e"></small></div>
+        </div>
+        <div class="banner bad" id="entryErr" hidden></div>
+        <div class="actions"><button class="btn primary" type="submit" id="entrySubmit">Create parcel</button><button class="btn" type="reset" id="entryReset">Clear form</button></div>
+      </div>
+    </form>
+  </section>
+
+  <!-- PARCELS -->
+  <section class="view" id="v-parcels" hidden>
+    <div class="head"><h1 id="parcelsTitle">Parcels</h1><a class="btn primary" href="#entry" style="text-decoration:none;display:inline-flex;align-items:center">New parcel</a></div>
+    <div class="card">
+      <div class="grid">
+        <div class="f"><label for="pl-q">Search</label><input id="pl-q" type="search" placeholder="Docket, name, branch or vehicle"></div>
+        <div class="f"><label for="pl-status">Status</label><select id="pl-status"><option value="">All statuses</option><option>Pending</option><option>In Transit</option><option>At Branch</option><option>Received</option></select></div>
+      </div>
+      <div class="tbl" id="parcelTable"></div>
+    </div>
+  </section>
+
+  <!-- SCAN & TRACK -->
+  <section class="view" id="v-scan" hidden>
+    <div class="head"><h1>Scan &amp; Track</h1></div>
+    <div class="card">
+      <form class="scanbar" id="scanForm" novalidate>
+        <div class="f"><label for="scan-input">Vehicle QR, parcel QR or docket number</label>
+          <input id="scan-input" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Scan with a barcode scanner, or type or paste a code"></div>
+        <button class="btn primary" type="submit">Go</button>
+        <button class="btn" type="button" id="camToggle">Open camera scanner</button>
+        <label class="btn" for="scan-photo">Scan from photo</label>
+        <input class="sr-only" id="scan-photo" type="file" accept="image/*" capture="environment">
+      </form>
+      <div class="grid">
+        <div class="f"><label for="scan-veh">Or pick a vehicle</label><select id="scan-veh"></select></div>
+      </div>
+      <div id="camBox" hidden style="display:flex;flex-direction:column;gap:8px">
+        <div class="camwrap"><video id="camVideo" playsinline muted></video><div class="frame"></div><div class="line"></div></div>
+        <p class="hint" id="camHint">Point the camera at a vehicle or parcel QR. It keeps scanning until you close it.</p>
+      </div>
+      <div class="banner" id="scanMsg" role="status" aria-live="polite" hidden></div>
+      <p class="hint">Camera scanner needs permission to use the camera. A USB or Bluetooth barcode scanner also works: it types into the box above.</p>
+    </div>
+
+    <div class="card" id="vehCard" hidden>
+      <div class="card-head"><h2 id="vc-title"></h2>
+        <div class="inline"><button class="btn sm" id="vc-qr" type="button">Vehicle QR</button><button class="btn sm" id="vc-close" type="button">Close</button></div></div>
+      <div id="vc-state"></div>
+      <div id="vc-ops" hidden style="display:flex;flex-direction:column;gap:12px">
+        <div class="grid">
+          <div class="f"><label for="av-company">Vehicle reached: company</label><select id="av-company"></select></div>
+          <div class="f"><label for="av-branch">Branch</label><select id="av-branch" disabled></select></div>
+          <div class="f" style="justify-content:flex-end"><button class="btn primary" type="button" id="av-go">Vehicle arrived here</button></div>
+        </div>
+        <div class="inline" id="vc-modebar" hidden>
+          <div class="seg" role="group" aria-label="Scan mode">
+            <button type="button" data-mode="unload" aria-pressed="true">Unload here</button>
+            <button type="button" data-mode="load" aria-pressed="false">Load here</button>
+          </div>
+          <button class="btn" type="button" id="vc-depart">Vehicle leaves this branch</button>
+        </div>
+        <p class="hint" id="vc-modehint"></p>
+      </div>
+      <div id="vc-lists"></div>
+    </div>
+
+    <div class="card" id="scanParcel" hidden></div>
+  </section>
+
+  <!-- VEHICLES -->
+  <section class="view" id="v-vehicles" hidden>
+    <div class="head"><h1>Vehicles</h1><span class="muted">Every vehicle has one permanent QR code that never changes.</span></div>
+    <form class="card" id="vhForm" novalidate>
+      <div class="card-head"><h2 id="vhFormTitle">Add vehicle</h2></div>
+      <input type="hidden" id="vh-id">
+      <div class="grid">
+        <div class="f"><label for="vh-company">Company</label><select id="vh-company"></select><small class="fe" id="vh-company-e"></small></div>
+        <div class="f"><label for="vh-number">Vehicle number</label><input id="vh-number" type="text" maxlength="14" placeholder="RJ14GA1234" autocomplete="off"><small class="fe" id="vh-number-e"></small></div>
+        <div class="f"><label for="vh-driver">Driver name</label><input id="vh-driver" type="text" maxlength="60" autocomplete="off"><small class="fe" id="vh-driver-e"></small></div>
+        <div class="f"><label for="vh-mobile">Driver mobile</label><input id="vh-mobile" type="tel" maxlength="14" autocomplete="off"><small class="fe" id="vh-mobile-e"></small></div>
+      </div>
+      <div class="actions"><button class="btn primary" type="submit" id="vhSave">Add vehicle</button><button class="btn" type="button" id="vhCancel" hidden>Cancel edit</button></div>
+    </form>
+    <div class="card"><h2>Fleet</h2><div class="tbl" id="vhTable"></div></div>
+  </section>
+
+  <!-- REPORTS -->
+  <section class="view" id="v-reports" hidden>
+    <div class="head"><h1>Reports</h1><button class="btn" type="button" id="rpCsv">Download CSV</button></div>
+    <div class="card">
+      <div class="grid">
+        <div class="f"><label for="rp-company">Select company</label><select id="rp-company"></select></div>
+        <div class="f"><label for="rp-branch">Select branch</label><select id="rp-branch" disabled></select></div>
+        <div class="f"><label for="rp-side">Branch role</label><select id="rp-side"><option value="either">Sending or receiving</option><option value="sent">Sending only</option><option value="received">Receiving only</option><option value="via">Passing through (transit stop)</option></select></div>
+        <div class="f"><label for="rp-from">From date</label><input id="rp-from" type="date"></div>
+        <div class="f"><label for="rp-to">To date</label><input id="rp-to" type="date"></div>
+        <div class="f"><label for="rp-status">Parcel status</label><select id="rp-status"><option value="">All statuses</option><option>Pending</option><option>In Transit</option><option>At Branch</option><option>Received</option></select></div>
+        <div class="f"><label for="rp-vehicle">Vehicle number</label><input id="rp-vehicle" type="text" placeholder="e.g. RJ14GA1234" autocomplete="off"></div>
+      </div>
+      <div class="inline" id="rpSummary"></div>
+      <div class="tbl" id="rpTable"></div>
+    </div>
+  </section>
+
+  <!-- ADMIN -->
+  <section class="view" id="v-admin" hidden>
+    <div class="head"><h1>Admin Settings</h1>
+      <div class="sub-tabs" id="adminTabs" role="group" aria-label="Admin sections">
+        <button type="button" data-a="companies" aria-pressed="true">Companies</button>
+        <button type="button" data-a="branches" aria-pressed="false">Branches</button>
+        <button type="button" data-a="employees" aria-pressed="false">Employees</button>
+        <button type="button" data-a="activity" aria-pressed="false">Activity</button>
+      </div>
+    </div>
+    <div class="banner bad" id="orphanBanner" hidden></div>
+
+    <div id="a-companies" class="view">
+      <form class="card" id="coForm" novalidate>
+        <div class="card-head"><h2 id="coFormTitle">Add company</h2></div>
+        <input type="hidden" id="co-id">
+        <div class="grid">
+          <div class="f"><label for="co-name">Company name</label><input id="co-name" type="text" maxlength="60" autocomplete="off"><small class="fe" id="co-name-e"></small></div>
+          <div class="f"><label for="co-code">Company code</label><input id="co-code" type="text" maxlength="6" autocomplete="off" placeholder="e.g. HYU"><small class="fe" id="co-code-e"></small></div>
+        </div>
+        <div class="actions"><button class="btn primary" type="submit" id="coSave">Add company</button><button class="btn" type="button" id="coCancel" hidden>Cancel edit</button></div>
+      </form>
+      <div class="card"><h2>All companies</h2><div class="tbl" id="coAdminTable"></div></div>
+    </div>
+
+    <div id="a-branches" class="view" hidden>
+      <form class="card" id="brForm" novalidate>
+        <div class="card-head"><h2 id="brFormTitle">Add branch</h2></div>
+        <input type="hidden" id="br-id">
+        <div class="grid">
+          <div class="f"><label for="br-company">Company</label><select id="br-company"></select><small class="fe" id="br-company-e"></small></div>
+          <div class="f"><label for="br-name">Branch name</label><input id="br-name" type="text" maxlength="80" autocomplete="off"><small class="fe" id="br-name-e"></small></div>
+          <div class="f"><label for="br-code">Branch code</label><input id="br-code" type="text" maxlength="12" autocomplete="off" placeholder="Auto if blank"><small class="fe" id="br-code-e"></small></div>
+          <div class="f"><label for="br-contact">Contact number</label><input id="br-contact" type="tel" maxlength="14" autocomplete="off"><small class="fe" id="br-contact-e"></small></div>
+          <div class="f wide"><label for="br-address">Address</label><input id="br-address" type="text" maxlength="200" autocomplete="off"></div>
+        </div>
+        <div class="actions"><button class="btn primary" type="submit" id="brSave">Add branch</button><button class="btn" type="button" id="brCancel" hidden>Cancel edit</button></div>
+      </form>
+      <div class="card">
+        <div class="card-head"><h2>All branches</h2><select id="brFilter" aria-label="Filter by company" style="width:auto;max-width:100%"></select></div>
+        <div class="tbl" id="brAdminTable"></div>
+      </div>
+    </div>
+
+    <div id="a-employees" class="view" hidden>
+      <form class="card" id="emForm" novalidate>
+        <div class="card-head"><h2 id="emFormTitle">Add employee</h2></div>
+        <input type="hidden" id="em-id">
+        <div class="grid">
+          <div class="f"><label for="em-empid">Employee ID</label><input id="em-empid" type="text" maxlength="20" autocomplete="off"><small class="fe" id="em-empid-e"></small></div>
+          <div class="f"><label for="em-name">Employee name</label><input id="em-name" type="text" maxlength="60" autocomplete="off"><small class="fe" id="em-name-e"></small></div>
+          <div class="f"><label for="em-mobile">Mobile number</label><input id="em-mobile" type="tel" maxlength="14" autocomplete="off"><small class="fe" id="em-mobile-e"></small></div>
+          <div class="f"><label for="em-pass">Login password (min 8; blank = keep)</label><input id="em-pass" type="password" maxlength="64" autocomplete="new-password"><small class="fe" id="em-pass-e"></small></div>
+          <div class="f"><label for="em-role">Role</label><select id="em-role"><option value="branch_employee">Branch Employee</option><option value="company_admin">Company Admin</option><option value="driver">Driver</option><option value="super_admin">Super Admin</option></select></div>
+          <div class="f"><label for="em-company">Company</label><select id="em-company"></select><small class="fe" id="em-company-e"></small></div>
+          <div class="f"><label for="em-branch">Branch</label><select id="em-branch" disabled></select><small class="fe" id="em-branch-e"></small></div>
+        </div>
+        <div class="actions"><button class="btn primary" type="submit" id="emSave">Add employee</button><button class="btn" type="button" id="emCancel" hidden>Cancel edit</button></div>
+      </form>
+      <div class="card"><h2>All employees</h2><div class="tbl" id="emAdminTable"></div></div>
+    </div>
+
+    <div id="a-activity" class="view" hidden>
+      <div class="card"><h2>Recent activity</h2><div class="tbl" id="logTable"></div></div>
+      <div class="card"><h2>Example data</h2>
+        <p class="muted" style="margin:0">Sample parcels marked DEMO were added so the dashboard and reports have something to show. Remove them before real use.</p>
+        <div class="actions"><button class="btn danger" type="button" id="demoWipe">Remove demo parcels</button></div></div>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="modal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="card-head"><h2 id="mTitle">Parcel</h2><button class="btn sm" type="button" id="mClose">Close</button></div>
+    <div id="mBody"></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+(async function () {
+'use strict';
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+class VErr extends Error {}
+const ROLE = { super_admin: 'Super Admin', company_admin: 'Company Admin', driver: 'Driver', branch_employee: 'Branch Employee' };
+const ROLE_ORDER = { super_admin: 0, company_admin: 1, driver: 2, branch_employee: 3 };
+const VIEWS = ['dashboard', 'entry', 'parcels', 'scan', 'vehicles', 'reports', 'admin'];
+const ID_RE = /^[A-Za-z0-9_.~:@+-]{1,100}$/;
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const nowISO = () => new Date().toISOString();
+const pad = n => String(n).padStart(2, '0');
+const ldate = iso => { const d = new Date(iso); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+const fmt = iso => iso ? new Date(iso).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
+const skey = s => s === 'Pending' ? 'p' : s === 'In Transit' ? 't' : s === 'At Branch' ? 'h' : 'r';
+const pill = s => '<span class="pill ' + skey(s) + '">' + esc(s) + '</span>';
+const S = { db: null, dl: null, user: null, companies: [], branches: [], employees: [], parcels: [], logs: [], ready: {}, meId: null, dir: 'sent', view: 'dashboard', admin: 'companies', entryFor: null, openId: null, cMap: new Map(), bMap: new Map(), vMap: new Map(), vehicles: [], via: [], activeV: null, scanMode: 'unload', avKey: '' };
+
+let toastT;
+function toast(msg, bad) {
+  const t = $('#toast'); t.textContent = msg; t.hidden = false;
+  t.style.background = bad ? 'var(--danger)' : ''; t.style.color = bad ? '#fff' : '';
+  clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 4200);
+}
+const errText = e => e instanceof VErr ? e.message : (e && e.code === 'invalid_argument' ? 'The store refused this change (not allowed, or invalid data). Master data needs Editor access.' : (e && e.message) || 'Something went wrong.');
+async function run(fn, ok) { try { const r = await fn(); if (ok) toast(ok); return r; } catch (e) { toast(errText(e), true); return null; } }
+
+/* ---------- lookups ---------- */
+const me = () => {
+  if (S.owner) return { id: 'owner', name: 'Owner (Admin)', employee_id: 'OWNER', role: 'super_admin' };
+  return S.employees.find(e => String(e.employee_id).toLowerCase() === S.uname && e.status !== 'inactive') || null;
+};
+const isSuper = u => !!u && u.role === 'super_admin';
+const bySort = (a, b) => (a.sort == null ? 9999 : a.sort) - (b.sort == null ? 9999 : b.sort) || String(a.company_name || a.branch_name || '').localeCompare(String(b.company_name || b.branch_name || ''));
+const brCmp = (a, b) => ((S.cMap.get(a.company_id) || {}).sort || 999) - ((S.cMap.get(b.company_id) || {}).sort || 999) || bySort(a, b);
+const cName = id => (S.cMap.get(id) || {}).company_name || '—';
+const bName = id => (S.bMap.get(id) || {}).branch_name || '—';
+function reindex() { S.cMap = new Map(S.companies.map(c => [c.id, c])); S.bMap = new Map(S.branches.map(b => [b.id, b])); S.vMap = new Map(S.vehicles.map(v => [v.id, v])); }
+const scopeCompanies = u => isSuper(u) ? S.companies : S.companies.filter(c => u && c.id === u.company_id);
+const scopeBranches = u => isSuper(u) ? S.branches : (u && (u.role === 'company_admin' || u.role === 'driver') ? S.branches.filter(b => b.company_id === u.company_id) : S.branches.filter(b => u && b.id === u.branch_id));
+function inScope(p, u) {
+  if (!u) return false; if (isSuper(u)) return true;
+  const r = routeOf(p);
+  if (u.role === 'branch_employee') return r.includes(u.branch_id);
+  if (r.some(b => brCo(b) === u.company_id)) return true;
+  return p.sender_company_id === u.company_id || p.receiver_company_id === u.company_id || (!!p.vehicle_company_id && p.vehicle_company_id === u.company_id);
+}
+/* route, location and permission helpers */
+const routeOf = p => (Array.isArray(p.route) && p.route.length >= 2) ? p.route : [p.sender_branch_id, p.receiver_branch_id];
+const legOf = p => p.status === 'Received' ? routeOf(p).length - 1 : (Number.isInteger(p.leg) ? p.leg : 0);
+const brCo = id => (S.bMap.get(id) || {}).company_id || null;
+const curB = p => p.status === 'In Transit' ? null : (p.current_branch_id || routeOf(p)[legOf(p)]);
+const nextB = p => p.status === 'Received' ? null : (p.next_branch_id || routeOf(p)[legOf(p) + 1] || null);
+const onBoard = v => S.parcels.filter(p => p.status === 'In Transit' && p.vehicle_id === v.id);
+const vState = v => v.state === 'at_branch' && v.location_branch_id ? 'at_branch' : (v.state === 'moving' ? 'moving' : 'unknown');
+function vWhere(v) {
+  const st = vState(v);
+  if (st === 'at_branch') return 'At ' + bName(v.location_branch_id);
+  if (st === 'moving') {
+    const nx = Array.from(new Set(onBoard(v).map(nextB).filter(Boolean)));
+    return 'Left ' + bName(v.from_branch_id) + (nx.length ? ', next stop ' + nx.map(bName).join(' / ') : '');
+  }
+  return 'Location not set';
+}
+function whereP(p) {
+  const r = routeOf(p);
+  if (p.status === 'Received') return 'Delivered at ' + bName(r[r.length - 1]);
+  if (p.status === 'In Transit') {
+    const v = S.vMap.get(p.vehicle_id);
+    return 'On ' + ((v && v.vehicle_number) || p.vehicle_number || 'a vehicle') + ' · ' + (v ? vWhere(v) : 'location unknown');
+  }
+  if (p.status === 'At Branch') return 'Waiting at ' + bName(curB(p)) + ' for the next vehicle (next stop ' + bName(nextB(p)) + ')';
+  return 'Waiting at ' + bName(curB(p)) + ' for a vehicle';
+}
+const isOpRole = u => !!u && (u.role === 'super_admin' || u.role === 'company_admin' || u.role === 'driver');
+const canOperate = (u, v) => !!u && !!v && v.status !== 'inactive' && (isSuper(u) || ((u.role === 'company_admin' || u.role === 'driver') && u.company_id === v.company_id));
+const canManageVehicles = (u, companyId) => !!u && (isSuper(u) || (u.role === 'company_admin' && (!companyId || u.company_id === companyId)));
+const canReroute = (p, u) => !!u && (p.status === 'Pending' || p.status === 'At Branch') && (isSuper(u)
+  || (u.role === 'company_admin' && (brCo(curB(p)) === u.company_id || p.sender_company_id === u.company_id))
+  || (u.role === 'branch_employee' && curB(p) === u.branch_id));
+const scopeVehicles = u => isSuper(u) ? S.vehicles : S.vehicles.filter(v => u && (v.company_id === u.company_id || v.location_branch_id === u.branch_id || onBoard(v).some(p => inScope(p, u))));
+function qrSvg(text, px) {
+  if (typeof window.qrcode !== 'function') return '';
+  try {
+    const q = window.qrcode(0, 'M'); q.addData(text); q.make();
+    const n = q.getModuleCount(), m = 4; let d = '';
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += 'M' + (c + m) + ' ' + (r + m) + 'h1v1h-1z';
+    const s = n + 2 * m;
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + s + ' ' + s + '" width="' + px + '" height="' + px + '" shape-rendering="crispEdges" role="img" aria-label="QR code ' + esc(text) + '"><rect width="' + s + '" height="' + s + '" fill="#ffffff"/><path d="' + d + '" fill="#000000"/></svg>';
+  } catch (e) { return ''; }
+}
+const qrBlock = (text, px) => { const s = qrSvg(text, px); return s ? '<span class="qrbox">' + s + '</span>' : '<span class="muted">QR image could not load. Code: <span class="mono">' + esc(text) + '</span></span>'; };
+async function saveQr(text, name) {
+  const s = qrSvg(text, 600);
+  if (!s) return toast('QR image is not available right now.', true);
+  if (!S.dl) return toast('Downloads are not available in this view.', true);
+  try { await S.dl.save({ filename: name, data: s }); toast('QR saved'); } catch (e) { if (!e || e.code !== 'declined') toast('Could not save the QR.', true); }
+}
+function fillStop(cId, bId, keep) {
+  const co = $('#' + cId), br = $('#' + bId); if (!co || !br) return;
+  fill(co, S.companies.filter(c => c.status === 'active').sort(bySort), c => c.company_name, 'Select company', keep);
+  const rows = co.value ? S.branches.filter(b => b.company_id === co.value && b.status === 'active').sort(brCmp) : [];
+  fill(br, rows, b => b.branch_name, co.value ? (rows.length ? 'Select branch' : 'No active branches') : 'Select company first', keep);
+  br.disabled = !co.value || !rows.length;
+}
+function wireStop(cId, bId) { $('#' + cId).addEventListener('change', () => fillStop(cId, bId, true)); }
+async function branchInfo(branchId, label) {
+  if (!ID_RE.test(branchId || '')) throw new VErr(label + ': branch is required.');
+  const b = await S.db.doc('branches/' + branchId).get();
+  if (!b.exists) throw new VErr(label + ': branch not found.');
+  return assertBranch(b.data().company_id, branchId, label);
+}
+
+/* ---------- select helper ---------- */
+function fill(sel, rows, label, placeholder, keep) {
+  const prev = sel.value;
+  sel.innerHTML = (placeholder != null ? '<option value="">' + esc(placeholder) + '</option>' : '') + rows.map(r => '<option value="' + esc(r.id) + '">' + esc(label(r)) + '</option>').join('');
+  sel.value = keep && rows.some(r => r.id === prev) ? prev : '';
+}
+function setErr(id, msg) { const e = $('#' + id + '-e'), c = $('#' + id); if (e) e.textContent = msg || ''; if (c) c.setAttribute('aria-invalid', msg ? 'true' : 'false'); }
+function clearErrs(root) { $$('.fe', root).forEach(e => { e.textContent = ''; }); $$('[aria-invalid]', root).forEach(c => c.setAttribute('aria-invalid', 'false')); }
+
+/* ---------- backend-style validation (re-reads the stored master data) ---------- */
+async function assertBranch(companyId, branchId, label) {
+  if (!ID_RE.test(companyId || '') || !ID_RE.test(branchId || '')) throw new VErr(label + ': company and branch are required.');
+  const [c, b] = await Promise.all([S.db.doc('companies/' + companyId).get(), S.db.doc('branches/' + branchId).get()]);
+  if (!c.exists) throw new VErr(label + ': company not found.');
+  if (!b.exists) throw new VErr(label + ': branch not found.');
+  const cd = c.data(), bd = b.data();
+  if (bd.company_id !== companyId) throw new VErr(label + ': branch "' + bd.branch_name + '" does not belong to "' + cd.company_name + '".');
+  if (cd.status !== 'active') throw new VErr(label + ': company "' + cd.company_name + '" is inactive.');
+  if (bd.status !== 'active') throw new VErr(label + ': branch "' + bd.branch_name + '" is inactive.');
+  return { c: cd, b: bd };
+}
+async function addLog(action, detail, companyId, branchId) {
+  const u = me();
+  try { await S.db.collection('activity_logs').add({ at: nowISO(), action, detail, user_id: u ? u.id : null, user_name: u ? u.name : null, company_id: companyId || (u && u.company_id) || null, branch_id: branchId || (u && u.branch_id) || null }); } catch (e) { /* log is best effort */ }
+}
+
+/* ---------- entry form ---------- */
+const fld = (id, label, ctl) => '<div class="f"><label for="' + id + '">' + label + '</label>' + ctl + '<small class="fe" id="' + id + '-e"></small></div>';
+function party(p, title, co, emp) {
+  return '<div class="card" id="party-' + p + '"><div class="card-head"><h2>' + title + '</h2><span class="lock" id="' + p + '-lock" hidden></span></div><div class="grid">'
+    + fld(p + '-company', co + ' Company', '<select id="' + p + '-company"></select>')
+    + fld(p + '-branch', co + ' Branch', '<select id="' + p + '-branch" disabled></select>')
+    + fld(p + '-name', emp + ' Employee Name', '<input id="' + p + '-name" type="text" maxlength="60" autocomplete="off">')
+    + fld(p + '-emp', emp + ' Employee ID', '<input id="' + p + '-emp" type="text" maxlength="20" autocomplete="off">')
+    + fld(p + '-mobile', emp + ' Mobile Number', '<input id="' + p + '-mobile" type="tel" inputmode="numeric" maxlength="14" placeholder="10-digit mobile" autocomplete="off">')
+    + '</div></div>';
+}
+$('#parties').innerHTML = party('s', 'Sender details', 'Sending', 'Sender') + party('r', 'Receiver details', 'Receiving', 'Receiver');
+
+function syncBranches(p, keep) {
+  const co = $('#' + p + '-company'), br = $('#' + p + '-branch');
+  const cid = co.value;
+  const rows = cid ? S.branches.filter(b => b.company_id === cid && b.status === 'active').sort(brCmp) : [];
+  fill(br, rows, b => b.branch_name, cid ? (rows.length ? 'Select branch' : 'No active branches') : 'Select company first', keep);
+  br.disabled = !cid || !rows.length;
+}
+function applySenderLock(u) {
+  const co = $('#s-company'), br = $('#s-branch'), note = $('#s-lock');
+  const lock = !!u && u.id !== 'setup' && u.role !== 'super_admin';
+  if (lock) {
+    co.value = u.company_id || '';
+    syncBranches('s', true);
+    if (u.role === 'branch_employee') { br.value = u.branch_id || ''; br.disabled = true; }
+    co.disabled = true;
+    note.hidden = false;
+    note.textContent = co.value ? 'Locked to your assignment' : 'Your company is inactive. Ask the Super Admin.';
+  } else { co.disabled = false; syncBranches('s', true); note.hidden = true; }
+}
+function syncEntry() {
+  const u = me();
+  const act = S.companies.filter(c => c.status === 'active').sort(bySort);
+  ['s', 'r'].forEach(p => fill($('#' + p + '-company'), act, c => c.company_name, 'Select company', true));
+  applySenderLock(u);
+  syncBranches('r', true);
+  fillStop('via-company', 'via-branch', true); renderVia();
+  if (u && S.entryFor !== u.id) {
+    S.entryFor = u.id;
+    const own = u.id !== 'setup' && u.role !== 'super_admin';
+    $('#s-name').value = own ? u.name || '' : ''; $('#s-emp').value = own ? u.employee_id || '' : ''; $('#s-mobile').value = own ? u.mobile || '' : '';
+  }
+}
+['s', 'r'].forEach(p => {
+  $('#' + p + '-company').addEventListener('change', () => { syncBranches(p, false); setErr(p + '-company'); setErr(p + '-branch'); });
+  ['company', 'branch', 'name', 'emp', 'mobile'].forEach(k => $('#' + p + '-' + k).addEventListener('input', () => setErr(p + '-' + k)));
+});
+['p-pkgs', 'p-weight', 'p-contents'].forEach(id => $('#' + id).addEventListener('input', () => setErr(id)));
+
+/* ---------- route stops on the entry form ---------- */
+wireStop('via-company', 'via-branch');
+function renderVia() {
+  const sb = $('#s-branch').value, rb = $('#r-branch').value;
+  const row = (cls, name, sub, btns) => '<li class="' + cls + '"><div><b>' + esc(name) + '</b><span class="sub">' + esc(sub) + '</span></div>' + (btns || '') + '</li>';
+  let h = sb ? row('done', bName(sb), cName(brCo(sb)) + ' · Start') : row('todo', 'Sending branch', 'Select it above');
+  S.via.forEach((v, i) => {
+    h += row('todo', bName(v.branch_id), cName(v.company_id) + ' · Transit stop ' + (i + 1),
+      '<div class="rowbtns"><button type="button" class="btn sm" data-via="up" data-i="' + i + '" aria-label="Move stop up"' + (i === 0 ? ' disabled' : '') + '>Up</button><button type="button" class="btn sm" data-via="down" data-i="' + i + '" aria-label="Move stop down"' + (i === S.via.length - 1 ? ' disabled' : '') + '>Down</button><button type="button" class="btn sm danger" data-via="del" data-i="' + i + '">Remove</button></div>');
+  });
+  h += rb ? row('todo', bName(rb), cName(brCo(rb)) + ' · Final destination') : row('todo', 'Receiving branch', 'Select it above');
+  $('#viaList').innerHTML = h;
+}
+$('#viaList').addEventListener('click', e => {
+  const b = e.target.closest('[data-via]'); if (!b) return;
+  const i = parseInt(b.dataset.i, 10), a = S.via;
+  if (b.dataset.via === 'del') a.splice(i, 1);
+  else if (b.dataset.via === 'up' && i > 0) { const t = a[i - 1]; a[i - 1] = a[i]; a[i] = t; }
+  else if (b.dataset.via === 'down' && i < a.length - 1) { const t = a[i + 1]; a[i + 1] = a[i]; a[i] = t; }
+  renderVia();
+});
+$('#via-add').addEventListener('click', () => {
+  const c = $('#via-company').value, b = $('#via-branch').value, e = $('#via-e');
+  e.textContent = '';
+  if (!c || !b) { e.textContent = 'Select the company and branch of the transit stop.'; return; }
+  if (b === $('#s-branch').value || b === $('#r-branch').value || S.via.some(x => x.branch_id === b)) { e.textContent = 'This branch is already in the route.'; return; }
+  S.via.push({ company_id: c, branch_id: b });
+  $('#via-branch').value = '';
+  renderVia();
+});
+['s-company', 's-branch', 'r-company', 'r-branch'].forEach(id => $('#' + id).addEventListener('change', renderVia));
+
+
+const normMobile = m => { m = String(m || '').replace(/[\s-]/g, ''); return m.length > 10 ? m.replace(/^\+?91/, '') : m; };
+const MOBILE_RE = /^[6-9]\d{9}$/, EMP_RE = /^[A-Za-z0-9._-]{2,20}$/;
+
+$('#entryForm').addEventListener('reset', () => setTimeout(() => { S.entryFor = null; S.via = []; syncEntry(); clearErrs($('#entryForm')); $('#entryErr').hidden = true; }, 0));
+$('#entryForm').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const btn = $('#entrySubmit'); const errBox = $('#entryErr'); errBox.hidden = true; $('#entryOk').hidden = true;
+  const u = me();
+  if (!S.db) return toast('The database is not available in this view.', true);
+  if (!u) return toast('Choose a demo sign-in first.', true);
+  const f = {
+    sc: $('#s-company').value, sb: $('#s-branch').value, sn: $('#s-name').value.trim(), se: $('#s-emp').value.trim(), sm: normMobile($('#s-mobile').value),
+    rc: $('#r-company').value, rb: $('#r-branch').value, rn: $('#r-name').value.trim(), re: $('#r-emp').value.trim(), rm: normMobile($('#r-mobile').value),
+    type: $('#p-type').value, pk: parseInt($('#p-pkgs').value, 10), wt: parseFloat($('#p-weight').value), ct: $('#p-contents').value.trim()
+  };
+  clearErrs($('#entryForm'));
+  let bad = false; const E = (id, m) => { setErr(id, m); bad = true; };
+  [['s', 'Sending', 'sc', 'sb', 'sn', 'se', 'sm'], ['r', 'Receiving', 'rc', 'rb', 'rn', 're', 'rm']].forEach(([p, w, c, b, n, e, m]) => {
+    if (!f[c]) E(p + '-company', 'Select the ' + w.toLowerCase() + ' company.');
+    if (!f[b]) E(p + '-branch', 'Select the ' + w.toLowerCase() + ' branch.');
+    if (f[n].length < 2) E(p + '-name', 'Enter the employee name.');
+    if (!EMP_RE.test(f[e])) E(p + '-emp', 'Use 2–20 letters, digits, dot, dash or underscore.');
+    if (!MOBILE_RE.test(f[m])) E(p + '-mobile', 'Enter a valid 10-digit mobile number.');
+  });
+  if (!(f.pk >= 1 && f.pk <= 999)) E('p-pkgs', 'Enter 1 to 999 packages.');
+  if (!(f.wt > 0 && f.wt <= 2000)) E('p-weight', 'Enter the weight in kg.');
+  if (f.ct.length < 2) E('p-contents', 'Describe what is inside.');
+  if (bad) { errBox.textContent = 'Please fix the highlighted fields.'; errBox.hidden = false; return; }
+  btn.disabled = true;
+  try {
+    if (isSuper(u) === false) {
+      if (f.sc !== u.company_id) throw new VErr('You can only send from your own company.');
+      if (u.role === 'branch_employee' && f.sb !== u.branch_id) throw new VErr('You can only send from your own branch.');
+    }
+    if (f.sb === f.rb) throw new VErr('Sending and receiving branch cannot be the same.');
+    const [sv, rv] = await Promise.all([assertBranch(f.sc, f.sb, 'Sender'), assertBranch(f.rc, f.rb, 'Receiver')]);
+    const viaIds = [];
+    for (const x of S.via) {
+      if (viaIds.includes(x.branch_id) || x.branch_id === f.sb || x.branch_id === f.rb) throw new VErr('A branch can appear only once in the route.');
+      await assertBranch(x.company_id, x.branch_id, 'Transit stop'); viaIds.push(x.branch_id);
+    }
+    const route = [f.sb].concat(viaIds, [f.rb]);
+    const d = new Date(); const docket = 'SMG-' + String(d.getFullYear()).slice(2) + pad(d.getMonth() + 1) + pad(d.getDate()) + '-' + Math.floor(1000 + Math.random() * 9000);
+    const id = uid(), at = nowISO();
+    const parcel = { docket, company_id: f.sc, branch_id: f.sb, sender_company_id: f.sc, sender_branch_id: f.sb, sender_name: f.sn, sender_emp_id: f.se, sender_mobile: f.sm,
+      receiver_company_id: f.rc, receiver_branch_id: f.rb, receiver_name: f.rn, receiver_emp_id: f.re, receiver_mobile: f.rm,
+      parcel_type: f.type, packages: f.pk, weight: f.wt, contents: f.ct, status: 'Pending', vehicle_number: '', vehicle_id: '', vehicles_used: [], route, leg: 0, current_branch_id: f.sb, next_branch_id: route[1], created_at: at, created_by: u.id };
+    await S.db.doc('parcels/' + id).set(parcel);
+    S.parcels.unshift(Object.assign({ id }, parcel));
+    await S.db.collection('tracking').add({ parcel_id: id, docket, status: 'Pending', note: 'Booked at ' + sv.b.branch_name + ' (' + sv.c.company_name + ')' + (viaIds.length ? '. Route: ' + route.map(bName).join(' → ') : ''), company_id: f.sc, branch_id: f.sb, by: u.name, at });
+    await addLog('parcel.create', docket + ': ' + sv.b.branch_name + ' to ' + rv.b.branch_name, f.sc, f.sb);
+    const ok = $('#entryOk');
+    ok.innerHTML = 'Parcel <button type="button" class="docket" data-open="' + esc(id) + '">' + esc(docket) + '</button> created: ' + esc(sv.b.branch_name) + ' to ' + esc(rv.b.branch_name) + '.';
+    ok.hidden = false;
+    $('#entryForm').reset();
+    toast('Parcel ' + docket + ' created');
+    sched();
+  } catch (e) { errBox.textContent = errText(e); errBox.hidden = false; }
+  finally { btn.disabled = false; }
+});
+
+/* ---------- dashboard ---------- */
+function tally(list) { const o = { t: 0, p: 0, i: 0, h: 0, r: 0 }; list.forEach(x => { o.t++; if (x.status === 'Pending') o.p++; else if (x.status === 'In Transit') o.i++; else if (x.status === 'At Branch') o.h++; else if (x.status === 'Received') o.r++; }); return o; }
+function barHTML(o) { if (!o.t) return '<div class="bar" aria-hidden="true"></div>'; const w = n => (n / o.t * 100).toFixed(1) + '%'; return '<div class="bar" role="img" aria-label="' + o.p + ' pending, ' + o.i + ' in transit, ' + o.h + ' at a branch, ' + o.r + ' received"><i class="bp" style="width:' + w(o.p) + '"></i><i class="bt" style="width:' + w(o.i) + '"></i><i class="bh" style="width:' + w(o.h) + '"></i><i class="br" style="width:' + w(o.r) + '"></i></div>'; }
+function renderLive(u) {
+  const vs = scopeVehicles(u).filter(v => v.status !== 'inactive').sort((a, b) => String(a.vehicle_number).localeCompare(String(b.vehicle_number)));
+  $('#vehLive').innerHTML = vs.length ? '<table><thead><tr><th>Vehicle</th><th>Company</th><th>Where it is now</th><th class="num">Parcels on board</th></tr></thead><tbody>' +
+    vs.map(v => { const st = vState(v); return '<tr><td><button type="button" class="docket" data-vopen="' + esc(v.id) + '">' + esc(v.vehicle_number) + '</button></td><td>' + esc(cName(v.company_id)) + '</td><td><span class="pill ' + (st === 'at_branch' ? 'h' : st === 'moving' ? 't' : 'demo') + '">' + (st === 'at_branch' ? 'At branch' : st === 'moving' ? 'Moving' : 'Unknown') + '</span> ' + esc(vWhere(v)) + '</td><td class="num">' + onBoard(v).length + '</td></tr>'; }).join('') + '</tbody></table>'
+    : '<div class="empty">No vehicles yet. Add one under Vehicles.</div>';
+}
+function renderDashboard() {
+  const u = me(); if (!u) return;
+  const sp = S.parcels.filter(p => inScope(p, u)); const T = tally(sp);
+  const cos = scopeCompanies(u).slice().sort(bySort), brs = scopeBranches(u).slice().sort(brCmp);
+  $('#dashTitle').textContent = isSuper(u) ? 'Group dashboard' : (u.role === 'branch_employee' ? bName(u.branch_id) : cName(u.company_id)) + ' dashboard';
+  $('#tiles').innerHTML =
+    '<div class="tile"><span class="k">Total companies</span><span class="n">' + cos.length + '</span><span class="s">' + cos.filter(c => c.status === 'active').length + ' active</span></div>' +
+    '<div class="tile"><span class="k">Total branches</span><span class="n">' + brs.length + '</span><span class="s">' + brs.filter(b => b.status === 'active').length + ' active</span></div>' +
+    '<div class="tile"><span class="k">Total parcels</span><span class="n">' + T.t + '</span><span class="s">in view</span></div>' +
+    '<div class="tile p"><span class="k">Pending</span><span class="n">' + T.p + '</span><span class="s">booked, not loaded</span></div>' +
+    '<div class="tile t"><span class="k">In transit</span><span class="n">' + T.i + '</span><span class="s">on a vehicle</span></div>' +
+    '<div class="tile h"><span class="k">At a branch</span><span class="n">' + T.h + '</span><span class="s">waiting at a transit stop</span></div>' +
+    '<div class="tile r"><span class="k">Received</span><span class="n">' + T.r + '</span><span class="s">delivered</span></div>';
+  renderLive(u);
+  const ck = S.dir === 'sent' ? 'sender_company_id' : 'receiver_company_id', bk = S.dir === 'sent' ? 'sender_branch_id' : 'receiver_branch_id';
+  $('#coTable').innerHTML = cos.length ? '<table><thead><tr><th>Company</th><th class="num">Parcels</th><th class="num">Pending</th><th class="num">In transit</th><th class="num">At branch</th><th class="num">Received</th><th>Split</th></tr></thead><tbody>' +
+    cos.map(c => { const o = tally(sp.filter(p => p[ck] === c.id)); return '<tr><td><b>' + esc(c.company_name) + '</b>' + (c.status !== 'active' ? ' <span class="pill off">Inactive</span>' : '') + '</td><td class="num">' + o.t + '</td><td class="num">' + o.p + '</td><td class="num">' + o.i + '</td><td class="num">' + o.h + '</td><td class="num">' + o.r + '</td><td>' + barHTML(o) + '</td></tr>'; }).join('') + '</tbody></table>'
+    : '<div class="empty">No companies loaded yet.</div>';
+  fill($('#dashCo'), cos, c => c.company_name, 'All companies', true);
+  const fc = $('#dashCo').value, only = $('#dashOnly').checked;
+  const rows = brs.filter(b => !fc || b.company_id === fc).map(b => ({ b, o: tally(sp.filter(p => p[bk] === b.id)) })).filter(r => !only || r.o.t);
+  $('#brTable').innerHTML = rows.length ? '<table><thead><tr><th>Branch</th><th>Company</th><th class="num">Parcels</th><th class="num">Pending</th><th class="num">In transit</th><th class="num">At branch</th><th class="num">Received</th></tr></thead><tbody>' +
+    rows.map(r => '<tr><td><b>' + esc(r.b.branch_name) + '</b>' + (r.b.status !== 'active' ? ' <span class="pill off">Inactive</span>' : '') + '</td><td>' + esc(cName(r.b.company_id)) + '</td><td class="num">' + r.o.t + '</td><td class="num">' + r.o.p + '</td><td class="num">' + r.o.i + '</td><td class="num">' + r.o.h + '</td><td class="num">' + r.o.r + '</td></tr>').join('') + '</tbody></table>'
+    : '<div class="empty">' + (only ? 'No parcels for these branches yet. Untick the box to list every branch.' : 'No branches to show.') + '</div>';
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-vopen]'); if (b) { S.activeV = b.dataset.vopen; location.hash = '#scan'; sched(); } });
+$$('#v-dashboard [data-dir]').forEach(b => b.addEventListener('click', () => { S.dir = b.dataset.dir; $$('#v-dashboard [data-dir]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); renderDashboard(); }));
+$('#dashCo').addEventListener('change', renderDashboard); $('#dashOnly').addEventListener('change', renderDashboard);
+
+/* ---------- parcels list + modal ---------- */
+const partyCell = (cid, bid) => '<b>' + esc(bName(bid)) + '</b><span class="sub">' + esc(cName(cid)) + '</span>';
+function matches(p, q) { q = q.toLowerCase(); return !q || [p.docket, p.sender_name, p.receiver_name, p.vehicle_number, bName(p.sender_branch_id), bName(p.receiver_branch_id), cName(p.sender_company_id), cName(p.receiver_company_id)].some(x => String(x || '').toLowerCase().includes(q)); }
+function renderParcels() {
+  const u = me(); if (!u) return;
+  $('#parcelsTitle').textContent = isSuper(u) ? 'All parcels' : 'Your parcels';
+  const q = $('#pl-q').value.trim(), st = $('#pl-status').value;
+  const rows = S.parcels.filter(p => inScope(p, u) && (!st || p.status === st) && matches(p, q));
+  const via = p => { const m = routeOf(p).slice(1, -1); return m.length ? 'via ' + m.map(bName).join(', ') : 'Direct'; };
+  $('#parcelTable').innerHTML = rows.length ? '<table><thead><tr><th>Docket</th><th>Booked</th><th>From</th><th>To</th><th>Route</th><th>Status</th><th>Where now</th></tr></thead><tbody>' +
+    rows.slice(0, 300).map(p => '<tr><td><button type="button" class="docket" data-open="' + esc(p.id) + '">' + esc(p.docket) + '</button>' + (p.demo ? ' <span class="pill demo">DEMO</span>' : '') + '</td><td>' + esc(fmt(p.created_at)) + '</td><td>' + partyCell(p.sender_company_id, p.sender_branch_id) + '</td><td>' + partyCell(p.receiver_company_id, p.receiver_branch_id) + '</td><td>' + esc(via(p)) + '<span class="sub">' + esc(p.parcel_type) + ' · ' + esc(p.packages) + ' pkg · ' + esc(p.weight) + ' kg</span></td><td>' + pill(p.status) + '</td><td>' + esc(whereP(p)) + '</td></tr>').join('') + '</tbody></table>'
+    + (rows.length > 300 ? '<div class="empty">Showing the latest 300 of ' + rows.length + '. Narrow the search.</div>' : '')
+    : '<div class="empty">' + (S.ready.parcels ? 'No parcels match. Create one from Parcel Entry.' : 'Loading parcels…') + '</div>';
+}
+$('#pl-q').addEventListener('input', renderParcels); $('#pl-status').addEventListener('change', renderParcels);
+document.addEventListener('click', e => { const b = e.target.closest('[data-open]'); if (b) openParcel(b.dataset.open); });
+
+let lastFocus = null;
+function closeModal() { $('#modal').hidden = true; S.openId = null; if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+$('#mClose').addEventListener('click', closeModal);
+$('#modal').addEventListener('click', e => { if (e.target === $('#modal')) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#modal').hidden) closeModal(); });
+
+function stepsHTML(p) {
+  const r = routeOf(p), leg = legOf(p);
+  return '<ol class="stops">' + r.map((b, i) => {
+    let cls = 'todo', tag = i === r.length - 1 ? 'Final destination' : 'Transit stop';
+    const passed = i === 0 ? 'Booked here' : 'Passed';
+    if (i < leg) { cls = 'done'; tag = passed; }
+    else if (i === leg) {
+      if (p.status === 'Received') { cls = 'done'; tag = 'Delivered'; }
+      else if (p.status === 'In Transit') { cls = 'done'; tag = passed; }
+      else { cls = 'here'; tag = 'Parcel is here'; }
+    } else if (i === leg + 1 && p.status === 'In Transit') { cls = 'next'; tag = 'Heading here'; }
+    return '<li class="' + cls + '"><div><b>' + esc(bName(b)) + '</b><span class="sub">' + esc(cName(brCo(b))) + ' · ' + tag + '</span></div></li>';
+  }).join('') + '</ol>';
+}
+
+async function openParcel(id) {
+  const p = S.parcels.find(x => x.id === id); if (!p) return;
+  const u = me(); if (!inScope(p, u)) return toast('This parcel is outside your access.', true);
+  if ($('#modal').hidden) lastFocus = document.activeElement;
+  S.openId = id; $('#modal').hidden = false; $('#mTitle').textContent = p.docket; $('#mClose').focus();
+  const used = (p.vehicles_used && p.vehicles_used.length ? p.vehicles_used : (p.vehicle_number ? [p.vehicle_number] : [])).join(', ');
+  $('#mBody').innerHTML = '<div style="display:flex;flex-direction:column;gap:16px">'
+    + '<div class="inline">' + pill(p.status) + (p.demo ? '<span class="pill demo">DEMO</span>' : '') + '<span class="muted">Booked ' + esc(fmt(p.created_at)) + '</span></div>'
+    + '<div class="where">' + esc(whereP(p)) + '</div>'
+    + '<div><h3 style="margin-bottom:6px">Route</h3>' + stepsHTML(p) + '</div>'
+    + '<div id="rrBox"></div>'
+    + '<dl class="dl"><div><dt>From</dt><dd>' + esc(bName(p.sender_branch_id)) + '<span class="sub">' + esc(cName(p.sender_company_id)) + '</span></dd></div><div><dt>To</dt><dd>' + esc(bName(p.receiver_branch_id)) + '<span class="sub">' + esc(cName(p.receiver_company_id)) + '</span></dd></div>'
+    + '<div><dt>Sender</dt><dd>' + esc(p.sender_name) + '<span class="sub mono">' + esc(p.sender_emp_id) + ' · ' + esc(p.sender_mobile) + '</span></dd></div><div><dt>Receiver</dt><dd>' + esc(p.receiver_name) + '<span class="sub mono">' + esc(p.receiver_emp_id) + ' · ' + esc(p.receiver_mobile) + '</span></dd></div>'
+    + '<div><dt>Contents</dt><dd>' + esc(p.contents) + '<span class="sub">' + esc(p.parcel_type) + ' · ' + esc(p.packages) + ' pkg · ' + esc(p.weight) + ' kg</span></dd></div><div><dt>Vehicles used</dt><dd class="mono">' + esc(used || '—') + '</dd></div></dl>'
+    + '<div class="inline" style="align-items:flex-start"><div>' + qrBlock('SMGP|' + p.docket, 130) + '</div><div style="display:flex;flex-direction:column;gap:8px"><b>Parcel label</b><span class="hint">Stick this QR on the parcel. The driver scans it to load and unload.</span><button class="btn sm" type="button" id="pq-dl">Save QR</button></div></div>'
+    + '<div><h3 style="margin-bottom:10px">Tracking</h3><ul class="tl" id="tlist"><li><span class="muted">Loading…</span></li></ul></div></div>';
+  $('#pq-dl').addEventListener('click', () => saveQr('SMGP|' + p.docket, 'parcel-' + p.docket + '.svg'));
+  if (canReroute(p, u)) drawReroute(p);
+  try {
+    const snap = await S.db.collection('tracking').where('parcel_id', '==', id).get();
+    if (S.openId !== id) return;
+    const items = snap.docs.map(x => x.data()).sort((a, b) => String(a.at).localeCompare(String(b.at)));
+    $('#tlist').innerHTML = items.length ? items.map(t => '<li><div><b>' + esc(t.status) + '</b> <span class="muted">' + esc(t.note || '') + '</span><div class="when">' + esc(fmt(t.at)) + (t.by ? ' · ' + esc(t.by) : '') + '</div></div></li>').join('') : '<li><span class="muted">No tracking events.</span></li>';
+  } catch (e) { if (S.openId === id) $('#tlist').innerHTML = '<li><span class="muted">Tracking could not be loaded.</span></li>'; }
+}
+
+/* change the remaining route of a parcel that is waiting at a branch */
+function drawReroute(p) {
+  let rr = routeOf(p).slice(legOf(p) + 1, -1);
+  const r = routeOf(p), here = curB(p), last = r[r.length - 1];
+  const box = $('#rrBox');
+  box.innerHTML = '<form id="rrForm" class="card" novalidate><h3>Change route</h3><p class="hint">The parcel is at ' + esc(bName(here)) + '. You can add, remove or reorder the transit stops after it. The final destination stays ' + esc(bName(last)) + '.</p>'
+    + '<ol class="stops" id="rrList"></ol>'
+    + '<div class="grid"><div class="f"><label for="rr-company">Add stop: company</label><select id="rr-company"></select></div><div class="f"><label for="rr-branch">Branch</label><select id="rr-branch" disabled></select></div><div class="f" style="justify-content:flex-end"><button class="btn" type="button" id="rr-add">Add stop</button></div></div>'
+    + '<small class="fe" id="rr-e"></small><div class="actions"><button class="btn primary" type="submit">Save route</button></div></form>';
+  fillStop('rr-company', 'rr-branch', false); wireStop('rr-company', 'rr-branch');
+  const draw = () => {
+    const row = (cls, b, tag, btns) => '<li class="' + cls + '"><div><b>' + esc(bName(b)) + '</b><span class="sub">' + esc(cName(brCo(b))) + ' · ' + tag + '</span></div>' + (btns || '') + '</li>';
+    $('#rrList').innerHTML = row('here', here, 'Parcel is here')
+      + rr.map((b, i) => row('todo', b, 'Transit stop ' + (i + 1), '<div class="rowbtns"><button type="button" class="btn sm" data-rr="up" data-i="' + i + '"' + (i === 0 ? ' disabled' : '') + '>Up</button><button type="button" class="btn sm" data-rr="down" data-i="' + i + '"' + (i === rr.length - 1 ? ' disabled' : '') + '>Down</button><button type="button" class="btn sm danger" data-rr="del" data-i="' + i + '">Remove</button></div>')).join('')
+      + row('todo', last, 'Final destination');
+  };
+  draw();
+  $('#rrList').addEventListener('click', e => {
+    const b = e.target.closest('[data-rr]'); if (!b) return;
+    const i = parseInt(b.dataset.i, 10);
+    if (b.dataset.rr === 'del') rr.splice(i, 1);
+    else if (b.dataset.rr === 'up' && i > 0) { const t = rr[i - 1]; rr[i - 1] = rr[i]; rr[i] = t; }
+    else if (b.dataset.rr === 'down' && i < rr.length - 1) { const t = rr[i + 1]; rr[i + 1] = rr[i]; rr[i] = t; }
+    draw();
+  });
+  $('#rr-add').addEventListener('click', () => {
+    const b = $('#rr-branch').value, e = $('#rr-e'); e.textContent = '';
+    if (!b) { e.textContent = 'Select the company and branch of the new stop.'; return; }
+    if (rr.includes(b) || r.slice(0, legOf(p) + 1).includes(b) || b === last) { e.textContent = 'This branch is already in the route.'; return; }
+    rr.push(b); $('#rr-branch').value = ''; draw();
+  });
+  $('#rrForm').addEventListener('submit', async ev => { ev.preventDefault(); await saveRoute(p, rr.slice()); });
+}
+async function saveRoute(p, via) {
+  const u = me();
+  await run(async () => {
+    if (!S.db) throw new VErr('Database not available.');
+    const s = await S.db.doc('parcels/' + p.id).get(); if (!s.exists) throw new VErr('Parcel no longer exists.');
+    const cur = Object.assign({ id: p.id }, s.data());
+    if (!canReroute(cur, u)) throw new VErr('The route can only be changed while the parcel is waiting at a branch, by someone who handles that branch.');
+    const r = routeOf(cur), leg = legOf(cur), done = r.slice(0, leg + 1), last = r[r.length - 1];
+    const seen = new Set(done);
+    for (const b of via) {
+      if (seen.has(b) || b === last) throw new VErr('A branch can appear only once in the route.');
+      await branchInfo(b, 'Transit stop'); seen.add(b);
+    }
+    const route = done.concat(via, [last]);
+    await S.db.doc('parcels/' + p.id).update({ route, next_branch_id: route[leg + 1] });
+    await S.db.collection('tracking').add({ parcel_id: p.id, docket: cur.docket, status: cur.status, note: 'Route changed: ' + route.map(bName).join(' → '), company_id: brCo(curB(cur)), branch_id: curB(cur), by: u.name, at: nowISO() });
+    await addLog('parcel.reroute', cur.docket + ': ' + route.map(bName).join(' → '), brCo(curB(cur)), curB(cur));
+    Object.assign(p, { route, next_branch_id: route[leg + 1] }); sched(); openParcel(p.id);
+  }, 'Route saved');
+}
+
+/* ---------- vehicles page ---------- */
+const normVeh = s => String(s || '').toUpperCase().replace(/[\s-]/g, '');
+const VEH_RE = /^[A-Z]{2}\d{1,2}[A-Z]{0,3}\d{4}$/;
+function resetVh() { $('#vh-id').value = ''; ['vh-number', 'vh-driver', 'vh-mobile'].forEach(i => { $('#' + i).value = ''; }); $('#vh-company').disabled = false; $('#vhFormTitle').textContent = 'Add vehicle'; $('#vhSave').textContent = 'Add vehicle'; $('#vhCancel').hidden = true; clearErrs($('#vhForm')); }
+$('#vhCancel').addEventListener('click', resetVh);
+$('#vhForm').addEventListener('submit', async ev => {
+  ev.preventDefault(); clearErrs($('#vhForm'));
+  const u = me(), id = $('#vh-id').value, cid = $('#vh-company').value, no = normVeh($('#vh-number').value), drv = $('#vh-driver').value.trim(); let mob = normMobile($('#vh-mobile').value);
+  let bad = false;
+  if (!cid) { setErr('vh-company', 'Select the company that owns the vehicle.'); bad = true; }
+  if (!VEH_RE.test(no)) { setErr('vh-number', 'Enter a number like RJ14GA1234.'); bad = true; }
+  else if (S.vehicles.some(v => v.id !== id && normVeh(v.vehicle_number) === no)) { setErr('vh-number', 'This vehicle is already registered.'); bad = true; }
+  if (mob && !MOBILE_RE.test(mob)) { setErr('vh-mobile', 'Enter a valid 10-digit mobile number.'); bad = true; }
+  if (bad) return;
+  await run(async () => {
+    if (!S.db) throw new VErr('Database not available.');
+    if (!canManageVehicles(u, cid)) throw new VErr('Only a Super Admin or the company admin can manage vehicles.');
+    const c = await S.db.doc('companies/' + cid).get(); if (!c.exists || c.data().status !== 'active') throw new VErr('Company is missing or inactive.');
+    if (id) { await S.db.doc('vehicles/' + id).update({ vehicle_number: no, company_id: cid, driver_name: drv, driver_mobile: mob, updated_at: nowISO() }); await addLog('vehicle.edit', no, cid); }
+    else {
+      const key = 'v_' + no, ex = await S.db.doc('vehicles/' + key).get(); if (ex.exists) throw new VErr('This vehicle is already registered.');
+      await S.db.doc('vehicles/' + key).set({ vehicle_number: no, company_id: cid, driver_name: drv, driver_mobile: mob, status: 'active', qr_code: 'SMGV|' + no, state: 'unknown', location_branch_id: '', from_branch_id: '', created_at: nowISO(), updated_at: nowISO() });
+      await addLog('vehicle.add', no, cid);
+    }
+    resetVh();
+  }, id ? 'Vehicle updated' : 'Vehicle added');
+});
+function renderVehicles() {
+  const u = me(); if (!u) return;
+  const mgr = canManageVehicles(u);
+  $('#vhForm').hidden = !mgr;
+  if (mgr) {
+    fill($('#vh-company'), scopeCompanies(u).filter(c => c.status === 'active').sort(bySort), c => c.company_name, 'Select company', true);
+    if (!isSuper(u) && !$('#vh-id').value) $('#vh-company').value = u.company_id || '';
+  }
+  const vs = scopeVehicles(u).slice().sort((a, b) => String(a.vehicle_number).localeCompare(String(b.vehicle_number)));
+  $('#vhTable').innerHTML = vs.length ? '<table><thead><tr><th>Vehicle</th><th>Company</th><th>Driver</th><th>Where it is now</th><th class="num">On board</th><th>Status</th><th></th></tr></thead><tbody>' + vs.map(v => {
+    const can = canManageVehicles(u, v.company_id), st = vState(v);
+    return '<tr><td class="mono"><b>' + esc(v.vehicle_number) + '</b>' + (v.demo ? ' <span class="pill demo">DEMO</span>' : '') + '</td><td>' + esc(cName(v.company_id)) + '</td><td>' + esc(v.driver_name || '—') + (v.driver_mobile ? '<span class="sub mono">' + esc(v.driver_mobile) + '</span>' : '') + '</td><td><span class="pill ' + (st === 'at_branch' ? 'h' : st === 'moving' ? 't' : 'demo') + '">' + (st === 'at_branch' ? 'At branch' : st === 'moving' ? 'Moving' : 'Unknown') + '</span><span class="sub">' + esc(vWhere(v)) + '</span></td><td class="num">' + onBoard(v).length + '</td><td>' + statusPill(v.status) + '</td><td><div class="rowbtns"><button class="btn sm" data-vh="qr" data-id="' + esc(v.id) + '">QR</button><button class="btn sm" data-vh="open" data-id="' + esc(v.id) + '">Scan page</button>' + (can ? '<button class="btn sm" data-vh="edit" data-id="' + esc(v.id) + '">Edit</button><button class="btn sm" data-vh="toggle" data-id="' + esc(v.id) + '">' + (v.status === 'inactive' ? 'Activate' : 'Deactivate') + '</button>' : '') + '</div></td></tr>';
+  }).join('') + '</tbody></table>' : '<div class="empty">' + (S.ready.vehicles ? 'No vehicles yet.' + (mgr ? ' Add the first one above.' : '') : 'Loading…') + '</div>';
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-vh]'); if (!b) return;
+  const id = b.dataset.id, v = S.vMap.get(id), act = b.dataset.vh; if (!v) return;
+  if (act === 'qr') openVehicleQR(id);
+  else if (act === 'open') { S.activeV = id; location.hash = '#scan'; sched(); }
+  else if (act === 'edit') { $('#vh-id').value = id; $('#vh-company').value = v.company_id; $('#vh-company').disabled = !isSuper(me()); $('#vh-number').value = v.vehicle_number; $('#vh-driver').value = v.driver_name || ''; $('#vh-mobile').value = v.driver_mobile || ''; $('#vhFormTitle').textContent = 'Edit vehicle'; $('#vhSave').textContent = 'Save changes'; $('#vhCancel').hidden = false; $('#vh-number').focus(); }
+  else if (act === 'toggle') {
+    const to = v.status === 'inactive' ? 'active' : 'inactive';
+    await run(async () => { if (!canManageVehicles(me(), v.company_id)) throw new VErr('Not allowed.'); if (to === 'inactive' && onBoard(v).length) throw new VErr('Unload the parcels on this vehicle before deactivating it.'); await S.db.doc('vehicles/' + id).update({ status: to }); await addLog('vehicle.' + to, v.vehicle_number, v.company_id); }, 'Vehicle ' + (to === 'active' ? 'activated' : 'deactivated'));
+  }
+});
+async function openVehicleQR(id) {
+  const v = S.vMap.get(id); if (!v) return;
+  if ($('#modal').hidden) lastFocus = document.activeElement;
+  S.openId = 'v:' + id; $('#modal').hidden = false; $('#mTitle').textContent = v.vehicle_number; $('#mClose').focus();
+  $('#mBody').innerHTML = '<div style="display:flex;flex-direction:column;gap:16px"><div class="inline" style="align-items:flex-start"><div>' + qrBlock(v.qr_code, 240) + '</div><div style="display:flex;flex-direction:column;gap:8px;min-width:0"><b>' + esc(cName(v.company_id)) + '</b><span class="mono">' + esc(v.qr_code) + '</span><span class="hint">This QR is permanent. It identifies the vehicle only and does not change with parcels or trips. Print it once and fix it on the vehicle.</span><div><button class="btn" type="button" id="vq-dl">Save QR</button></div></div></div><div><h3 style="margin-bottom:10px">Recent movement</h3><ul class="tl" id="vlist"><li><span class="muted">Loading…</span></li></ul></div></div>';
+  $('#vq-dl').addEventListener('click', () => saveQr(v.qr_code, 'vehicle-' + v.vehicle_number + '.svg'));
+  try {
+    const snap = await S.db.collection('vehicle_trips').where('vehicle_id', '==', id).get();
+    if (S.openId !== 'v:' + id) return;
+    const it = snap.docs.map(x => x.data()).sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, 25);
+    const txt = t => ({ arrive: 'Arrived at ' + bName(t.branch_id), depart: 'Left ' + bName(t.branch_id), load: 'Loaded ' + (t.docket || '') + ' at ' + bName(t.branch_id), unload: 'Unloaded ' + (t.docket || '') + ' at ' + bName(t.branch_id) }[t.event] || 'Dispatched ' + (t.docket || ''));
+    $('#vlist').innerHTML = it.length ? it.map(t => '<li><div><b>' + esc(txt(t)) + '</b><div class="when">' + esc(fmt(t.at)) + (t.by ? ' · ' + esc(t.by) : '') + '</div></div></li>').join('') : '<li><span class="muted">No movement yet.</span></li>';
+  } catch (e) { if (S.openId === 'v:' + id) $('#vlist').innerHTML = '<li><span class="muted">Movement could not be loaded.</span></li>'; }
+}
+
+/* ---------- scan & track ---------- */
+function setScan(msg, kind) { const b = $('#scanMsg'); if (!msg) { b.hidden = true; return; } b.hidden = false; b.className = 'banner ' + (kind || ''); b.textContent = msg; }
+function parseCode(raw) {
+  const s = String(raw || '').trim(); if (!s) return null;
+  let m = /^SMGV\|(.+)$/i.exec(s);
+  if (m) { const code = 'SMGV|' + normVeh(m[1]); const v = S.vehicles.find(x => String(x.qr_code).toUpperCase() === code); return v ? { type: 'vehicle', v } : { type: 'none', msg: 'This vehicle QR is not registered. Add the vehicle under Vehicles first.' }; }
+  m = /^SMGP\|(.+)$/i.exec(s);
+  const dk = (m ? m[1] : s).trim().toUpperCase();
+  const p = S.parcels.find(x => String(x.docket).toUpperCase() === dk); if (p) return { type: 'parcel', p };
+  const v = S.vehicles.find(x => normVeh(x.vehicle_number) === normVeh(s)); if (v) return { type: 'vehicle', v };
+  return { type: 'none', msg: m || /^SMG-\d{6}-\d{4}$/i.test(s) ? 'No parcel found with this docket.' : 'This code is not a vehicle QR, a parcel QR or a docket number.' };
+}
+async function handleCode(raw) {
+  const r = parseCode(raw); if (!r) return;
+  const u = me(); $('#scanParcel').hidden = true;
+  if (r.type === 'none') return setScan(r.msg, 'bad');
+  if (r.type === 'vehicle') {
+    S.activeV = r.v.id; S.scanMode = vState(r.v) === 'at_branch' ? (onBoard(r.v).some(p => nextB(p) === r.v.location_branch_id) ? 'unload' : S.scanMode) : S.scanMode;
+    setScan('Vehicle ' + r.v.vehicle_number + ': ' + vWhere(r.v) + '. ' + onBoard(r.v).length + ' parcel(s) on board.', 'ok'); renderScan(); return;
+  }
+  const p = r.p, v = S.vMap.get(S.activeV);
+  if (v && canOperate(u, v) && vState(v) === 'at_branch') {
+    if (S.scanMode === 'load' && p.status !== 'In Transit') { await loadParcel(v, p); return; }
+    if (S.scanMode === 'load' && p.status === 'In Transit' && p.vehicle_id === v.id) { setScan(p.docket + ' is already on ' + v.vehicle_number + '.', 'warn'); return; }
+    if (S.scanMode === 'unload' && p.status === 'In Transit' && p.vehicle_id === v.id) { await unloadParcel(v, p); return; }
+  }
+  showTracked(p);
+}
+function showTracked(p) {
+  setScan(p.docket + ': ' + whereP(p), 'ok');
+  const c = $('#scanParcel'); c.hidden = false;
+  c.innerHTML = '<div class="card-head"><h2>' + esc(p.docket) + '</h2>' + pill(p.status) + '</div><div class="where">' + esc(whereP(p)) + '</div>' + stepsHTML(p) + '<div class="actions"><button type="button" class="btn" data-open="' + esc(p.id) + '">Open full details</button></div>';
+}
+$('#scanForm').addEventListener('submit', ev => { ev.preventDefault(); const i = $('#scan-input'); const v = i.value; i.value = ''; handleCode(v); i.focus(); });
+$('#scan-veh').addEventListener('change', () => { const id = $('#scan-veh').value; if (!id) { S.activeV = null; renderScan(); return; } const v = S.vMap.get(id); if (v) handleCode(v.qr_code); });
+async function decodePhoto(file) {
+  let bmp;
+  try { bmp = window.createImageBitmap ? await createImageBitmap(file) : await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = URL.createObjectURL(file); }); }
+  catch (e) { return { err: 'This image could not be read.' }; }
+  const w0 = bmp.width, h0 = bmp.height, k = Math.min(1, 1400 / Math.max(w0, h0)), w = Math.round(w0 * k), h = Math.round(h0 * k);
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  const cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(bmp, 0, 0, w, h);
+  let tried = false;
+  if ('BarcodeDetector' in window) { try { tried = true; const d = new window.BarcodeDetector({ formats: ['qr_code'] }); const f = await d.detect(cv); if (f.length && f[0].rawValue) return { text: f[0].rawValue }; } catch (e) { /* fall through */ } }
+  if (typeof window.jsQR === 'function') { tried = true; const id = cx.getImageData(0, 0, w, h); const q = window.jsQR(id.data, w, h, { inversionAttempts: 'attemptBoth' }); if (q && q.data) return { text: q.data }; }
+  return { err: tried ? 'No QR code found in this photo. Retake it closer, in good light, with the whole code in view.' : 'Photo scanning is not available in this browser. Type the code instead.' };
+}
+
+/* ---------- live camera scanner ---------- */
+const cam = { stream: null, timer: 0, last: '', lastAt: 0, det: null, cv: null };
+function camMsg(t) { $('#camHint').textContent = t; }
+async function camStart() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { toast('Camera is not supported in this browser. Use Chrome or Safari on HTTPS.', true); return; }
+  try {
+    cam.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+  } catch (e) {
+    toast(e && e.name === 'NotAllowedError' ? 'Camera permission denied. Allow camera in the browser settings.' : 'Could not open the camera.', true); return;
+  }
+  const v = $('#camVideo'); v.srcObject = cam.stream; await v.play().catch(() => {});
+  $('#camBox').hidden = false; $('#camToggle').textContent = 'Close camera scanner';
+  if (!cam.det && 'BarcodeDetector' in window) { try { cam.det = new window.BarcodeDetector({ formats: ['qr_code'] }); } catch (e) { cam.det = null; } }
+  cam.cv = cam.cv || document.createElement('canvas');
+  camMsg('Point the camera at a vehicle or parcel QR. It keeps scanning until you close it.');
+  cam.timer = setInterval(camTick, 220);
+}
+function camStop() {
+  clearInterval(cam.timer); cam.timer = 0;
+  if (cam.stream) { cam.stream.getTracks().forEach(t => t.stop()); cam.stream = null; }
+  const v = $('#camVideo'); if (v) v.srcObject = null;
+  $('#camBox').hidden = true; $('#camToggle').textContent = 'Open camera scanner';
+}
+let camBusy = false;
+async function camTick() {
+  const v = $('#camVideo');
+  if (camBusy || !cam.stream || v.readyState < 2 || !v.videoWidth) return;
+  camBusy = true;
+  try {
+    const k = Math.min(1, 720 / Math.max(v.videoWidth, v.videoHeight));
+    const w = Math.round(v.videoWidth * k), h = Math.round(v.videoHeight * k);
+    cam.cv.width = w; cam.cv.height = h;
+    const cx = cam.cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(v, 0, 0, w, h);
+    let text = '';
+    if (cam.det) { try { const f = await cam.det.detect(cam.cv); if (f.length) text = f[0].rawValue || ''; } catch (e) { cam.det = null; } }
+    if (!text && typeof window.jsQR === 'function') { const q = window.jsQR(cx.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: 'dontInvert' }); if (q) text = q.data || ''; }
+    if (text) {
+      const now = Date.now();
+      if (text !== cam.last || now - cam.lastAt > 3500) {
+        cam.last = text; cam.lastAt = now;
+        if (navigator.vibrate) navigator.vibrate(60);
+        camMsg('Scanned: ' + text);
+        await handleCode(text);
+      }
+    }
+  } finally { camBusy = false; }
+}
+$('#camToggle').addEventListener('click', () => { cam.stream ? camStop() : camStart(); });
+window.addEventListener('hashchange', () => { if (S.view !== 'scan' && cam.stream) camStop(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && cam.stream) camStop(); });
+$('#scan-photo').addEventListener('change', async () => {
+  const f = $('#scan-photo').files && $('#scan-photo').files[0]; if (!f) return;
+  setScan('Reading photo…', '');
+  const r = await decodePhoto(f); $('#scan-photo').value = '';
+  if (r.text) handleCode(r.text); else setScan(r.err, 'bad');
+});
+
+function renderScan() {
+  const u = me(); const v = S.vMap.get(S.activeV);
+  const vs = scopeVehicles(u || {}).filter(x => x.status !== 'inactive').sort((a, b) => String(a.vehicle_number).localeCompare(String(b.vehicle_number)));
+  fill($('#scan-veh'), vs, x => x.vehicle_number + ' · ' + cName(x.company_id), 'No vehicle selected', true);
+  $('#scan-veh').value = v ? v.id : '';
+  $('#vehCard').hidden = !v;
+  if (!v) return;
+  const op = canOperate(u, v), at = vState(v) === 'at_branch' ? v.location_branch_id : null, ob = onBoard(v), st = vState(v);
+  $('#vc-title').textContent = v.vehicle_number;
+  $('#vc-state').innerHTML = '<div class="vstate"><span class="pill ' + (st === 'at_branch' ? 'h' : st === 'moving' ? 't' : 'demo') + '">' + (st === 'at_branch' ? 'At branch' : st === 'moving' ? 'Moving' : 'Location not set') + '</span><span class="where">' + esc(vWhere(v)) + '</span></div><div class="muted">' + esc(cName(v.company_id)) + (v.driver_name ? ' · Driver ' + esc(v.driver_name) : '') + (v.updated_at ? ' · Updated ' + esc(fmt(v.updated_at)) : '') + ' · ' + ob.length + ' parcel(s) on board</div>';
+  $('#vc-ops').hidden = !op; $('#vc-ops').style.display = op ? 'flex' : 'none';
+  if (op) {
+    fillStop('av-company', 'av-branch', true);
+    const key = v.id + ':' + st + ':' + (v.location_branch_id || v.from_branch_id || '');
+    if (S.avKey !== key) {
+      S.avKey = key;
+      const nx = ob.map(nextB).find(x => x && x !== at);
+      if (nx && brCo(nx)) { $('#av-company').value = brCo(nx); fillStop('av-company', 'av-branch', true); $('#av-branch').value = nx; }
+    }
+    $('#vc-modebar').hidden = !at;
+    $$('#vc-modebar [data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === S.scanMode)));
+    $('#vc-modehint').textContent = !at ? 'Mark where the vehicle has arrived to start unloading or loading.' : (S.scanMode === 'load' ? 'Loading at ' + bName(at) + ': scan each parcel QR, or press Load, to put it on this vehicle.' : 'Unloading at ' + bName(at) + ': scan each parcel QR, or press Unload, as it comes off the vehicle.');
+  }
+  const dueHere = at ? ob.filter(p => nextB(p) === at) : [];
+  let h = '<h3 style="margin:16px 0 8px">On board now (' + ob.length + ')</h3>';
+  h += ob.length ? '<div class="tbl"><table><thead><tr><th>Docket</th><th>Contents</th><th>Next stop</th><th>Final destination</th><th></th></tr></thead><tbody>' + ob.map(p => {
+    const due = at && nextB(p) === at;
+    return '<tr><td><button type="button" class="docket" data-open="' + esc(p.id) + '">' + esc(p.docket) + '</button></td><td>' + esc(p.contents) + '</td><td>' + esc(bName(nextB(p))) + '</td><td>' + esc(bName(routeOf(p).slice(-1)[0])) + '</td><td>' + (op && due ? '<button class="btn sm primary" data-vact="unload" data-id="' + esc(p.id) + '">Unload here</button>' : (at ? '<span class="muted">Stays on board</span>' : '')) + '</td></tr>';
+  }).join('') + '</tbody></table></div>' + (op && dueHere.length > 1 ? '<div class="actions" style="margin-top:10px"><button class="btn" data-vact="unload-all">Unload all ' + dueHere.length + ' parcels for ' + esc(bName(at)) + '</button></div>' : '') : '<div class="empty">Nothing on board.</div>';
+  if (at) {
+    const wait = S.parcels.filter(p => (p.status === 'Pending' || p.status === 'At Branch') && curB(p) === at && nextB(p));
+    h += '<h3 style="margin:16px 0 8px">Waiting at ' + esc(bName(at)) + ' (' + wait.length + ')</h3>';
+    h += wait.length ? '<div class="tbl"><table><thead><tr><th>Docket</th><th>Contents</th><th>Next stop</th><th>Final destination</th><th></th></tr></thead><tbody>' + wait.map(p => '<tr><td><button type="button" class="docket" data-open="' + esc(p.id) + '">' + esc(p.docket) + '</button></td><td>' + esc(p.contents) + '</td><td>' + esc(bName(nextB(p))) + '</td><td>' + esc(bName(routeOf(p).slice(-1)[0])) + '</td><td>' + (op ? '<button class="btn sm" data-vact="load" data-id="' + esc(p.id) + '">Load</button>' : '') + '</td></tr>').join('') + '</tbody></table></div>' : '<div class="empty">No parcels are waiting here.</div>';
+  }
+  $('#vc-lists').innerHTML = h;
+}
+$$('#vc-modebar [data-mode]').forEach(b => b.addEventListener('click', () => { S.scanMode = b.dataset.mode; renderScan(); }));
+$('#vc-close').addEventListener('click', () => { S.activeV = null; renderScan(); });
+$('#vc-qr').addEventListener('click', () => { if (S.activeV) openVehicleQR(S.activeV); });
+wireStop('av-company', 'av-branch');
+$('#av-go').addEventListener('click', () => { const v = S.vMap.get(S.activeV); if (v) arriveVehicle(v, $('#av-company').value, $('#av-branch').value); });
+$('#vc-depart').addEventListener('click', () => { const v = S.vMap.get(S.activeV); if (v) departVehicle(v); });
+$('#vc-lists').addEventListener('click', async e => {
+  const b = e.target.closest('[data-vact]'); if (!b) return;
+  const v = S.vMap.get(S.activeV); if (!v) return;
+  if (b.dataset.vact === 'unload-all') return unloadAll(v);
+  const p = S.parcels.find(x => x.id === b.dataset.id); if (!p) return;
+  if (b.dataset.vact === 'unload') await unloadParcel(v, p); else if (b.dataset.vact === 'load') await loadParcel(v, p);
+});
+
+/* ---------- vehicle actions, each re-checked against the stored data ---------- */
+async function doOp(fn, okText) {
+  try { const r = await fn(); const t = typeof okText === 'function' ? okText(r) : okText; setScan(t, 'ok'); toast(t); sched(); return true; }
+  catch (e) { const t = errText(e); setScan(t, 'bad'); toast(t, true); return false; }
+}
+async function freshVP(v, p) {
+  const u = me();
+  if (!S.db) throw new VErr('Database not available.');
+  if (!canOperate(u, v)) throw new VErr('You cannot operate this vehicle.');
+  const [vs, ps] = await Promise.all([S.db.doc('vehicles/' + v.id).get(), p ? S.db.doc('parcels/' + p.id).get() : Promise.resolve(null)]);
+  if (!vs.exists) throw new VErr('Vehicle not found.');
+  const vc = Object.assign({ id: v.id }, vs.data());
+  if (vc.status === 'inactive') throw new VErr('This vehicle is inactive.');
+  let pc = null; if (p) { if (!ps.exists) throw new VErr('Parcel not found.'); pc = Object.assign({ id: p.id }, ps.data()); }
+  return { vc, pc, u };
+}
+async function arriveVehicle(v, companyId, branchId) {
+  if (!companyId || !branchId) { setScan('Select the company and branch the vehicle has reached.', 'bad'); return; }
+  await doOp(async () => {
+    const { vc, u } = await freshVP(v);
+    const info = await assertBranch(companyId, branchId, 'Arrival branch');
+    if (vState(vc) === 'at_branch' && vc.location_branch_id === branchId) throw new VErr(vc.vehicle_number + ' is already marked at ' + info.b.branch_name + '.');
+    const at = nowISO(), patch = { state: 'at_branch', location_branch_id: branchId, from_branch_id: '', updated_at: at };
+    await S.db.doc('vehicles/' + v.id).update(patch);
+    await S.db.collection('vehicle_trips').add({ vehicle_id: v.id, vehicle_number: vc.vehicle_number, event: 'arrive', branch_id: branchId, company_id: companyId, at, by: u.name });
+    const ob = S.parcels.filter(p => p.status === 'In Transit' && p.vehicle_id === v.id);
+    for (const p of ob) await S.db.collection('tracking').add({ parcel_id: p.id, docket: p.docket, status: 'In Transit', note: vc.vehicle_number + ' reached ' + info.b.branch_name, company_id: companyId, branch_id: branchId, by: u.name, at });
+    await addLog('vehicle.arrive', vc.vehicle_number + ' at ' + info.b.branch_name, companyId, branchId);
+    Object.assign(v, patch); S.scanMode = ob.some(p => nextB(p) === branchId) ? 'unload' : 'load';
+    return { name: vc.vehicle_number, branch: info.b.branch_name, due: ob.filter(p => nextB(p) === branchId).length };
+  }, r => r.name + ' is now at ' + r.branch + (r.due ? '. ' + r.due + ' parcel(s) to unload here.' : '.'));
+}
+async function departVehicle(v) {
+  await doOp(async () => {
+    const { vc, u } = await freshVP(v);
+    if (vState(vc) !== 'at_branch') throw new VErr('The vehicle is not at a branch.');
+    const loc = vc.location_branch_id, ob = S.parcels.filter(p => p.status === 'In Transit' && p.vehicle_id === v.id);
+    const due = ob.filter(p => nextB(p) === loc);
+    if (due.length) throw new VErr(due.length + ' parcel(s) on board are meant for ' + bName(loc) + '. Unload them first, or change their route.');
+    const at = nowISO(), patch = { state: 'moving', from_branch_id: loc, location_branch_id: '', updated_at: at };
+    await S.db.doc('vehicles/' + v.id).update(patch);
+    await S.db.collection('vehicle_trips').add({ vehicle_id: v.id, vehicle_number: vc.vehicle_number, event: 'depart', branch_id: loc, company_id: brCo(loc), at, by: u.name });
+    for (const p of ob) await S.db.collection('tracking').add({ parcel_id: p.id, docket: p.docket, status: 'In Transit', note: vc.vehicle_number + ' left ' + bName(loc) + ', heading to ' + bName(nextB(p)), company_id: brCo(loc), branch_id: loc, by: u.name, at });
+    await addLog('vehicle.depart', vc.vehicle_number + ' left ' + bName(loc), brCo(loc), loc);
+    Object.assign(v, patch);
+    return { name: vc.vehicle_number, from: bName(loc), n: ob.length };
+  }, r => r.name + ' left ' + r.from + ' with ' + r.n + ' parcel(s).');
+}
+async function loadParcel(v, p) {
+  await doOp(async () => {
+    const { vc, pc, u } = await freshVP(v, p);
+    if (vState(vc) !== 'at_branch') throw new VErr('Mark where the vehicle has arrived before loading.');
+    const loc = vc.location_branch_id;
+    if (pc.status === 'In Transit') throw new VErr(pc.docket + ' is already on a vehicle.');
+    if (pc.status === 'Received') throw new VErr(pc.docket + ' has already been delivered.');
+    if (curB(pc) !== loc) throw new VErr(pc.docket + ' is at ' + bName(curB(pc)) + ', not at ' + bName(loc) + '.');
+    const nx = nextB(pc); if (!nx) throw new VErr(pc.docket + ' has no next stop.');
+    await branchInfo(loc, 'Vehicle location'); const nxi = await branchInfo(nx, 'Next stop');
+    const at = nowISO(), used = (pc.vehicles_used || []).filter(x => x !== vc.vehicle_number).concat([vc.vehicle_number]);
+    const patch = { status: 'In Transit', vehicle_id: v.id, vehicle_number: vc.vehicle_number, vehicle_company_id: vc.company_id, vehicles_used: used, current_branch_id: '', from_branch_id: loc, next_branch_id: nx, dispatched_at: at };
+    await S.db.doc('parcels/' + p.id).update(patch);
+    await S.db.collection('dispatches').add({ parcel_id: p.id, docket: pc.docket, vehicle_id: v.id, vehicle_number: vc.vehicle_number, company_id: brCo(loc), branch_id: loc, from_branch_id: loc, to_branch_id: nx, at, by: u.name });
+    await S.db.collection('vehicle_trips').add({ vehicle_id: v.id, vehicle_number: vc.vehicle_number, event: 'load', branch_id: loc, company_id: brCo(loc), parcel_id: p.id, docket: pc.docket, at, by: u.name });
+    await S.db.collection('tracking').add({ parcel_id: p.id, docket: pc.docket, status: 'In Transit', note: 'Loaded on ' + vc.vehicle_number + ' at ' + bName(loc) + ', heading to ' + nxi.b.branch_name, company_id: brCo(loc), branch_id: loc, by: u.name, at });
+    await addLog('parcel.load', pc.docket + ' on ' + vc.vehicle_number + ' at ' + bName(loc), brCo(loc), loc);
+    Object.assign(p, patch);
+    return { d: pc.docket, no: vc.vehicle_number, nx: nxi.b.branch_name };
+  }, r => r.d + ' loaded on ' + r.no + ', now In Transit to ' + r.nx + '.');
+}
+async function unloadParcel(v, p) {
+  await doOp(async () => {
+    const { vc, pc, u } = await freshVP(v, p);
+    if (vState(vc) !== 'at_branch') throw new VErr('Mark where the vehicle has arrived before unloading.');
+    const loc = vc.location_branch_id;
+    if (pc.status !== 'In Transit' || pc.vehicle_id !== v.id) throw new VErr(pc.docket + ' is not on ' + vc.vehicle_number + '.');
+    if (nextB(pc) !== loc) throw new VErr(pc.docket + ' is meant for ' + bName(nextB(pc)) + ', not ' + bName(loc) + '. Change its route first if this is intended.');
+    await branchInfo(loc, 'Unload branch');
+    const r = routeOf(pc), nl = legOf(pc) + 1, fin = nl === r.length - 1, at = nowISO();
+    const patch = fin ? { status: 'Received', leg: nl, current_branch_id: loc, next_branch_id: '', vehicle_id: '', received_at: at, received_by: u.name }
+      : { status: 'At Branch', leg: nl, current_branch_id: loc, next_branch_id: r[nl + 1], vehicle_id: '' };
+    await S.db.doc('parcels/' + p.id).update(patch);
+    await S.db.collection('vehicle_trips').add({ vehicle_id: v.id, vehicle_number: vc.vehicle_number, event: 'unload', branch_id: loc, company_id: brCo(loc), parcel_id: p.id, docket: pc.docket, at, by: u.name });
+    await S.db.collection('tracking').add({ parcel_id: p.id, docket: pc.docket, status: fin ? 'Received' : 'At Branch', note: fin ? 'Delivered at ' + bName(loc) + ' (unloaded from ' + vc.vehicle_number + ')' : 'Unloaded at ' + bName(loc) + ', waiting for the next vehicle to ' + bName(r[nl + 1]), company_id: brCo(loc), branch_id: loc, by: u.name, at });
+    if (fin) await S.db.collection('parcel_receipts').add({ parcel_id: p.id, docket: pc.docket, company_id: brCo(loc), branch_id: loc, received_by: u.name, note: 'Unloaded from ' + vc.vehicle_number, vehicle_id: v.id, at });
+    await addLog(fin ? 'parcel.receive' : 'parcel.hub', pc.docket + ' at ' + bName(loc), brCo(loc), loc);
+    Object.assign(p, patch);
+    return { d: pc.docket, fin, b: bName(loc), nx: fin ? '' : bName(r[nl + 1]) };
+  }, r => r.fin ? r.d + ' delivered at ' + r.b + '. Status: Received.' : r.d + ' unloaded at ' + r.b + '. Status: At Branch, next stop ' + r.nx + '.');
+}
+async function unloadAll(v) {
+  const at = vState(v) === 'at_branch' ? v.location_branch_id : null; if (!at) return;
+  const list = onBoard(v).filter(p => nextB(p) === at); let n = 0;
+  for (const p of list) { const ok = await unloadParcel(v, p); if (!ok) break; n++; }
+  if (n) { setScan(n + ' parcel(s) unloaded at ' + bName(at) + '.', 'ok'); }
+}
+
+/* ---------- reports ---------- */
+let rpRows = [];
+function syncReportFilters() {
+  const u = me(); if (!u) return;
+  const cos = scopeCompanies(u).slice().sort(bySort);
+  const co = $('#rp-company'), br = $('#rp-branch');
+  fill(co, cos, c => c.company_name, isSuper(u) ? 'All companies' : null, true);
+  if (!isSuper(u)) { co.value = u.company_id || ''; co.disabled = true; } else co.disabled = false;
+  const cid = co.value;
+  const brs = cid ? scopeBranches(u).filter(b => b.company_id === cid).sort(brCmp) : [];
+  fill(br, brs, b => b.branch_name + (b.status !== 'active' ? ' (inactive)' : ''), cid ? 'All branches' : 'Pick a company first', true);
+  if (u.role === 'branch_employee') { br.value = u.branch_id || ''; br.disabled = true; } else br.disabled = !cid;
+}
+function runReport() {
+  const u = me(); if (!u) return;
+  const cid = $('#rp-company').value, bid = $('#rp-branch').value, side = $('#rp-side').value, from = $('#rp-from').value, to = $('#rp-to').value, st = $('#rp-status').value, veh = $('#rp-vehicle').value.toUpperCase().replace(/[\s-]/g, '');
+  const sOK = p => bid ? p.sender_branch_id === bid : (cid ? p.sender_company_id === cid : true);
+  const rOK = p => bid ? p.receiver_branch_id === bid : (cid ? p.receiver_company_id === cid : true);
+  const viaOK = p => { const mid = routeOf(p).slice(1, -1); return bid ? mid.includes(bid) : (cid ? mid.some(b => brCo(b) === cid) : mid.length > 0); };
+  rpRows = S.parcels.filter(p => inScope(p, u)
+    && (side === 'sent' ? sOK(p) : side === 'received' ? rOK(p) : side === 'via' ? viaOK(p) : (sOK(p) || rOK(p)))
+    && (!st || p.status === st)
+    && (!from || ldate(p.created_at) >= from) && (!to || ldate(p.created_at) <= to)
+    && (!veh || [p.vehicle_number].concat(p.vehicles_used || []).some(x => String(x || '').toUpperCase().replace(/[\s-]/g, '').includes(veh))));
+  const T = tally(rpRows);
+  $('#rpSummary').innerHTML = '<b>' + T.t + ' parcels</b> ' + (T.p ? pill('Pending').replace('Pending', T.p + ' Pending') : '') + (T.i ? pill('In Transit').replace('In Transit', T.i + ' In Transit') : '') + (T.h ? pill('At Branch').replace('At Branch', T.h + ' At Branch') : '') + (T.r ? pill('Received').replace('Received', T.r + ' Received') : '');
+  $('#rpTable').innerHTML = rpRows.length ? '<table><thead><tr><th>Docket</th><th>Booked</th><th>From</th><th>To</th><th class="num">Pkgs</th><th class="num">Kg</th><th>Status</th><th>Vehicle</th></tr></thead><tbody>' +
+    rpRows.slice(0, 200).map(p => '<tr><td><button type="button" class="docket" data-open="' + esc(p.id) + '">' + esc(p.docket) + '</button></td><td>' + esc(fmt(p.created_at)) + '</td><td>' + partyCell(p.sender_company_id, p.sender_branch_id) + '</td><td>' + partyCell(p.receiver_company_id, p.receiver_branch_id) + '</td><td class="num">' + esc(p.packages) + '</td><td class="num">' + esc(p.weight) + '</td><td>' + pill(p.status) + '</td><td class="mono">' + esc(p.vehicle_number || '—') + '</td></tr>').join('') + '</tbody></table>'
+    + (rpRows.length > 200 ? '<div class="empty">Showing 200 of ' + rpRows.length + ' rows. The CSV has all of them.</div>' : '')
+    : '<div class="empty">No parcels match these filters.</div>';
+  $('#rpCsv').disabled = !rpRows.length;
+}
+$('#rp-company').addEventListener('change', () => { $('#rp-branch').value = ''; syncReportFilters(); runReport(); });
+['rp-branch', 'rp-side', 'rp-from', 'rp-to', 'rp-status'].forEach(id => $('#' + id).addEventListener('change', runReport));
+$('#rp-vehicle').addEventListener('input', runReport);
+const csvCell = v => { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+$('#rpCsv').addEventListener('click', async () => {
+  if (!S.dl) return toast('Downloads are not available in this view.', true);
+  const head = ['Docket', 'Booked', 'Sending Company', 'Sending Branch', 'Sender', 'Receiving Company', 'Receiving Branch', 'Receiver', 'Type', 'Packages', 'Weight kg', 'Status', 'Vehicles', 'Route'];
+  const lines = [head.join(',')].concat(rpRows.map(p => [p.docket, fmt(p.created_at), cName(p.sender_company_id), bName(p.sender_branch_id), p.sender_name, cName(p.receiver_company_id), bName(p.receiver_branch_id), p.receiver_name, p.parcel_type, p.packages, p.weight, p.status, (p.vehicles_used && p.vehicles_used.length ? p.vehicles_used : [p.vehicle_number]).filter(Boolean).join(' / '), routeOf(p).map(bName).join(' > ')].map(csvCell).join(',')));
+  try { await S.dl.save({ filename: 'parcel-report-' + ldate(nowISO()) + '.csv', data: '﻿' + lines.join('\r\n') }); toast('CSV ready'); }
+  catch (e) { if (!e || e.code !== 'declined') toast('Could not save the CSV.', true); }
+});
+
+/* ---------- admin ---------- */
+const needSuper = () => { if (!isSuper(me())) throw new VErr('Only a Super Admin can change this.'); if (!S.db) throw new VErr('Database not available.'); };
+const nextSort = list => list.reduce((m, x) => Math.max(m, x.sort || 0), 0) + 1;
+function adminTab(a) { S.admin = a; $$('#adminTabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.a === a))); ['companies', 'branches', 'employees', 'activity'].forEach(k => { $('#a-' + k).hidden = k !== a; }); }
+$$('#adminTabs button').forEach(b => b.addEventListener('click', () => adminTab(b.dataset.a)));
+const statusPill = s => s === 'inactive' ? '<span class="pill off">Inactive</span>' : '<span class="pill on">Active</span>';
+
+/* companies */
+function resetCo() { $('#co-id').value = ''; $('#co-name').value = ''; $('#co-code').value = ''; $('#coFormTitle').textContent = 'Add company'; $('#coSave').textContent = 'Add company'; $('#coCancel').hidden = true; clearErrs($('#coForm')); }
+$('#coCancel').addEventListener('click', resetCo);
+$('#coForm').addEventListener('submit', async ev => {
+  ev.preventDefault(); clearErrs($('#coForm'));
+  const id = $('#co-id').value, name = $('#co-name').value.trim(), code = $('#co-code').value.trim().toUpperCase();
+  let bad = false;
+  if (name.length < 3) { setErr('co-name', 'Enter the company name.'); bad = true; }
+  else if (S.companies.some(c => c.id !== id && c.company_name.toLowerCase() === name.toLowerCase())) { setErr('co-name', 'A company with this name exists.'); bad = true; }
+  if (!/^[A-Z0-9]{2,6}$/.test(code)) { setErr('co-code', 'Use 2–6 letters or digits.'); bad = true; }
+  else if (S.companies.some(c => c.id !== id && String(c.company_code).toUpperCase() === code)) { setErr('co-code', 'This code is taken.'); bad = true; }
+  if (bad) return;
+  await run(async () => {
+    needSuper();
+    if (id) { await S.db.doc('companies/' + id).update({ company_name: name, company_code: code }); await addLog('company.edit', name); }
+    else { await S.db.doc('companies/co_' + code.toLowerCase()).set({ company_name: name, company_code: code, status: 'active', created_at: nowISO(), sort: nextSort(S.companies) }); await addLog('company.add', name); }
+    resetCo();
+  }, id ? 'Company updated' : 'Company added');
+});
+function renderAdminCompanies() {
+  const rows = S.companies.slice().sort(bySort);
+  $('#coAdminTable').innerHTML = rows.length ? '<table><thead><tr><th>Company</th><th>Code</th><th class="num">Branches</th><th>Status</th><th></th></tr></thead><tbody>' + rows.map(c => {
+    const n = S.branches.filter(b => b.company_id === c.id), a = n.filter(b => b.status === 'active').length;
+    return '<tr><td><b>' + esc(c.company_name) + '</b></td><td class="mono">' + esc(c.company_code) + '</td><td class="num">' + a + ' / ' + n.length + '</td><td>' + statusPill(c.status) + '</td><td><div class="rowbtns"><button class="btn sm" data-act="co-edit" data-id="' + esc(c.id) + '">Edit</button><button class="btn sm" data-act="co-toggle" data-id="' + esc(c.id) + '">' + (c.status === 'inactive' ? 'Activate' : 'Deactivate') + '</button></div></td></tr>';
+  }).join('') + '</tbody></table>' : '<div class="empty">' + (S.ready.companies ? 'No companies yet. Add the first one above.' : 'Loading…') + '</div>';
+  const orphans = S.branches.filter(b => !S.cMap.has(b.company_id));
+  const ob = $('#orphanBanner'); ob.hidden = !orphans.length; if (orphans.length) ob.textContent = orphans.length + ' branch(es) point to a company that does not exist: ' + orphans.map(b => b.branch_name).join(', ');
+}
+
+/* branches */
+function resetBr() { $('#br-id').value = ''; ['br-name', 'br-code', 'br-contact', 'br-address'].forEach(i => { $('#' + i).value = ''; }); $('#br-company').disabled = false; $('#brFormTitle').textContent = 'Add branch'; $('#brSave').textContent = 'Add branch'; $('#brCancel').hidden = true; clearErrs($('#brForm')); }
+$('#brCancel').addEventListener('click', resetBr);
+$('#brForm').addEventListener('submit', async ev => {
+  ev.preventDefault(); clearErrs($('#brForm'));
+  const id = $('#br-id').value, cid = $('#br-company').value, name = $('#br-name').value.trim(); let code = $('#br-code').value.trim().toUpperCase(), contact = $('#br-contact').value.trim(), addr = $('#br-address').value.trim();
+  let bad = false;
+  if (!cid) { setErr('br-company', 'Select a company.'); bad = true; }
+  if (name.length < 2) { setErr('br-name', 'Enter the branch name.'); bad = true; }
+  else if (S.branches.some(b => b.id !== id && b.company_id === cid && b.branch_name.toLowerCase() === name.toLowerCase())) { setErr('br-name', 'This company already has that branch.'); bad = true; }
+  if (code && !/^[A-Z0-9-]{2,12}$/.test(code)) { setErr('br-code', 'Use 2–12 letters, digits or dash.'); bad = true; }
+  else if (code && S.branches.some(b => b.id !== id && String(b.branch_code).toUpperCase() === code)) { setErr('br-code', 'This code is taken.'); bad = true; }
+  if (contact && !/^[0-9+\s-]{7,14}$/.test(contact)) { setErr('br-contact', 'Enter a valid phone number.'); bad = true; }
+  if (bad) return;
+  await run(async () => {
+    needSuper();
+    const c = await S.db.doc('companies/' + cid).get(); if (!c.exists) throw new VErr('Company not found.');
+    if (!code) { const pre = String(c.data().company_code || 'BR').toUpperCase(); let n = S.branches.filter(b => b.company_id === cid).length + 1; while (S.branches.some(b => String(b.branch_code).toUpperCase() === pre + '-' + pad(n))) n++; code = pre + '-' + pad(n); }
+    if (id) { await S.db.doc('branches/' + id).update({ branch_name: name, branch_code: code, contact_number: contact, address: addr }); await addLog('branch.edit', name, cid, id); }
+    else { await S.db.doc('branches/br_' + uid()).set({ company_id: cid, branch_name: name, branch_code: code, contact_number: contact, address: addr, status: 'active', created_at: nowISO(), sort: nextSort(S.branches.filter(b => b.company_id === cid)) }); await addLog('branch.add', name, cid); }
+    resetBr();
+  }, id ? 'Branch updated' : 'Branch added');
+});
+$('#brFilter').addEventListener('change', renderAdminBranches);
+function renderAdminBranches() {
+  fill($('#brFilter'), S.companies.slice().sort(bySort), c => c.company_name, 'All companies', true);
+  const f = $('#brFilter').value;
+  const rows = S.branches.filter(b => !f || b.company_id === f).sort(brCmp);
+  $('#brAdminTable').innerHTML = rows.length ? '<table><thead><tr><th>Branch</th><th>Company</th><th>Code</th><th>Contact</th><th>Status</th><th></th></tr></thead><tbody>' + rows.map(b =>
+    '<tr><td><b>' + esc(b.branch_name) + '</b>' + (b.address ? '<span class="sub">' + esc(b.address) + '</span>' : '') + '</td><td>' + esc(cName(b.company_id)) + '</td><td class="mono">' + esc(b.branch_code) + '</td><td>' + esc(b.contact_number || '—') + '</td><td>' + statusPill(b.status) + '</td><td><div class="rowbtns"><button class="btn sm" data-act="br-edit" data-id="' + esc(b.id) + '">Edit</button><button class="btn sm" data-act="br-toggle" data-id="' + esc(b.id) + '">' + (b.status === 'inactive' ? 'Activate' : 'Deactivate') + '</button></div></td></tr>').join('') + '</tbody></table>'
+    : '<div class="empty">No branches found.</div>';
+}
+
+/* employees */
+function syncEmBranches(keep) {
+  const cid = $('#em-company').value, br = $('#em-branch'), role = $('#em-role').value;
+  const rows = cid ? S.branches.filter(b => b.company_id === cid && b.status === 'active').sort(brCmp) : [];
+  fill(br, rows, b => b.branch_name, cid ? ((role === 'company_admin' || role === 'driver') ? 'No specific branch' : 'Select branch') : 'Select company first', keep);
+  br.disabled = !cid || role === 'super_admin' || !rows.length;
+  $('#em-company').disabled = role === 'super_admin';
+}
+function renderEmForm() { fill($('#em-company'), S.companies.filter(c => c.status === 'active').sort(bySort), c => c.company_name, 'Select company', true); syncEmBranches(true); }
+$('#em-company').addEventListener('change', () => { syncEmBranches(false); setErr('em-company'); setErr('em-branch'); });
+$('#em-role').addEventListener('change', () => { if ($('#em-role').value === 'super_admin') { $('#em-company').value = ''; } syncEmBranches(true); });
+function resetEm() { $('#em-pass').value = ''; $('#em-id').value = ''; ['em-empid', 'em-name', 'em-mobile'].forEach(i => { $('#' + i).value = ''; }); $('#em-role').value = 'branch_employee'; $('#em-company').value = ''; syncEmBranches(false); $('#emFormTitle').textContent = 'Add employee'; $('#emSave').textContent = 'Add employee'; $('#emCancel').hidden = true; clearErrs($('#emForm')); }
+$('#emCancel').addEventListener('click', resetEm);
+$('#emForm').addEventListener('submit', async ev => {
+  ev.preventDefault(); clearErrs($('#emForm'));
+  const id = $('#em-id').value, eid = $('#em-empid').value.trim(), name = $('#em-name').value.trim(), mob = normMobile($('#em-mobile').value), role = $('#em-role').value, cid = $('#em-company').value, bid = $('#em-branch').value;
+  let bad = false;
+  if (!EMP_RE.test(eid)) { setErr('em-empid', 'Use 2–20 letters, digits, dot, dash or underscore.'); bad = true; }
+  else if (S.employees.some(e => e.id !== id && String(e.employee_id).toLowerCase() === eid.toLowerCase())) { setErr('em-empid', 'This employee ID is already used.'); bad = true; }
+  if (name.length < 2) { setErr('em-name', 'Enter the name.'); bad = true; }
+  if (!MOBILE_RE.test(mob)) { setErr('em-mobile', 'Enter a valid 10-digit mobile number.'); bad = true; }
+  if (role !== 'super_admin' && !cid) { setErr('em-company', 'Assign a company.'); bad = true; }
+  if (role === 'branch_employee' && !bid) { setErr('em-branch', 'Assign a branch.'); bad = true; }
+  const pw = $('#em-pass').value;
+  if (!id && pw.length < 8) { setErr('em-pass', 'Set a password of at least 8 characters.'); bad = true; }
+  else if (id && pw && pw.length < 8) { setErr('em-pass', 'Password must be at least 8 characters.'); bad = true; }
+  if (bad) return;
+  await run(async () => {
+    needSuper();
+    if (role !== 'super_admin') {
+      if (bid) await assertBranch(cid, bid, 'Assignment');
+      else { const c = await S.db.doc('companies/' + cid).get(); if (!c.exists || c.data().status !== 'active') throw new VErr('Company is missing or inactive.'); }
+    }
+    const rec = { employee_id: eid, name, mobile: mob, role, company_id: role === 'super_admin' ? null : cid, branch_id: role === 'super_admin' ? null : (bid || null) };
+    if (id) { const old = S.employees.find(e => e.id === id) || {}; if (old.employee_id && String(old.employee_id).toLowerCase() !== eid.toLowerCase()) throw new VErr('Employee ID is the login username and cannot be changed.'); if (old.role && old.role !== role) await window.__tpApi({ action: 'setRole', username: eid, role }); if (pw) await window.__tpApi({ action: 'setPassword', username: eid, password: pw }); await S.db.doc('employees/' + id).update(rec); await addLog('employee.edit', eid + ' — ' + ROLE[role], rec.company_id, rec.branch_id); }
+    else { await window.__tpApi({ action: 'create', username: eid, password: pw, name, role }); const key = 'emp_' + eid.toLowerCase().replace(/[^a-z0-9_.-]/g, '_'); await S.db.doc('employees/' + key).set(Object.assign(rec, { status: 'active', created_at: nowISO() })); await addLog('employee.add', eid + ' — ' + ROLE[role], rec.company_id, rec.branch_id); }
+    resetEm();
+  }, id ? 'Employee updated' : 'Employee added');
+});
+function renderAdminEmployees() {
+  const rows = S.employees.slice().sort((a, b) => (ROLE_ORDER[a.role] - ROLE_ORDER[b.role]) || String(a.name).localeCompare(String(b.name)));
+  $('#emAdminTable').innerHTML = rows.length ? '<table><thead><tr><th>Employee</th><th>Role</th><th>Company</th><th>Branch</th><th>Status</th><th></th></tr></thead><tbody>' + rows.map(e =>
+    '<tr><td><b>' + esc(e.name) + '</b>' + (e.demo ? ' <span class="pill demo">DEMO</span>' : '') + '<span class="sub mono">' + esc(e.employee_id) + ' · ' + esc(e.mobile) + '</span></td><td>' + esc(ROLE[e.role] || e.role) + '</td><td>' + (e.company_id ? esc(cName(e.company_id)) : 'All') + '</td><td>' + (e.branch_id ? esc(bName(e.branch_id)) : (e.role === 'super_admin' ? 'All' : '—')) + '</td><td>' + statusPill(e.status) + '</td><td><div class="rowbtns"><button class="btn sm" data-act="em-edit" data-id="' + esc(e.id) + '">Edit</button><button class="btn sm" data-act="em-toggle" data-id="' + esc(e.id) + '">' + (e.status === 'inactive' ? 'Activate' : 'Deactivate') + '</button></div></td></tr>').join('') + '</tbody></table>'
+    : '<div class="empty">No employees yet. Add a Super Admin first.</div>';
+}
+function renderLogs() {
+  $('#logTable').innerHTML = S.logs.length ? '<table><thead><tr><th>When</th><th>User</th><th>Action</th><th>Detail</th><th>Branch</th></tr></thead><tbody>' + S.logs.map(l => '<tr><td>' + esc(fmt(l.at)) + '</td><td>' + esc(l.user_name || '—') + '</td><td class="mono">' + esc(l.action) + '</td><td>' + esc(l.detail || '') + '</td><td>' + esc(l.branch_id ? bName(l.branch_id) : '—') + '</td></tr>').join('') + '</tbody></table>' : '<div class="empty">No activity yet.</div>';
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const id = b.dataset.id, act = b.dataset.act;
+  if (act === 'co-edit') { const c = S.cMap.get(id); if (!c) return; $('#co-id').value = id; $('#co-name').value = c.company_name; $('#co-code').value = c.company_code; $('#coFormTitle').textContent = 'Edit company'; $('#coSave').textContent = 'Save changes'; $('#coCancel').hidden = false; $('#co-name').focus(); }
+  else if (act === 'br-edit') { const x = S.bMap.get(id); if (!x) return; $('#br-id').value = id; $('#br-company').value = x.company_id; $('#br-company').disabled = true; $('#br-name').value = x.branch_name; $('#br-code').value = x.branch_code || ''; $('#br-contact').value = x.contact_number || ''; $('#br-address').value = x.address || ''; $('#brFormTitle').textContent = 'Edit branch'; $('#brSave').textContent = 'Save changes'; $('#brCancel').hidden = false; $('#br-name').focus(); }
+  else if (act === 'em-edit') { const x = S.employees.find(q => q.id === id); if (!x) return; $('#em-id').value = id; $('#em-empid').value = x.employee_id; $('#em-name').value = x.name; $('#em-mobile').value = x.mobile || ''; $('#em-role').value = x.role; $('#em-company').value = x.company_id || ''; syncEmBranches(false); $('#em-branch').value = x.branch_id || ''; $('#emFormTitle').textContent = 'Edit employee'; $('#emSave').textContent = 'Save changes'; $('#emCancel').hidden = false; $('#em-name').focus(); }
+  else if (act.endsWith('-toggle')) {
+    const map = { 'co-toggle': ['companies', S.companies, 'Company'], 'br-toggle': ['branches', S.branches, 'Branch'], 'em-toggle': ['employees', S.employees, 'Employee'] }[act];
+    const row = map[1].find(q => q.id === id); if (!row) return; const to = row.status === 'inactive' ? 'active' : 'inactive';
+    await run(async () => { needSuper(); if (act === 'em-toggle' && to === 'inactive' && id === S.meId) throw new VErr('You cannot deactivate the account you are signed in with.'); if (act === 'em-toggle') await window.__tpApi({ action: 'setDisabled', username: row.employee_id, disabled: to === 'inactive' }); await S.db.doc(map[0] + '/' + id).update({ status: to }); await addLog(map[2].toLowerCase() + '.' + to, row.company_name || row.branch_name || row.name, row.company_id || (map[0] === 'companies' ? id : null), map[0] === 'branches' ? id : row.branch_id); }, map[2] + ' ' + (to === 'active' ? 'activated' : 'deactivated'));
+  }
+});
+$('#demoWipe').addEventListener('click', async () => {
+  await run(async () => {
+    needSuper(); let n = 0;
+    for (const c of ['parcels', 'tracking', 'dispatches', 'vehicle_trips', 'parcel_receipts', 'vehicles']) {
+      const s = await S.db.collection(c).where('demo', '==', true).get();
+      for (const d of s.docs) { await S.db.doc(c + '/' + d.id).delete(); if (c === 'parcels') n++; }
+    }
+    S.parcels = S.parcels.filter(p => !p.demo); await addLog('demo.remove', n + ' demo parcels'); sched();
+  }, 'Demo parcels removed');
+});
+
+/* ---------- sign-in, routing, render loop ---------- */
+const empCmp = (a, b) => (ROLE_ORDER[a.role] - ROLE_ORDER[b.role]) || String(a.name).localeCompare(String(b.name));
+function renderLogin() {
+  const u = me(); S.meId = u ? u.id : null;
+  $('#whoName').textContent = u ? u.name + ' — ' + (ROLE[u.role] || u.role) : (S.ready.employees ? 'No profile for "' + S.uname + '". Ask the Super Admin.' : 'Loading…');
+  $('#whoMeta').textContent = !u ? '' : isSuper(u) ? 'All companies · all branches' : ((u.role === 'company_admin' || u.role === 'driver') ? cName(u.company_id) + ' · all branches' : cName(u.company_id) + ' · ' + bName(u.branch_id));
+}
+$('#logoutBtn').addEventListener('click', async () => { try { await firebase.auth().signOut(); } catch (e) { /* ignore */ } location.replace('/'); });
+function closeModalSilent() { $('#modal').hidden = true; S.openId = null; }
+function route() {
+  let v = (location.hash || '#dashboard').slice(1); if (VIEWS.indexOf(v) < 0) v = 'dashboard';
+  const u = me(); const adm = isSuper(u);
+  if (v === 'admin' && !adm && S.ready.employees) v = 'dashboard';
+  S.view = v; $('#tab-admin').hidden = !adm;
+  $$('main > .view').forEach(s => { s.hidden = s.id !== 'v-' + v; });
+  $$('#tabs a').forEach(a => a.setAttribute('aria-current', a.dataset.v === v ? 'page' : 'false'));
+}
+window.addEventListener('hashchange', () => { route(); sched(); });
+
+function banner() {
+  const b = $('#banner');
+  if (!S.db) { b.hidden = false; b.className = 'banner bad'; b.textContent = 'Database is not connected.'; return; }
+  if (S.err) { b.hidden = false; b.className = 'banner bad'; b.textContent = 'The database returned an error (' + S.err + '). Reload the page.'; return; }
+  if (S.ready.companies && !S.companies.length) { b.hidden = false; b.className = 'banner warn'; b.textContent = 'No companies found in the database. A Super Admin can add them under Admin Settings.'; return; }
+  if (!S.ready.companies || !S.ready.branches) { if (S.slow) { b.hidden = false; b.className = 'banner warn'; b.textContent = 'Still connecting to the database. Data shown may be out of date.'; return; } }
+  b.hidden = true;
+}
+let raf = 0; function sched() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; renderAll(); }); }
+function renderAll() {
+  reindex(); renderLogin(); route(); banner();
+  syncEntry(); syncReportFilters();
+  if (S.view === 'dashboard') renderDashboard();
+  if (S.view === 'parcels') renderParcels();
+  if (S.view === 'reports') runReport();
+  if (S.view === 'scan') renderScan();
+  if (S.view === 'vehicles') renderVehicles();
+  if (S.view === 'admin') {
+    renderAdminCompanies(); renderAdminBranches(); renderAdminEmployees(); renderLogs();
+    fill($('#br-company'), S.companies.slice().sort(bySort), c => c.company_name, 'Select company', true);
+    if (!$('#br-id').value) $('#br-company').disabled = false;
+    renderEmForm();
+  }
+}
+
+/* ---------- boot ---------- */
+route(); renderAll();
+const FB_CFG = { apiKey: 'AIzaSyCn8SG8bRCUekJ7KOOQKYyBnIbhGim7wk0', authDomain: 'assertion-record.firebaseapp.com', projectId: 'assertion-record', storageBucket: 'assertion-record.firebasestorage.app', messagingSenderId: '454128517792', appId: '1:454128517792:web:a0b3b8dba55e29a829bfc5' };
+const ADMIN_EMAIL = 'techpoint.chandu@gmail.com', TP_DOMAIN = '@transport.local';
+firebase.initializeApp(FB_CFG);
+const auth = firebase.auth(), fs = firebase.firestore();
+/* Transport data lives in its own collections (tp_*), separate from the asset tracker */
+S.db = { collection: n => fs.collection('tp_' + n), doc: p => fs.doc('tp_' + p) };
+const user = await new Promise(res => { const un = auth.onAuthStateChanged(u => { un(); res(u); }); });
+if (!user) { location.replace('/'); return; }
+const tok = await user.getIdTokenResult();
+const mail = (user.email || '').toLowerCase();
+S.owner = mail === ADMIN_EMAIL;
+if (!S.owner && !(tok.claims.tp === true && mail.endsWith(TP_DOMAIN))) { await auth.signOut(); location.replace('/'); return; }
+S.uname = S.owner ? 'owner' : mail.slice(0, -TP_DOMAIN.length);
+$('#homeLink').hidden = !S.owner;
+document.body.style.visibility = 'visible';
+auth.onAuthStateChanged(u => { if (!u) location.replace('/'); });
+S.dl = { save: async ({ filename, data }) => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([data], { type: 'image/svg+xml' }));
+  a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+} };
+async function tpApi(body) {
+  const tk = await auth.currentUser.getIdToken();
+  const r = await fetch('/api/tp-users', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tk }, body: JSON.stringify(body) });
+  let j = {}; try { j = await r.json(); } catch (e) { /* ignore */ }
+  if (!r.ok) throw new VErr(j.error || ('Server error ' + r.status));
+  return j;
+}
+window.__tpApi = tpApi;
+if (!S.db) { banner(); return; }
+const slowT = setTimeout(() => { S.slow = true; sched(); }, 10000);
+function listen(name, q, assign) {
+  q.onSnapshot(s => { assign(s.docs.map(d => Object.assign({ id: d.id }, d.data()))); S.ready[name] = true; if (S.ready.companies && S.ready.branches && S.ready.employees && S.ready.parcels) clearTimeout(slowT); sched(); },
+    e => { S.err = e && e.code; sched(); });
+}
+listen('companies', S.db.collection('companies'), r => { S.companies = r; });
+listen('branches', S.db.collection('branches'), r => { S.branches = r; });
+listen('employees', S.db.collection('employees'), r => { S.employees = r; });
+listen('vehicles', S.db.collection('vehicles'), r => { S.vehicles = r; });
+listen('parcels', S.db.collection('parcels').orderBy('created_at', 'desc').limit(1000), r => { S.parcels = r; });
+listen('logs', S.db.collection('activity_logs').orderBy('at', 'desc').limit(60), r => { S.logs = r; });
+})();
+</script>
+
+</body></html>
